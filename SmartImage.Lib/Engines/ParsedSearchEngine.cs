@@ -17,9 +17,9 @@ public abstract class ParsedSearchEngine<TItem, TIntermediate, TSource> : BaseSe
 	protected ParsedSearchEngine([NN] Url url) : base(url) { }
 
 
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken ct = default)
 	{
-		var res = await base.GetResultAsync(query, token);
+		var res = await base.GetResultAsync(query, ct);
 
 		TSource src = default;
 
@@ -27,7 +27,7 @@ public abstract class ParsedSearchEngine<TItem, TIntermediate, TSource> : BaseSe
 			goto ret;
 		}
 
-		src = await GetSourceAsync(res, query: query, token: token);
+		src = await GetSourceAsync(res, query: query, token: ct);
 
 		if (!ValidateSource(src)) {
 			goto ret;

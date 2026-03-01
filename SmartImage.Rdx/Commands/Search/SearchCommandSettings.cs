@@ -10,6 +10,7 @@ using System.Text;
 using Novus.Win32;
 using SmartImage.Lib;
 using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Utilities.Integration;
 using SmartImage.Rdx.Commands;
 using SmartImage.Rdx.Commands.Common;
 using SmartImage.Rdx.Shell;
@@ -24,6 +25,8 @@ public sealed class SearchCommandSettings : CommonCommandSettings
 	[CommandArgument(0, "<query>")]
 	[Description($"Query: file or URL. Specify {QUERY_DEFAULT_CLIPBOARD} to read from clipboard (Windows only)")]
 	public string? Query { get; private set; }
+
+	public const string QUERY_DEFAULT_CLIPBOARD = "<clipboard>";
 
 #region
 
@@ -83,8 +86,6 @@ public sealed class SearchCommandSettings : CommonCommandSettings
 	[Description("Interactive results")]
 	public bool Interactive { get; private set; }
 
-	public const string QUERY_DEFAULT_CLIPBOARD = "<clipboard>";
-
 	public override ValidationResult Validate()
 	{
 		var result = base.Validate();
@@ -94,43 +95,7 @@ public sealed class SearchCommandSettings : CommonCommandSettings
 				return ValidationResult.Error("Clipboard input is only supported on Windows");
 			}
 
-			Clipboard.Open();
-
-			string? data = null;
-
-			var autoEpicMap = new Dictionary<ClipboardFormat, Func<string>>()
-			{
-				{ ClipboardFormat.FileNameW, Clipboard.GetFileName },
-				{ ClipboardFormat.CF_TEXT, static () => Clipboard.GetData((uint) ClipboardFormat.CF_TEXT).ToString() },
-				{ ClipboardFormat.CF_HDROP, static () => Clipboard.GetDragQueryList().FirstOrDefault() },
-			};
-
-			foreach ((ClipboardFormat fmt, Func<string> fn) in autoEpicMap) {
-				if (Clipboard.IsFormatAvailable((uint) fmt)) {
-					var dataClip = fn();
-
-					if (!String.IsNullOrWhiteSpace(dataClip) && UniImage.IsValidSourceType(dataClip)) {
-						data = dataClip;
-						break;
-					}
-				}
-			}
-
-			Clipboard.Close();
-
-
-			/*if (Clipboard.IsFormatAvailable((uint) ClipboardFormat.FileNameW)) {
-				data = Clipboard.GetFileName();
-			}
-			else if (Clipboard.IsFormatAvailable((uint) ClipboardFormat.CF_TEXT)) {
-				data = Clipboard.GetData((uint) ClipboardFormat.CF_TEXT).ToString();
-			}
-			else if (Clipboard.IsFormatAvailable((uint) ClipboardFormat.CF_HDROP)) {
-				data = Clipboard.GetDragQueryList().FirstOrDefault();
-			}
-			else {
-				return ValidationResult.Error($"No valid clipboard format detected");
-			}*/
+			string? data = WindowsOSIntegration.TryGetClipboardData();
 
 			if (data != null) {
 				Query = data;

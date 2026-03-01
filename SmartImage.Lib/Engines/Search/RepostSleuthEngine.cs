@@ -39,9 +39,9 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 	public override void Dispose() { }
 
 
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken ct = default)
 	{
-		var sr = await base.GetResultAsync(query, token);
+		var sr = await base.GetResultAsync(query, ct);
 
 		RepostSleuthResult obj = null;
 
@@ -50,9 +50,9 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 				                     .WithTimeout(Timeout)
 				                     .PostMultipartAsync(buildContent: content =>
 				                     {
-					                     var stream = query.Source.GetSourceStream();
+					                     var stream = query.Source.GetSource();
 					                     content.AddFile("image", stream, query.Source.Name);
-				                     }, cancellationToken: token);
+				                     }, cancellationToken: ct);
 
 			if (response.StatusCode == 530) {
 				goto ret;	

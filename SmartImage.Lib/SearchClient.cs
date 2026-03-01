@@ -200,7 +200,7 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 
 		return Engines.Select(e =>
 		{
-			var res = e.GetResultAsync(query, token: token).ContinueWith((c, tk) =>
+			var res = e.GetResultAsync(query, ct: token).ContinueWith((c, tk) =>
 			{
 				var sr = c.Result;
 

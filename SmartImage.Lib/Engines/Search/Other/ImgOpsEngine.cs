@@ -17,10 +17,10 @@ public sealed class ImgOpsEngine : BaseSearchEngine, IUploadEngine
 
 	UploadEngineOptions INamedEnumOption<UploadEngineOptions>.Option => UploadEngineOptions.ImgOps;
 
-	public Task<UploadResult> UploadAsync(UniImage query, CancellationToken ct = default)
+	public Task<UploadResult> UploadAsync(IUniImage query, CancellationToken ct = default)
 	{
 		// stopgap
-		return UploadFileAsync(query.LocalFilePath, ct);
+		return UploadFileAsync(query.Value, ct);
 	}
 
 	public async Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default)
@@ -47,7 +47,7 @@ public sealed class ImgOpsEngine : BaseSearchEngine, IUploadEngine
 		return new UploadResult(default, default);
 	}
 
-	public void Verify(UniImage file)
+	public void Verify(IUniImage file)
 	{
 		throw new NotImplementedException();
 	}

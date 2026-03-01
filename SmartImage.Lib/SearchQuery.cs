@@ -96,7 +96,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 			return true;
 		}
 
-		ue ??= BaseUploadEngine.GetUploadEngine(SearchConfig.UPLOAD_ENGINE_DEFAULT); //todo
+		ue ??= BaseUploadEngine.GetUploadEngine(SearchConfig.UE_DEFAULT); //todo
 
 		ue.Verify(Source);
 

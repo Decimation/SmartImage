@@ -73,7 +73,7 @@ public class UniImageUrl : UniImage, IUrl
 
 	public virtual async ValueTask<bool> ScanAsync(ChannelWriter<IUniImage> cw, Func<Url, IUniImage> f, CancellationToken ct = default)
 	{
-		var (allocOk, allocImgOk) = await AllocAll(ct);
+		var (allocOk, allocImgOk) = await AllocAllAsync(ct);
 
 		if (allocImgOk) {
 			await cw.WriteAsync((IUniImage) this, ct);
@@ -81,7 +81,7 @@ public class UniImageUrl : UniImage, IUrl
 			return true;
 		}
 
-		await using var stream = GetSourceStream();
+		await using var stream = GetSource();
 
 		using var sr  = new StreamReader(stream);
 		var       str = await sr.ReadToEndAsync(ct);
@@ -94,7 +94,7 @@ public class UniImageUrl : UniImage, IUrl
 		{
 			var item = f(s);
 
-			var (allocOk2, allocImgOk2) = await item.AllocAll(token);
+			var (allocOk2, allocImgOk2) = await item.AllocAllAsync(token);
 
 			if (allocImgOk2) {
 				await cw.WriteAsync(item, token);

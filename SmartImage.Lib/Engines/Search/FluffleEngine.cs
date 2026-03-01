@@ -1,4 +1,5 @@
-﻿using Flurl.Http;
+﻿using Argon;
+using Flurl.Http;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Utilities;
 
@@ -6,27 +7,27 @@ namespace SmartImage.Lib.Engines.Search;
 
 public class FluffleEngine : BaseSearchEngine, IDisposable
 {
+
 	public override SearchEngineOptions Option => SearchEngineOptions.Fluffle;
 
-	public const string URL_ENDPOINT = "https://api.fluffle.xyz/v1/";
 	public const string URL_BASE     = "https://fluffle.xyz/";
+	public const string URL_API_BASE = "https://api.fluffle.xyz";
+	public const string URL_ENDPOINT = $"{URL_API_BASE}/v1/";
+	public const string URL_API_NEW  = $"{URL_API_BASE}/exact-search-by-file";
+
+
+	// todo: update to new API
 
 	public FluffleEngine() : base(URL_BASE)
 	{
 		MaxLength = 4_194_304; // MiB
-
-		// Timeout = TimeSpan.FromSeconds(10);
 	}
 
 
 	public Url Endpoint => URL_ENDPOINT;
 
-
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
+	private async Task<bool> GetLegacyResponseAsync(SearchResult sr, SearchQuery query, CancellationToken ct = default)
 	{
-
-		var sr = await base.GetResultAsync(query, token);
-
 		IFlurlResponse response = null;
 
 		if (sr.Status == SearchResultStatus.IllegalInput) {
@@ -34,23 +35,22 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 			goto ret;
 		}
 
-		var hdr = $"{R1.Name}/{AppSupport.Version} (by {R1.Author} on GitHub)";
-
+		const int LIM_MAX = 32;
 
 		response = await Client.Request(Endpoint, "search")
-			           .WithHeaders(new
-			           {
-				           User_Agent = hdr
-			           })
-			           .WithTimeout(Timeout)
-			           .OnError(e => { e.ExceptionHandled = true; })
-			           .PostMultipartAsync(c =>
-			           {
-				           var file = query.Source.WriteImageToFile();
-				           c.AddFile("file", file, "file");
-				           c.AddString("includeNsfw", true.ToString());
-				           c.AddString("limit", 32.ToString());
-			           }, cancellationToken: token).ConfigureAwait(false);
+		                       .WithHeaders(new
+		                       {
+			                       User_Agent = $"{R1.Name}/{AppSupport.Version}"
+		                       })
+		                       .WithTimeout(Timeout)
+		                       .OnError(e => { e.ExceptionHandled = true; })
+		                       .PostMultipartAsync(c =>
+		                       {
+			                       var file = query.Source.WriteImageToFile();
+			                       c.AddFile("file", file, "file");
+			                       c.AddString("includeNsfw", true.ToString());
+			                       c.AddString("limit", LIM_MAX.ToString());
+		                       }, cancellationToken: ct).ConfigureAwait(false);
 
 		if (response is { ResponseMessage.IsSuccessStatusCode: false }) {
 			var er = await response.GetJsonAsync<FluffleErrorCode>().ConfigureAwait(false);
@@ -69,15 +69,21 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 
 		var fr = await response.GetJsonAsync<FluffleResponse>().ConfigureAwait(false);
 		sr.Results.EnsureCapacity(sr.Results.Count + fr.Results.Count);
-		foreach (FluffleResult result in fr.Results) {
-			var item = await result.ToItem(sr);
-			sr.Results.Add(item);
-		}
-
+		sr.Results.AddRange(fr.Results.Select(result => result.ToItem(sr)));
 		sr.Status = SearchResultStatus.Success;
+
 	ret:
-		sr.Update();
 		response?.Dispose();
+		return true;
+	}
+
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken ct = default)
+	{
+
+		var sr = await base.GetResultAsync(query, ct);
+		var ok = await GetLegacyResponseAsync(sr, query, ct);
+
+		sr.Update();
 		return sr;
 	}
 
@@ -85,8 +91,6 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 	{
 		return base.GetRawUrl(query);
 	}
-
-	
 
 	public override void Dispose()
 	{
@@ -149,19 +153,18 @@ public class FluffleResult
 	[JPN("credits")]
 	public List<FluffleResultCredit> Credits { get; set; }
 
-	public ValueTask<SearchResultItem> ToItem(SearchResult sr)
+	public SearchResultItem ToItem(SearchResult sr)
 	{
-
 		var sri = new SearchResultItem(sr)
 		{
 			Artist     = Credits.FirstOrDefault()?.Name,
 			Url        = Location,
-			Similarity = Math.Round(Score * 1000.0d, 2),
+			Similarity = Math.Round(Score * 100.0d, 2),
 			Metadata   = this,
 			Thumbnail  = Thumbnail?.Location,
 			Site       = Platform
 		};
-		return ValueTask.FromResult(sri);
+		return sri;
 	}
 
 }

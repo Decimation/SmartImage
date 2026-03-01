@@ -5,7 +5,7 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Upload;
 
-[Obsolete]
+[Obsolete("No longer in service")]
 public sealed class PomfEngine : BaseUploadEngine
 {
 

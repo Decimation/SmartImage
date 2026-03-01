@@ -7,6 +7,7 @@ using Spectre.Console.Rendering;
 
 namespace SmartImage.Rdx.Commands.Search;
 
+// todo
 internal class ConsoleAction
 {
 

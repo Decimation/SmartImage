@@ -29,6 +29,7 @@ using SmartImage.Rdx.Commands.Common;
 using SmartImage.Rdx.Commands.Integration;
 using SmartImage.Rdx.Commands.Search;
 using SmartImage.Rdx.Commands.Server;
+using SmartImage.Shared;
 
 #pragma warning disable CS8601 // Possible null reference assignment.
 
@@ -88,7 +89,7 @@ public static class Program
 #endif
 		});
 
-		int x = BaseOSIntegration.EC_OK;
+		int x = Common.EC_OK;
 
 		try {
 			x = await app.RunAsync(args, Cts.Token);
@@ -96,11 +97,11 @@ public static class Program
 		}
 		catch (Exception e) {
 			AnsiConsole.WriteException(e);
-			x = BaseOSIntegration.EC_ERROR;
+			x = Common.EC_ERROR;
 		}
 		finally {
 
-			if (x != BaseOSIntegration.EC_OK) {
+			if (x != Common.EC_OK) {
 				await AnsiConsole.ConfirmAsync("Press any key to continue");
 			}
 		}

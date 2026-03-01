@@ -50,7 +50,7 @@ public sealed class YandexEngine : BaseSearchEngine
 	}
 
 
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken ct = default)
 	{
 		var url = GetRawUrl(query);
 		var sr  = new SearchResult(this, url) { };
@@ -63,7 +63,7 @@ public sealed class YandexEngine : BaseSearchEngine
 				      .WithAutoRedirect(true)
 				      .AllowAnyHttpStatus()
 				      .WithTimeout(Timeout)
-				      .GetAsync(cancellationToken: token).ConfigureAwait(false);
+				      .GetAsync(cancellationToken: ct).ConfigureAwait(false);
 
 			string str = await res.GetStringAsync().ConfigureAwait(false);
 

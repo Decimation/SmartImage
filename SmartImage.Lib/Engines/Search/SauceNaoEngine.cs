@@ -58,7 +58,7 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 	public override SearchEngineOptions Option => SearchEngineOptions.SauceNao;
 
 
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken ct = default)
 	{
 		// var result = await base.GetResultAsync(query, token);
 		var b = VerifyQuery(query);
@@ -79,7 +79,7 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 		}
 		else {
 
-			var src = await GetSourceAsync(result, query, token).ConfigureAwait(false);
+			var src = await GetSourceAsync(result, query, ct).ConfigureAwait(false);
 
 			if (src is null || result is { Status: SearchResultStatus.Cooldown }) {
 				goto ret1;

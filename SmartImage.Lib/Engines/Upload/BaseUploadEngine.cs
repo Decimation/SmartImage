@@ -8,28 +8,12 @@ using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Diagnostics;
 
+#pragma warning disable CS0618 // Type or member is obsolete
+#pragma warning disable CS0612
 namespace SmartImage.Lib.Engines.Upload;
 
 public abstract class BaseUploadEngine : IUploadEngine, IDisposable
 {
-	public Url Url { get; }
-
-	public string Name => Option.ToString();
-
-	/// <summary>
-	/// Max file size, in bytes
-	/// </summary>
-	public abstract long? MaxLength { get; }
-
-	public abstract UploadEngineOptions Option { get; }
-
-	public TimeSpan Timeout { get; protected set; }
-
-	protected BaseUploadEngine(Url s)
-	{
-		Url     = s;
-		Timeout = TimeSpan.FromSeconds(15);
-	}
 
 	protected static readonly ILogger Logger = AppSupport.Factory.CreateLogger(nameof(BaseUploadEngine));
 
@@ -50,6 +34,25 @@ public abstract class BaseUploadEngine : IUploadEngine, IDisposable
 		});
 	}
 
+	public Url Url { get; }
+
+	public string Name => Option.ToString();
+
+	/// <summary>
+	/// Max file size, in bytes
+	/// </summary>
+	public abstract long? MaxLength { get; }
+
+	public abstract UploadEngineOptions Option { get; }
+
+	public TimeSpan Timeout { get; protected set; }
+
+	protected BaseUploadEngine(Url s)
+	{
+		Url     = s;
+		Timeout = TimeSpan.FromSeconds(15);
+	}
+
 	public static IUploadEngine GetUploadEngine(UploadEngineOptions options)
 	{
 		return options switch
@@ -58,14 +61,13 @@ public abstract class BaseUploadEngine : IUploadEngine, IDisposable
 			UploadEngineOptions.Litterbox => new LitterboxEngine(),
 			UploadEngineOptions.Pomf      => new PomfEngine(),
 			UploadEngineOptions.ImgOps    => new ImgOpsEngine(),
-			UploadEngineOptions.TmpFiles    => new TmpFilesEngine(),
+			UploadEngineOptions.TmpFiles  => new TmpFilesEngine(),
+
 			UploadEngineOptions.None or _ => throw new ArgumentOutOfRangeException(nameof(options), options, null)
 		};
 	}
 
-	//todo
-
-	public virtual Task<UploadResult> UploadAsync(UniImage query, CancellationToken ct = default)
+	public virtual Task<UploadResult> UploadAsync(IUniImage query, CancellationToken ct = default)
 	{
 		Verify(query);
 
@@ -82,7 +84,7 @@ public abstract class BaseUploadEngine : IUploadEngine, IDisposable
 
 	public abstract Task<UploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default);
 
-	public void Verify(UniImage file)
+	public void Verify(IUniImage file)
 	{
 		if (file.Length > MaxLength) {
 			throw new ArgumentException($"File {file} is too large (max {MaxLength}) for {Name}");

@@ -151,7 +151,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		await initTask;
 
-		var queryCi = new CanvasImage(Query.Source.GetSourceStream());
+		var queryCi = new CanvasImage(Query.Source.GetSource());
 
 		var ciPanel = new Panel(queryCi)
 		{
@@ -211,7 +211,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			await AnsiConsole.ConfirmAsync("Exit", cancellationToken: m_cts.Token);
 		}
 
-		return BaseOSIntegration.EC_OK;
+		return Shared.Common.EC_OK;
 	}
 
 
@@ -431,7 +431,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		var val = m_previewCanvasCache.Get(key);
 
 		if (val is not CanvasImage ci) {
-			str = sri.GetSourceStream();
+			str = sri.GetSource();
 			ci  = new CanvasImage(str) { };
 
 			m_previewCanvasCache.Set(key, ci, cip);

@@ -6,6 +6,7 @@ using Flurl.Http;
 using Flurl.Http.Content;
 using SmartImage.Lib.Utilities;
 
+#pragma warning disable CS0618 // Type or member is obsolete
 namespace SmartImage.Lib.Engines.Upload;
 
 public sealed class LitterboxEngine : BaseCatboxEngine

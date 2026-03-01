@@ -2,6 +2,7 @@
 // Date: 2025/12/27 @ 22:12:49
 
 global using SizeIS = SixLabors.ImageSharp.Size;
+using System.Data;
 #nullable disable
 using System.Reflection;
 using Kantan.Text;
@@ -332,6 +333,26 @@ internal static class Renderables
 		}
 
 		return grd;
+	}
+
+	public static SpcTable ToSpcTable(this DTable dt)
+	{
+		var t = new SpcTable();
+
+		foreach (DataColumn row in dt.Columns) {
+			t.AddColumn(new TableColumn(row.ColumnName));
+		}
+
+		Func<object, IRenderable> selector = Renderables.AsRenderable;
+
+		foreach (DataRow row in dt.Rows) {
+			var obj = row.ItemArray
+			             .Select(selector);
+
+			t.AddRow(obj);
+		}
+
+		return t;
 	}
 
 }

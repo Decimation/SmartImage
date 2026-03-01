@@ -56,7 +56,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// <summary>
 	/// Default value for <see cref="UploadEngine"/>
 	/// </summary>
-	public const UploadEngineOptions UPLOAD_ENGINE_DEFAULT = UploadEngineOptions.TmpFiles;
+	public const UploadEngineOptions UE_DEFAULT = UploadEngineOptions.TmpFiles;
 
 #endregion
 
@@ -85,7 +85,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// </summary>
 	public UploadEngineOptions UploadEngine
 	{
-		get => Get(UPLOAD_ENGINE_DEFAULT);
+		get => Get(UE_DEFAULT);
 		set => Set(value);
 	}
 

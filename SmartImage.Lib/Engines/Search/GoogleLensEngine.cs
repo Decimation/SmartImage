@@ -54,9 +54,9 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 	// public FlurlCookie Nid { get; set; }
 
 
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken ct = default)
 	{
-		var br = await base.GetResultAsync(query, token);
+		var br = await base.GetResultAsync(query, ct);
 
 		return br;
 	}

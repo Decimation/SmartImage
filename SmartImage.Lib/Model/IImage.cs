@@ -10,7 +10,7 @@ namespace SmartImage.Lib.Model;
 
 public interface IImage : ISize, ISimilarity, IHashable
 {
-
+	[MN]
 	IImageFormat ImageFormat => Image?.Metadata.DecodedImageFormat;
 
 	[MNNW(true, nameof(ImageFormat), nameof(Image))]

@@ -89,7 +89,7 @@ public abstract class BaseSearchEngine : INamedEnumOption<SearchEngineOptions>, 
 	}
 
 
-	public virtual Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
+	public virtual Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken ct = default)
 	{
 		var b = VerifyQuery(query);
 

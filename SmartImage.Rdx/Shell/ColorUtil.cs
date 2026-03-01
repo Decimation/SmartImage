@@ -12,23 +12,20 @@ namespace SmartImage.Rdx.Shell;
 
 internal static class ColorUtil
 {
-
-	public const double BYTE_D = Byte.MaxValue;
-
 	private const double LUM_DELTA = 0.05;
 
-	extension(SpcColor c)
+	extension(SpcColor colorA)
 	{
 
 		public double GetLuminance()
 		{
-			return 0.2126 * c.R / BYTE_D + 0.7152 * c.G / BYTE_D + 0.0722 * c.B / BYTE_D;
+			return 0.2126 * colorA.R / Byte.MaxValue + 0.7152 * colorA.G / Byte.MaxValue + 0.0722 * colorA.B / Byte.MaxValue;
 		}
 
-		public double GetContrastRatio(SpcColor color2)
+		public double GetContrastRatio(SpcColor colorB)
 		{
-			double luminance1 = c.GetLuminance();
-			double luminance2 = color2.GetLuminance();
+			double luminance1 = colorA.GetLuminance();
+			double luminance2 = colorB.GetLuminance();
 
 			if (luminance1 > luminance2)
 				return (luminance1 + LUM_DELTA) / (luminance2 + LUM_DELTA);
@@ -38,9 +35,9 @@ internal static class ColorUtil
 
 		public IEnumerable<SpcColor> Interpolate(SpcColor b, byte nIntervals = 10)
 		{
-			byte r2 = b.R, r1 = c.R;
-			byte g2 = b.G, g1 = c.G;
-			byte b2 = b.B, b1 = c.B;
+			byte r2 = b.R, r1 = colorA.R;
+			byte g2 = b.G, g1 = colorA.G;
+			byte b2 = b.B, b1 = colorA.B;
 
 			byte intervalR = (byte) ((r2 - r1) / nIntervals);
 			byte intervalG = (byte) ((g2 - g1) / nIntervals);
@@ -50,7 +47,7 @@ internal static class ColorUtil
 			var currentG = g1;
 			var currentB = b1;
 
-			for (var i = 0; i <= nIntervals; i++) {
+			for (int i = 0; i <= nIntervals; i++) {
 				// var color = SysColor.FromArgb(currentR, currentG, currentB);
 				var color = new SpcColor(currentR, currentG, currentB);
 
@@ -64,31 +61,6 @@ internal static class ColorUtil
 			}
 		}
 
-	}
-
-	private static readonly IReadOnlyDictionary<SearchEngineOptions, SpcColor> EngineColors = new Dictionary<SearchEngineOptions, SpcColor>
-	{
-		{ SearchEngineOptions.SauceNao, SpcColor.Green },
-		{ SearchEngineOptions.EHentai, SpcColor.Purple },
-		{ SearchEngineOptions.Iqdb, SpcColor.LightGreen },
-		{ SearchEngineOptions.Ascii2D, SpcColor.Cyan1 },
-		{ SearchEngineOptions.TraceMoe, SpcColor.DodgerBlue1 },
-		{ SearchEngineOptions.RepostSleuth, SpcColor.RosyBrown },
-		{ SearchEngineOptions.ArchiveMoe, SpcColor.Wheat1 },
-		{ SearchEngineOptions.Yandex, SpcColor.Orange1 },
-		{ SearchEngineOptions.Iqdb3D, SpcColor.SeaGreen1 },
-		{ SearchEngineOptions.Fluffle, SpcColor.LightYellow3 },
-		{ SearchEngineOptions.TinEye, SpcColor.SkyBlue1 },
-
-	}.AsReadOnly();
-
-	internal static SpcColor GetColor(this SearchEngineOptions opt)
-	{
-		if (!EngineColors.TryGetValue(opt, out var color)) {
-			color = SpcColor.White;
-		}
-
-		return color;
 	}
 
 }

@@ -56,11 +56,11 @@ public static class ImageUtilities
 		}
 	}
 
-	public static SizeVdS4 ParseResolution(string resText)
+	public static SizeIS ParseSize(string resText)
 	{
 		string[] resFull = resText.Split(Strings.Constants.MUL_SIGN);
 
-		int? w = null, h = null;
+		int w = -1, h = -1;
 
 		if (resFull.Length == 1 && resFull[0] == resText) {
 			const string TIMES_DELIM = "&times;";
@@ -72,7 +72,7 @@ public static class ImageUtilities
 
 		if (resFull.Length == 2) {
 			w = Int32.Parse(resFull[0]);
-			h = int.Parse(resFull[1]);
+			h = Int32.Parse(resFull[1]);
 		}
 
 		return new(w, h);

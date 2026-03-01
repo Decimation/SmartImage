@@ -148,7 +148,7 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 #region
 
 	[MURV]
-	public Stream GetSourceStream()
+	public Stream GetSource()
 	{
 		if (!HasBytes) {
 			throw new InvalidOperationException($"{nameof(Bytes)} not loaded");
@@ -173,7 +173,7 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 					return false;
 				}
 
-				await using var stream = GetSourceStream();
+				await using var stream = GetSource();
 				Image = await ISImage.LoadAsync(stream, ct);
 				stream.Rewind();
 				Hash = ImageUtilities.Hasher.Hash(stream);
@@ -189,7 +189,7 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 	}
 
 	/// <returns><see cref="AllocSourceAsync"/>, <see cref="AllocImageAsync"/></returns>
-	public async ValueTask<(bool AllocSourceOk, bool AllocImageOk)> AllocAll(CancellationToken ct)
+	public async ValueTask<(bool AllocSourceOk, bool AllocImageOk)> AllocAllAsync(CancellationToken ct)
 	{
 		bool allocOk    = await AllocSourceAsync(ct);
 		bool allocImgOk = false;
@@ -224,7 +224,7 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 				bool allocOk    = false;
 				bool allocImgOk = false;
 
-				(allocOk, allocImgOk) = await ui.AllocAll(ct);
+				(allocOk, allocImgOk) = await ui.AllocAllAsync(ct);
 
 				s_logger.LogTrace("{Value} :: {AllocSrcOk} {AllocImgOk}", o, allocOk, allocImgOk);
 
@@ -257,7 +257,7 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 
 #region
 
-	public bool TryWriteOrGetFile(string fn = null)
+	public bool TryWriteOrGetFile([CBN] string fn = null)
 	{
 		if (!HasLocalFilePath) {
 			LocalFilePath = WriteImageToFile(fn);
@@ -372,11 +372,9 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 /// </summary>
 public enum UniImageType
 {
-
 	Unknown = 0,
 	File,
 	Uri
-
 }
 
 [Flags]
@@ -386,5 +384,4 @@ public enum AllocFlags
 	None   = 0,
 	Stream = 1 << 0,
 	Image  = 1 << 1,
-
 }

@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.Runtime.Versioning;
 using Novus.OS;
+using SmartImage.Shared;
 
 // ReSharper disable InconsistentNaming
 
@@ -72,18 +73,10 @@ public abstract class BaseOSIntegration
 
 #region
 
-	internal const string OS_WIN = "windows";
-
-	internal const string OS_LINUX = "linux";
-
-	internal const int EC_ERROR = -1;
-
-	internal const int EC_OK = 0;
-
-	[SupportedOSPlatformGuard(OS_LINUX)]
+	[SupportedOSPlatformGuard(Common.OS_LINUX)]
 	public static readonly bool IsLinux = OperatingSystem.IsLinux();
 
-	[SupportedOSPlatformGuard(OS_WIN)]
+	[SupportedOSPlatformGuard(Common.OS_WIN)]
 	public static readonly bool IsWindows = OperatingSystem.IsWindows();
 
 	public static BaseOSIntegration Integration { get; }
@@ -107,7 +100,7 @@ public abstract class BaseOSIntegration
 
 	public static string GetProcessMainModuleFileName()
 	{
-		// TODO: vs Directory.GetCurrentDirectory
+		// TODO: vs Directory.GetCurrentDirectory?
 
 		ProcessModule module = Process.GetCurrentProcess().MainModule;
 

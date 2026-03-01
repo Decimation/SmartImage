@@ -8,14 +8,18 @@ using Microsoft.Win32;
 using Novus.OS;
 using Novus.Win32;
 using Novus.Win32.Structures.User32;
+using SmartImage.Lib.Images.Uni;
+using SmartImage.Shared;
+// ReSharper disable IdentifierTypo
 
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage.Lib.Utilities.Integration;
 
-[SupportedOSPlatform(OS_WIN)]
+[SupportedOSPlatform(Common.OS_WIN)]
 public sealed class WindowsOSIntegration : BaseOSIntegration
 {
+
 	[NN]
 	public override string ChromePath => Path.Combine(ProgramFilesPath, @"Google\Chrome\Application\chrome.exe");
 
@@ -24,8 +28,7 @@ public sealed class WindowsOSIntegration : BaseOSIntegration
 
 	public override string LaunchArgs { get; } = R1.Reg_Launch_Args;
 
-	public override string ProgramFilesPath { get; } =
-		Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+	public override string ProgramFilesPath { get; } = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
 
 	public override string AppDataPath { get; } = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
@@ -36,7 +39,6 @@ public sealed class WindowsOSIntegration : BaseOSIntegration
 		{
 			using var reg = Registry.CurrentUser.OpenSubKey(R1.Reg_Shell_Cmd);
 			return reg != null;
-
 		}
 	}
 
@@ -45,7 +47,6 @@ public sealed class WindowsOSIntegration : BaseOSIntegration
 		if (option) {
 			var p = FileSystem.GetEnvironmentPath();
 			FileSystem.SetEnvironmentPath(p + $";{ExecutableDirectory}");
-
 		}
 		else {
 			FileSystem.RemoveFromPath(ExecutableDirectory);
@@ -151,5 +152,35 @@ public sealed class WindowsOSIntegration : BaseOSIntegration
 
 		Native.FlashWindowEx(ref pwfi);
 	}
+
+	[CBN]
+	public static string TryGetClipboardData()
+	{
+		Clipboard.Open();
+
+		string data = null;
+
+		foreach ((ClipboardFormat fmt, Func<string> fn) in _clipboardFormatFunctions) {
+			if (Clipboard.IsFormatAvailable((uint) fmt)) {
+				var dataClip = fn();
+
+				if (!String.IsNullOrWhiteSpace(dataClip) && UniImage.IsValidSourceType(dataClip)) {
+					data = dataClip;
+					break;
+				}
+			}
+		}
+
+		Clipboard.Close();
+
+		return data;
+	}
+
+	private static readonly Dictionary<ClipboardFormat, Func<string>> _clipboardFormatFunctions = new()
+	{
+		{ ClipboardFormat.FileNameW, Clipboard.GetFileName },
+		{ ClipboardFormat.CF_TEXT, static () => Clipboard.GetData((uint) ClipboardFormat.CF_TEXT).ToString() },
+		{ ClipboardFormat.CF_HDROP, static () => Clipboard.GetDragQueryList().FirstOrDefault() },
+	};
 
 }

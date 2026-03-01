@@ -159,4 +159,29 @@ internal static class Elements
 #endregion
 #endif
 
+	public static readonly IReadOnlyDictionary<SearchEngineOptions, SpcColor> EngineColors = new Dictionary<SearchEngineOptions, SpcColor>
+	{
+		{ SearchEngineOptions.SauceNao, SpcColor.Green },
+		{ SearchEngineOptions.EHentai, SpcColor.Purple },
+		{ SearchEngineOptions.Iqdb, SpcColor.LightGreen },
+		{ SearchEngineOptions.Ascii2D, SpcColor.Cyan1 },
+		{ SearchEngineOptions.TraceMoe, SpcColor.DodgerBlue1 },
+		{ SearchEngineOptions.RepostSleuth, SpcColor.RosyBrown },
+		{ SearchEngineOptions.ArchiveMoe, SpcColor.Wheat1 },
+		{ SearchEngineOptions.Yandex, SpcColor.Orange1 },
+		{ SearchEngineOptions.Iqdb3D, SpcColor.SeaGreen1 },
+		{ SearchEngineOptions.Fluffle, SpcColor.LightYellow3 },
+		{ SearchEngineOptions.TinEye, SpcColor.SkyBlue1 },
+
+	}.AsReadOnly();
+
+	internal static SpcColor GetColor(this SearchEngineOptions opt)
+	{
+		if (!Elements.EngineColors.TryGetValue(opt, out var color)) {
+			color = SpcColor.White;
+		}
+
+		return color;
+	}
+
 }

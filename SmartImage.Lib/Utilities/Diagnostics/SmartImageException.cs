@@ -1,4 +1,5 @@
 ﻿#nullable enable
+
 using JetBrains.Annotations;
 
 namespace SmartImage.Lib.Utilities.Diagnostics;
@@ -9,26 +10,6 @@ public sealed class SmartImageException : Exception
 	public SmartImageException() { }
 
 	public SmartImageException(string? message) : base(message) { }
-
-
-	/*[CA($"{nameof(b)}: false => halt")]
-	public static  void Assert(bool b, [CBN] [CAE(nameof(b))] string message = null)
-	{
-		if (!b) {
-			throw new SmartImageException($"Invalid argument {message}");
-		}
-
-	}*/
-
-	/*[CA($"{nameof(b)}: false => halt")]
-	internal static void Assert<T>(bool b, [CBN] [CAE(nameof(b))] string message = null)
-	{
-		if (!b) {
-			var t = (T) Activator.CreateInstance(typeof(T), [message]);
-			throw ((Exception) (object) t);
-		}
-
-	}*/
 
 }
 

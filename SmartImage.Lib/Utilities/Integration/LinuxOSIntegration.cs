@@ -4,12 +4,13 @@
 using System.Runtime.Versioning;
 using Novus.OS;
 using SmartImage.Lib.Utilities.Diagnostics;
+using SmartImage.Shared;
 
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage.Lib.Utilities.Integration;
 
-[SupportedOSPlatform(OS_LINUX)]
+[SupportedOSPlatform(Common.OS_LINUX)]
 public sealed class LinuxOSIntegration : BaseOSIntegration
 {
 

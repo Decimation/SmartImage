@@ -54,9 +54,9 @@ public sealed class TinEyeEngine : BaseSearchEngine
 		return ok;
 	}
 
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken ct = default)
 	{
-		var sr = await base.GetResultAsync(query, token);
+		var sr = await base.GetResultAsync(query, ct);
 
 		IFlurlResponse response = null;
 
@@ -69,7 +69,7 @@ public sealed class TinEyeEngine : BaseSearchEngine
 			           {
 				           //
 				           b.AddString("url", query.Upload.Url);
-			           }, cancellationToken: token).ConfigureAwait(false);
+			           }, cancellationToken: ct).ConfigureAwait(false);
 
 		TinEyeRoot tinEyeRoot = null;
 

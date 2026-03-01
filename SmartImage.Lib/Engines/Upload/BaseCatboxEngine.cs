@@ -7,6 +7,7 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Upload;
 
+[Obsolete("No longer in service")]
 public abstract class BaseCatboxEngine : BaseUploadEngine
 {
 

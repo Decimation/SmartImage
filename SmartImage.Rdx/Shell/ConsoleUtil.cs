@@ -6,6 +6,7 @@ using Kantan.Utilities;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Rendering;
+// ReSharper disable AnnotateNotNullTypeMember
 
 // $User.Name $File.ProjectName $File.FileName
 // $File.CreatedYear-$File.CreatedMonth-$File.CreatedDay @ $File.CreatedHour:$File.CreatedMinute
@@ -109,26 +110,6 @@ internal static class ConsoleUtil
 		var ff = FigletFont.Load(fs);
 
 		return ff;
-	}
-
-	public static SpcTable DTableToSTable(this DTable dt)
-	{
-		var t = new SpcTable();
-
-		foreach (DataColumn row in dt.Columns) {
-			t.AddColumn(new TableColumn(row.ColumnName));
-		}
-
-		Func<object, IRenderable> selector = Renderables.AsRenderable;
-
-		foreach (DataRow row in dt.Rows) {
-			var obj = row.ItemArray
-				.Select(selector);
-
-			t.AddRow(obj);
-		}
-
-		return t;
 	}
 
 }

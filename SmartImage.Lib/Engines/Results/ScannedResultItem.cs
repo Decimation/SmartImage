@@ -6,12 +6,13 @@ using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Model;
 using System.Threading.Channels;
 using SmartImage.Lib.Images;
+// ReSharper disable UnusedVariable
 
 // ReSharper disable UnassignedGetOnlyAutoProperty
 
 namespace SmartImage.Lib.Engines.Results;
 
-public class ScannedResultItem : UniImageUrl, IResultItem, IScanResult<ScannedResultItem>
+public class ScannedResultItem : UniImageUrl, IResultItem, ILoadFromResult<ScannedResultItem>
 {
 
 	public SearchResult Root { get; }
@@ -65,7 +66,7 @@ public class ScannedResultItem : UniImageUrl, IResultItem, IScanResult<ScannedRe
 	public static async Task<ScannedResultItem> FromResult(Url u, IResultItem item, CancellationToken ct = default)
 	{
 		var sri = new ScannedResultItem(u, item);
-		var (allocOk, allocImgOk) = await sri.AllocAll(ct);
+		var (allocOk, allocImgOk) = await sri.AllocAllAsync(ct);
 
 		if (allocImgOk) {
 			return sri;

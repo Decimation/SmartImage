@@ -3,8 +3,6 @@
 
 namespace SmartImage.Lib.Model;
 
-// TODO: delete
-
 public interface ILength
 {
 	public long? Length { get; }

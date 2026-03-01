@@ -6,6 +6,7 @@ using SmartImage.Lib.Utilities.Integration;
 using SmartImage.Rdx.Shell;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using SmartImage.Shared;
 
 namespace SmartImage.Rdx.Commands.Integration;
 
@@ -28,7 +29,7 @@ internal class IntegrationCommand : Command<IntegrationCommandSettings>
 			AnsiConsole.WriteException(e);
 		}
 
-		return BaseOSIntegration.EC_OK;
+		return Shared.Common.EC_OK;
 	}
 
 }

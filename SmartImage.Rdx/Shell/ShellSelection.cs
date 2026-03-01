@@ -29,33 +29,6 @@ internal record ShellSelection
 		IsScannedItem = isScanned;
 	}
 
-	public int Index2()
-	{
-
-		var rg = ItemIdx + Item.Root.Results[..ItemIdx].OfType<SearchResultItem>().Sum(x => x.ScannedItems.Count);
-
-		var sumIdx  = rg + ScanIdx + (IsScannedItem ? ((ScanIdx == 0) ? 1 : 0) : 0);
-		var sumIdx2 = rg + ScanIdx + (IsScannedItem ? ((ScanIdx == 0) ? 1 : 0) : 1);
-
-		return sumIdx2;
-
-		// return rg + ScanIdx + (IsScannedItem?1:0);
-	}
-
-	public static int GetIndex2(SearchResultItem sri)
-	{
-		var isScannedItem = sri.IsChild;
-		var itemIdx       = sri.Root.Results.IndexOf(sri);
-
-		var scanIdx = isScannedItem ? sri.Parent.Root.Results.IndexOf(sri.Parent) : 0;
-
-		var rg = itemIdx + sri.Root.Results[..itemIdx].OfType<SearchResultItem>().Sum(x => x.ScannedItems.Count);
-
-		var sumIdx2 = rg + scanIdx + (isScannedItem ? ((scanIdx == 0) ? 1 : 0) : 1);
-
-		return sumIdx2;
-	}
-
 	public int Index()
 	{
 		int i      = 0, j = 0;
@@ -94,41 +67,15 @@ internal record ShellSelection
 		return root + scnIdx + t;
 	}
 
-	public static int GetIndex(SearchResultItem sri)
+	public int Index2()
 	{
-		int i      = 0, j = 0;
-		var scnIdx = 0;
-		int root   = 0;
-		int t      = 0;
 
-		if (sri.IsChild) {
-			// scnIdx = Item.Parent.ScannedItems.IndexOf(Item);
-			root = sri.Parent.Root.Results.IndexOf(sri.Parent);
+		var rg = ItemIdx + Item.Root.Results[..ItemIdx].OfType<SearchResultItem>().Sum(x => x.ScannedItems.Count);
 
-			scnIdx++;
+		var sumIdx  = rg + ScanIdx + (IsScannedItem ? ((ScanIdx == 0) ? 1 : 0) : 0);
+		var sumIdx2 = rg + ScanIdx + (IsScannedItem ? ((ScanIdx == 0) ? 1 : 0) : 1);
 
-		}
-		else {
-			root = sri.Root.Results.IndexOf(sri);
-
-		}
-
-		for (int k = 0; k < root; k++) {
-
-			var result  = sri.Parent.Root.Results[k] as SearchResultItem;
-			var scnItm  = result.ScannedItems;
-			var scnIdx2 = scnItm.IndexOf(sri);
-
-			if (scnIdx2 == -1) {
-				t += scnItm.Count;
-			}
-			else {
-				t += scnIdx2;
-			}
-
-		}
-
-		return root + scnIdx + t;
+		return sumIdx2;
 	}
 
 	[CBN]
@@ -182,46 +129,5 @@ internal record ShellSelection
 
 
 	}
-
-	/*public static ShellSelection GetSelectionChoice2(SearchResult sr)
-	{
-		var prompt = new SelectionPrompt<SearchResultItem>()
-		{
-			Mode = SelectionMode.Independent,
-			SearchEnabled = true,
-			Converter = item =>
-			{
-				//
-				return item.Url;
-			}
-		};
-
-		foreach (var item in sr.Results) {
-
-			if (item.HasScannedItems) {
-				prompt.AddChoiceGroup(item, item.ScannedItems);
-
-			}
-			else {
-				prompt.AddChoice(item);
-
-			}
-		}
-
-		var resp    = AnsiConsole.Prompt(prompt);
-		int itemIdx = 0, scanIdx = 0;
-
-		if (resp.IsChild) {
-			scanIdx = resp.Parent.ScannedItems.IndexOf(resp);
-			itemIdx = sr.Results.IndexOf(resp.Parent);
-		}
-		else {
-			itemIdx = sr.Results.IndexOf(resp);
-
-		}
-
-
-		return new ShellSelection(resp, itemIdx, scanIdx, resp.IsChild);
-	}*/
 
 }

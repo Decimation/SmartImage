@@ -6,6 +6,7 @@ using SmartImage.Lib;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Upload;
+
 using Spectre.Console.Cli;
 
 namespace SmartImage.Rdx.Commands.Common;
@@ -24,7 +25,7 @@ public class CommonCommandSettings : CommandSettings
 	public SearchEngineOptions PriorityEngines { get; internal set; }
 
 	[CommandOption("-u|--upload-engine")]
-	[DefaultValue(SearchConfig.UPLOAD_ENGINE_DEFAULT)]
+	[DefaultValue(SearchConfig.UE_DEFAULT)]
 	[Description("Upload engine")]
 	public UploadEngineOptions UploadEngine { get; internal set; }
 

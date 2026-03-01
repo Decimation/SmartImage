@@ -39,16 +39,16 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 
 	public override SearchEngineOptions Option => SearchEngineOptions.TraceMoe;
 
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken ct = default)
 	{
 
 		// https://soruly.github.io/trace.moe/#/
 
 		TraceMoeRootObject tm = null;
 
-		var sr = await base.GetResultAsync(query, token).ConfigureAwait(false);
+		var sr = await base.GetResultAsync(query, ct).ConfigureAwait(false);
 
-		using var response = await SearchByMultipart(query, token);
+		using var response = await SearchByMultipart(query, ct);
 		tm = await response.GetJsonAsync<TraceMoeRootObject>().ConfigureAwait(false);
 
 		if (tm is null) {
@@ -103,7 +103,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 				ac.AddFile("file", query.Source.Value);
 			}
 			else {
-				ac.AddFile("image", query.Source.GetSourceStream(), "image");
+				ac.AddFile("image", query.Source.GetSource(), "image");
 			}
 		}, cancellationToken: ct);
 	}
