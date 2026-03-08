@@ -3,6 +3,9 @@
 
 global using SizeIS = SixLabors.ImageSharp.Size;
 using System.Data;
+using Novus.Runtime;
+using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Model;
 #nullable disable
 using System.Reflection;
 using Kantan.Text;
@@ -37,7 +40,7 @@ internal static class Renderables
 			for (int i = 0; i < result.Results.Count; i++) {
 				var res = result.Results[i];
 
-				yield return res.GetFullResultRow(i, style);
+				yield return res.GetResultRow(i, style);
 			}
 
 		}
@@ -51,7 +54,7 @@ internal static class Renderables
 
 		public IRenderable GetSimilarity() => AsRenderable(sri.Similarity);
 
-		public IRenderable[] GetFullResultRow(int i, Style style)
+		public IRenderable[] GetResultRow(int i, Style style)
 		{
 			IRenderable url;
 			var         link = sri.Url;
@@ -162,9 +165,7 @@ internal static class Renderables
 #region
 
 	public static IRenderable AsRenderable<T>(T? val) where T : struct
-	{
-		return val.HasValue ? AsRenderable(val.Value) : Elements.Txt_NA;
-	}
+		=> val.HasValue ? AsRenderable(val.Value) : Elements.Txt_NA;
 
 	public static IRenderable AsRenderable<T>(T val)
 	{
@@ -190,7 +191,7 @@ internal static class Renderables
 
 #region
 
-	public static SpcTable CreateMainTable()
+	public static SpcTable CreateOverviewTable()
 	{
 		var col = new TableColumn[]
 		{
@@ -199,7 +200,7 @@ internal static class Renderables
 
 		};
 
-		SpcTable tb = CreateResultTable();
+		SpcTable tb = CreateEmptyResultTable();
 
 		tb.AddColumns(col);
 
@@ -208,7 +209,7 @@ internal static class Renderables
 		return tb;
 	}
 
-	private static SpcTable CreateResultTable()
+	private static SpcTable CreateEmptyResultTable()
 	{
 		var tb = new SpcTable()
 		{
@@ -219,7 +220,7 @@ internal static class Renderables
 		return tb;
 	}
 
-	public static SpcTable CreateFullResultTable()
+	public static SpcTable CreateResultTable()
 	{
 		var col = new TableColumn[]
 		{
@@ -231,11 +232,40 @@ internal static class Renderables
 
 		};
 
-		var tb = CreateResultTable();
+		var tb = CreateEmptyResultTable();
 
 		tb.AddColumns(col);
 
 		return tb;
+	}
+
+	public static Grid CreateExtendedGrid(IResultItem item)
+	{
+		var grid = new Grid();
+		grid.AddColumns(2);
+
+		var inteer    = new Type[] { typeof(IResultItem), typeof(ISimilarity), typeof(IHashable), typeof(IResultMetadata), typeof(IUniImage) };
+		var interProp = inteer.Select(x => x.GetProperties()).Distinct();
+
+		var properties = item.GetType()
+		                     .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+		                     .Where(p => !p.IsCalculated())
+		                     .Where(x => x.Name is not (nameof(SearchResultItem.ScannedItems) or nameof(SearchResultItem.IsRaw)
+			                                 or nameof(ScannedResultItem.Width) or nameof(ScannedResultItem.Height)
+			                                 or nameof(SearchResultItem.Metadata) or nameof(SearchResultItem.Parent)));
+		foreach (PropertyInfo property in properties) {
+			var propVal = property.GetValue(item);
+
+			if (propVal is string s && String.IsNullOrWhiteSpace(s) || (RuntimeProperties.IsNullable(propVal) && propVal == null)) {
+				continue;
+			}
+			var render = AsRenderable(propVal);
+			grid.AddRow(new Text($"{property.Name}",Elements.Sty_ResultHeader), render);
+		}
+
+		grid.AddRow(new Text("Resolution", Elements.Sty_ResultHeader), item.GetResolution());
+
+		return grid;
 	}
 
 	internal static Grid CreateConfigGrid(SearchConfig cfg, SearchQuery query)
@@ -278,7 +308,7 @@ internal static class Renderables
 		return dt;
 	}
 
-	internal static Grid GetInfoGrid()
+	internal static Grid CreateEnvironmentGrid()
 	{
 		var gr = new Grid();
 		gr.AddColumns(2);
@@ -291,9 +321,7 @@ internal static class Renderables
 			new Text("Location", Elements.Sty_Grid1), new TextPath(BaseOSIntegration.Executable)
 		};
 
-
 		gr.AddRowsByChunk(2, rows);
-
 
 		return gr;
 	}
@@ -346,8 +374,7 @@ internal static class Renderables
 		Func<object, IRenderable> selector = Renderables.AsRenderable;
 
 		foreach (DataRow row in dt.Rows) {
-			var obj = row.ItemArray
-			             .Select(selector);
+			var obj = row.ItemArray.Select(selector);
 
 			t.AddRow(obj);
 		}
@@ -358,7 +385,7 @@ internal static class Renderables
 }
 
 /// <summary>
-/// <see cref="Renderables.GetFullResultRow"/>
+/// <see cref="Renderables.GetResultRow"/>
 /// <see cref="Renderables.GetItemRow"/>
 /// </summary>
 internal enum ResultRowIndex

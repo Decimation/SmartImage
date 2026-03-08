@@ -1,7 +1,8 @@
-﻿// Read S SmartImage.Rdx SearchCommand.cs
-// 2023-07-05 @ 2:07 AM
+﻿// Author: Deci | Project: SmartImage.Rdx | Name: SearchCommand.cs
+// Date: 2025/12/27 @ 22:12:21
 
 // ReSharper disable RedundantUsingDirective.Global
+// ReSharper disable ArrangeObjectCreationWhenTypeNotEvident
 // ReSharper disable InconsistentNaming
 
 #region Global usings
@@ -24,16 +25,13 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.Caching;
 using System.Runtime.CompilerServices;
-using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Diagnostics;
-using SmartImage.Lib.Utilities.Integration;
 using SmartImage.Rdx.Commands.Common;
 using SmartImage.Rdx.Shell;
 using SmartImage.Shared;
@@ -42,9 +40,7 @@ using Spectre.Console.Cli;
 using Spectre.Console.Rendering;
 using Size = SixLabors.ImageSharp.Size;
 
-// ReSharper disable ArrangeObjectCreationWhenTypeNotEvident
-
-// TODO: Create separate SearchCommands for interactive/non-interactive
+// TODO: Create separate SearchCommands for interactive/non-interactive?
 
 [assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_LIB_UNITTEST)]
 
@@ -55,31 +51,31 @@ namespace SmartImage.Rdx.Commands.Search;
 public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSettings>
 {
 
-	public SearchClient Client { get; private set; }
-
-	public SearchQuery Query { get; private set; }
-
-
 	private readonly CancellationTokenSource m_cts;
-
 	private readonly CancellationTokenSource m_ctsRun;
 	private readonly CancellationTokenSource m_ctsRunSearch;
 
+
 	/// <summary>
-	/// Key: <see cref="SearchResult"/>
-	/// Value: <see cref="m_mainTable"/> index
+	/// Key: <see cref="SearchResult" />
+	/// Value: <see cref="m_mainTable" /> index
 	/// </summary>
 	private readonly ConcurrentDictionary<SearchResult, SpcTable> m_resultTables;
-
-	private readonly MemoryCache m_previewCanvasCache;
-
-	private SpcTable m_mainTable;
 
 	// private readonly ConcurrentDictionary<SearchResult, SelectionPrompt<SearchResultItem>> m_prompts;
 
 	private Layout m_layout;
 
+	private SpcTable m_mainTable;
+
+	private static int _profWidth;
+	private static int _profHeight;
+
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchCommand));
+
+	public SearchClient Client { get; private set; }
+
+	public SearchQuery Query { get; private set; }
 
 	static SearchCommand() { }
 
@@ -89,19 +85,20 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		m_ctsRun       = new CancellationTokenSource();
 		m_ctsRunSearch = new CancellationTokenSource();
 
-		// m_results      = new();
 		m_resultTables       = new ConcurrentDictionary<SearchResult, SpcTable>();
 		m_previewCanvasCache = new MemoryCache("Buf");
 
 		// m_prompts = new ConcurrentDictionary<SearchResult, SelectionPrompt<SearchResultItem>>();
-		Query = SearchQuery.Null;
+		Query                     = SearchQuery.Null;
+		(_profWidth, _profHeight) = (AnsiConsole.Profile.Width, AC.Profile.Height);
 	}
+
 
 #region
 
 	private async Task InitQueryAsync(ProgressContext ctx)
 	{
-		var p = ctx.AddTask($"Creating query");
+		var p = ctx.AddTask("Creating query");
 		p.IsIndeterminate = true;
 
 		Query = await SearchQuery.TryCreateAsync(CommandSettings.Query);
@@ -111,8 +108,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		}
 
 		p.Increment(Elements.COMPLETE / 2);
-
-		// ctx.Refresh();
 
 		p.Description = "Uploading query";
 		var url = await Query.TryUploadAsync(Client.UploadEngine);
@@ -125,17 +120,14 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 	}
 
-	/// <inheritdoc />
 	protected override void InitConfig(SearchCommandSettings scs)
 	{
 		Config = new SearchConfig();
-
 		base.InitConfig(scs);
 
 		Client = new SearchClient(Config);
 
-		m_mainTable = CommandSettings.Interactive ? Renderables.CreateMainTable() : Renderables.CreateFullResultTable();
-
+		m_mainTable        = CommandSettings.Interactive ? Renderables.CreateOverviewTable() : Renderables.CreateResultTable();
 		m_mainTable.Expand = true;
 	}
 
@@ -145,8 +137,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		Console.CancelKeyPress += OnCancelKeyPress;
 
-		var initTask = AnsiConsole.Progress()
-		                          .AutoRefresh(true)
+		var initTask = AnsiConsole.Progress().AutoRefresh(true)
 		                          .StartAsync(InitQueryAsync);
 
 		await initTask;
@@ -161,16 +152,14 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		var cfgGrid = Renderables.CreateConfigGrid(Config, Query);
 
-		var cfgPanel = new Panel(cfgGrid) { Header = new PanelHeader("Search Options") { } };
+		var cfgPanel = new Panel(cfgGrid) { Header = new PanelHeader("Search Options") };
 
 		m_layout = new Layout("Root")
 			.SplitColumns(
 				new Layout("L").SplitRows(
 					new("LC", cfgPanel),
-					new("LT", m_mainTable) { }
-				),
-				new Layout("R", ciPanel) { }
-			);
+					new("LT", m_mainTable)),
+				new Layout("R", ciPanel));
 
 		// AnsiConsole.Write(m_layout);
 
@@ -190,17 +179,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			await RunCompletionCommandAsync(m_cts.Token);
 		}
 
-		if (CommandSettings.HasOutputFile) {
-			switch (CommandSettings.OutputFileFormat) {
-
-				case OutputFileFormat.None:
-					break;
-
-				case OutputFileFormat.Delimited:
-					WriteOutputFile();
-					break;
-			}
-
+		if (CommandSettings is { HasOutputFile: true, OutputFileFormat: OutputFileFormat.Delimited }) {
+			WriteOutputFile();
 		}
 
 		if (CommandSettings.Interactive) {
@@ -232,7 +212,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			var fullRows = result.GetFullResultRows();
 
 			if (CommandSettings.Interactive) {
-				var table = Renderables.CreateFullResultTable();
+				var table = Renderables.CreateResultTable();
 
 				foreach (IRenderable[] row in fullRows) {
 					table.AddRow(row);
@@ -320,7 +300,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				}
 
 				if (cmd == R2.Chc_Scan && !sri.IsChild) {
-					await AnsiConsole.Live(srTable).StartAsync(async (f) =>
+					await AnsiConsole.Live(srTable).StartAsync(async f =>
 					{
 						s_logger.LogTrace("Scanning {Item}", sri);
 						bool scannedOk = false;
@@ -368,7 +348,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 						continue;
 					}
 
-					var ci = GetPreview(sriScn);
+					var ci = GetPreviewCanvasImage(sriScn);
 
 					AnsiConsole.AlternateScreen(() =>
 					{
@@ -383,6 +363,15 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					HandleDownload(sriScnDl);
 				}
 
+				if (cmd == R2.Chc_Expand) {
+
+					AnsiConsole.AlternateScreen(() =>
+					{
+						var gr = GetExpandedLayout(item);
+						AC.Write(gr);
+						AC.Console.Input.ReadKey(true);
+					});
+				}
 
 			} while (cmd != R2.Chc_Back && !ct.IsCancellationRequested);
 
@@ -391,151 +380,35 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 #endregion
 
-#region
-
-	private CanvasImage GetPreview(ScannedResultItem sri)
+	private Layout GetExpandedLayout(IResultItem sri)
 	{
-		Stream str = null;
+		CanvasImage prev;
 
-		var cip = new CacheItemPolicy()
-		{
-			AbsoluteExpiration = DateTimeOffset.Now + TimeSpan.FromMinutes(1),
-			RemovedCallback = arguments =>
-			{
-				switch (arguments.RemovedReason) {
-
-					case CacheEntryRemovedReason.Removed:
-						break;
-
-					case CacheEntryRemovedReason.Expired:
-						break;
-
-					case CacheEntryRemovedReason.Evicted:
-						break;
-
-					case CacheEntryRemovedReason.ChangeMonitorChanged:
-						break;
-
-					case CacheEntryRemovedReason.CacheSpecificEviction:
-						break;
-				}
-
-				s_logger.LogDebug("Cache item {CacheItem} removed: {RemRes}", arguments.CacheItem.Key, arguments.RemovedReason);
-				return;
-			}
-		};
-
-		// string key = sri.Url.ToString();
-
-		var key = sri.Url;
-		var val = m_previewCanvasCache.Get(key);
-
-		if (val is not CanvasImage ci) {
-			str = sri.GetSource();
-			ci  = new CanvasImage(str) { };
-
-			m_previewCanvasCache.Set(key, ci, cip);
+		if (sri is ScannedResultItem scnItem) {
+			prev = GetPreviewCanvasImage(scnItem);
 		}
-		else { }
+		else {
+			prev = new CanvasImage(Query.Source.GetSource());
+		}
 
-		Trace.Assert(ci != null);
-
-		return ci;
-	}
-
-
-	private const ConsoleKey PREV_KEY_RESIZE_INTERNAL   = ConsoleKey.S;
-	private const ConsoleKey PREV_KEY_MAXWIDTH_BUFWIDTH = ConsoleKey.M;
-	private const ConsoleKey PREV_KEY_RESIZE_SCALE      = ConsoleKey.R;
-	private const ConsoleKey PREV_KEY_EXIT              = ConsoleKey.Escape;
-
-	private static readonly Dictionary<ConsoleKey, string> _keyDescriptions = new()
-	{
-		{ PREV_KEY_RESIZE_INTERNAL, "Resize (internal)" },
-		{ PREV_KEY_RESIZE_SCALE, "Resize (scale)" },
-		{ PREV_KEY_MAXWIDTH_BUFWIDTH, "Set max preview width to buffer width" },
-		{ PREV_KEY_EXIT, "Exit preview" },
-	};
-
-	private static readonly string _descRow =
-		_keyDescriptions.Aggregate(String.Empty, (s, kv) => { return s + Markup.Escape(($"[{kv.Key}] : {kv.Value}")) + " | "; });
-
-
-	private void ShowPreview(CanvasImage ci, ScannedResultItem sri)
-	{
-		var (w, h) = (AnsiConsole.Profile.Width, AC.Profile.Height);
-
-		var pnl = new Panel(ci)
+		var ciPanel = new Panel(prev)
 		{
+			Header = new PanelHeader($"{sri}"),
 			Expand = true,
-			Border = BoxBorder.None,
-			Header = new PanelHeader($"{sri.Value}"),
 		};
 
-		var sriLayout = new Layout("Preview");
+		var extGrid = Renderables.CreateExtendedGrid(sri);
 
-		sriLayout.SplitRows(
-			new Layout("Image") { Ratio  = 2 },
-			new Layout("Details") { Size = 2 }
-		);
+		var extPanel = new Panel(extGrid) { Header = new PanelHeader("Result Data") };
 
-		// var grid = sri.GetItemInfoGrid();
-		var infoGrid = new Grid() { Expand = false, };
-		infoGrid.AddColumns(2);
-		infoGrid.AddRow(["Keys", _descRow]);
-		infoGrid.AddRow(["Metadata", sri.ToString()]);
+		var exLayout = new Layout("Root")
+			.SplitColumns(
+				new Layout("L", extPanel),
+				new Layout("R", ciPanel));
 
-		sriLayout["Image"].Update(pnl);
-		sriLayout["Details"].Update(infoGrid);
-
-		AnsiConsole.Live(sriLayout).Start(ldc =>
-		{
-			while (true) {
-				// ci.MaxWidth = mw < 0 ? null : mw;
-				ldc.Refresh();
-				var cki = AnsiConsole.Console.Input.ReadKey(true);
-
-				if (!cki.HasValue) {
-					continue;
-				}
-
-				switch (cki.Value.Key) {
-
-
-					case PREV_KEY_RESIZE_INTERNAL:
-						ci.Mutate(act => { act.Resize(sri.Image.Width, sri.Image.Height); });
-						break;
-
-					case PREV_KEY_MAXWIDTH_BUFWIDTH:
-						ci.MaxWidth = w;
-						break;
-
-					case PREV_KEY_RESIZE_SCALE:
-						ci.Mutate(act =>
-						{
-							var cs = act.GetCurrentSize();
-
-							var cs2 = cs.ResizeByFactor(new Size(w, h));
-							act.Resize(cs2);
-						});
-
-						ci.MaxWidth = null;
-						continue;
-
-					case PREV_KEY_EXIT:
-						return;
-
-				}
-			}
-		});
-
-
+		return exLayout;
 	}
 
-#endregion
-
-
-	// [ContractAnnotation("=> halt")]
 	private static void HandleDownload(ScannedResultItem sri)
 	{
 		var ok = sri.TryWriteOrGetFile();
@@ -548,11 +421,11 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				gr.AddRow(new Text("File", Elements.Sty_Name), new Text(sri.LocalFilePath));
 				AnsiConsole.Write(gr);
 
-				var prompt = new ConfirmationPrompt("Open?") { };
+				var prompt = new ConfirmationPrompt("Open?");
 				var choice = AnsiConsole.Prompt(prompt);
 
 				if (choice) {
-					var proc = Process.Start(new ProcessStartInfo()
+					var proc = Process.Start(new ProcessStartInfo
 					{
 						FileName         = sri.LocalFilePath,
 						WorkingDirectory = String.Empty,

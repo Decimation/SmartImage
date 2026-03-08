@@ -13,9 +13,9 @@
 
     <PublishSingleFile Condition="'$(Configuration)' == 'Release|AnyCPU'">true</PublishSingleFile>
 
-    <NoWarn>AD0001;IDE0290;CS0168;IDE0079;IDE0290;CA2255;CA1873;CA1822</NoWarn>
-    <NoWarn>$(NoWarn);IDE0300;IDE0079;IDE0290;IDE0079</NoWarn>
-    <NoWarn>$(NoWarn);1701;1702;NU1608;IDE0300;IDE0079</NoWarn>
+    <NoWarn>AD0001;IDE0290;CS0168;IDE0290;CA2255;CA1873;CA1822</NoWarn>
+    <NoWarn>$(NoWarn);IDE0300;IDE0290;IDE0079</NoWarn>
+    <NoWarn>$(NoWarn);1701;1702;NU1608;IDE0300;IDE0059</NoWarn>
     <NoWarn>$(NoWarn);SI_EXP_001</NoWarn>
   </PropertyGroup>
 
@@ -47,38 +47,38 @@
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.4.0" />
     <PackageReference Include="AngleSharp.Css" Version="1.0.0-alpha-99" />
-    <PackageReference Include="AngleSharp.XPath" Version="2.0.5" />
+    <PackageReference Include="AngleSharp.XPath" Version="2.0.6" />
     <PackageReference Include="CliWrap" Version="3.10.0" />
     <PackageReference Include="CoenM.ImageSharp.ImageHash" Version="1.3.6" />
     <PackageReference Include="CommunityToolkit.Common" Version="8.4.0" />
     <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.4.0" />
     <PackageReference Include="Flurl.Http" Version="4.0.2" />
-    <PackageReference Include="HttpMultipartParser" Version="9.2.0" />
+    <PackageReference Include="HttpMultipartParser" Version="10.0.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.4" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.2" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="10.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.2" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.3" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="17.13.22" />
     <!-- <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" /> -->
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="10.0.2" />
-    <PackageReference Include="System.Drawing.Common" Version="10.0.2" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="10.0.3" />
+    <PackageReference Include="System.Drawing.Common" Version="10.0.3" />
     <!-- <PackageReference Include="System.Net.Primitives" Version="4.3.1" /> -->
     <PackageReference Include="System.Reactive" Version="6.1.0" />
-    <PackageReference Include="System.Runtime.Caching" Version="10.0.2" />
+    <PackageReference Include="System.Runtime.Caching" Version="10.0.3" />
     <!-- <PackageReference Include="System.Text.Json" Version="10.0.1" /> -->
     <PackageReference Include="Verify.Flurl" Version="2.0.0" />
   </ItemGroup>

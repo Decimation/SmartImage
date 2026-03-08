@@ -148,4 +148,7 @@
   <data name="Chc_Download" xml:space="preserve">
     <value>download</value>
   </data>
+  <data name="Chc_Expand" xml:space="preserve">
+    <value>expand</value>
+  </data>
 </root>

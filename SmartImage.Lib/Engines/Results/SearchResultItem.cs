@@ -1,8 +1,9 @@
-﻿#nullable disable
+﻿// Author: Deci | Project: SmartImage.Lib | Name: SearchResultItem.cs
+// Date: 2026/02/28 @ 19:02:49
+
 using System.ComponentModel;
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
-using SixLabors.ImageSharp.Formats;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Model;
@@ -10,34 +11,23 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Results;
 
-// todo: refactor to not inherit from UniImageUrl and instead contain a UniImageUrl
-
 public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, IComparable, IEquatable<SearchResultItem>, ISize
 {
 
-#region
+	internal SearchResultItem(SearchResult r, bool isRaw = false)
+	{
+		Root     = r;
+		Metadata = null;
+		Parent   = this;
+		IsRaw    = isRaw;
 
-	/// <summary>
-	///     Result containing this result item
-	/// </summary>
-	[NN]
-	[JI]
-	public SearchResult Root { get; }
-
-	[CBN]
-	[JI]
-	public IResultItem Parent { get; set; }
-
-	public bool IsCloned => false;
-
-	public bool IsChild => false;
-
-#endregion
+		ScannedItems = [];
+	}
 
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchResultItem));
 
 	/// <summary>
-	/// Whether this is <see cref="SearchResult.RawResultItem"/>
+	///     Whether this is <see cref="SearchResult.RawResultItem" />
 	/// </summary>
 	[JI]
 	public bool IsRaw { get; }
@@ -164,6 +154,61 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 		}
 	}
 
+	public virtual bool CalculateSimilarity(IHashable hashable)
+	{
+		Similarity = ISimilarity.CalculateHashSimilarity(this, hashable);
+		return Similarity.HasValue;
+	}
+
+	public SearchResultItem MemberwiseCloneWithUrl(Url u)
+	{
+		var clone = (MemberwiseClone() as SearchResultItem);
+		clone.Url    = u;
+		clone.Parent = this;
+		return clone;
+	}
+
+	// public IFlurlResponse Response { get; private set; }
+
+	public override string ToString()
+	{
+		return
+			$"{Url} {Similarity / 100:P} {Artist} {Description} {Site} {Source} {Title} {Character} {Time} {Width}x{Height}";
+	}
+
+	public void Dispose()
+	{
+		GC.SuppressFinalize(this);
+
+		s_logger.LogDebug("Disposing {Item} of {Name}", Url, Root.Engine.Name);
+		ThumbnailImage?.Dispose();
+
+		foreach (IResultItem item in ScannedItems) {
+			item.Dispose();
+		}
+
+		ScannedItems.Clear();
+	}
+
+#region
+
+	/// <summary>
+	///     Result containing this result item
+	/// </summary>
+	[NN]
+	[JI]
+	public SearchResult Root { get; }
+
+	[CBN]
+	[JI]
+	public IResultItem Parent { get; set; }
+
+	public bool IsCloned => false;
+
+	public bool IsChild => false;
+
+#endregion
+
 #region
 
 	[CBN]
@@ -199,16 +244,6 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 	public bool HasThumbnail => Url.IsValid(Thumbnail) && ThumbnailImage != null;
 
 #endregion
-
-	internal SearchResultItem(SearchResult r, bool isRaw = false)
-	{
-		Root     = r;
-		Metadata = null;
-		Parent   = this;
-		IsRaw    = isRaw;
-
-		ScannedItems = [];
-	}
 
 #region
 
@@ -295,42 +330,6 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 
 #endregion
 
-	public virtual bool CalculateSimilarity(IHashable hashable)
-	{
-		Similarity = ISimilarity.CalculateHashSimilarity(this, hashable);
-		return Similarity.HasValue;
-	}
-
-	public SearchResultItem MemberwiseCloneWithUrl(Url u)
-	{
-		var clone = (MemberwiseClone() as SearchResultItem);
-		clone.Url    = u;
-		clone.Parent = this;
-		return clone;
-	}
-
-	// public IFlurlResponse Response { get; private set; }
-
-	public override string ToString()
-	{
-		return
-			$"{Url} {Similarity / 100:P} {Artist} {Description} {Site} {Source} {Title} {Character} {Time} {Width}x{Height}";
-	}
-
-	public void Dispose()
-	{
-		GC.SuppressFinalize(this);
-
-		s_logger.LogDebug("Disposing {Item} of {Name}", Url, Root.Engine.Name);
-		ThumbnailImage?.Dispose();
-
-		foreach (IResultItem item in ScannedItems) {
-			item.Dispose();
-		}
-
-		ScannedItems.Clear();
-	}
-
 
 #region Relational members
 
@@ -404,16 +403,24 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 	}
 
 	public static bool operator <(SearchResultItem left, SearchResultItem right)
-		=> Comparer<SearchResultItem>.Default.Compare(left, right) < 0;
+	{
+		return Comparer<SearchResultItem>.Default.Compare(left, right) < 0;
+	}
 
 	public static bool operator >(SearchResultItem left, SearchResultItem right)
-		=> Comparer<SearchResultItem>.Default.Compare(left, right) > 0;
+	{
+		return Comparer<SearchResultItem>.Default.Compare(left, right) > 0;
+	}
 
 	public static bool operator <=(SearchResultItem left, SearchResultItem right)
-		=> Comparer<SearchResultItem>.Default.Compare(left, right) <= 0;
+	{
+		return Comparer<SearchResultItem>.Default.Compare(left, right) <= 0;
+	}
 
 	public static bool operator >=(SearchResultItem left, SearchResultItem right)
-		=> Comparer<SearchResultItem>.Default.Compare(left, right) >= 0;
+	{
+		return Comparer<SearchResultItem>.Default.Compare(left, right) >= 0;
+	}
 
 #endregion
 

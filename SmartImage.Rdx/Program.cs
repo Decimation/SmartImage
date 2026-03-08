@@ -66,7 +66,7 @@ public static class Program
 
 		DisplayHeader();
 
-		var infoGrid = Renderables.GetInfoGrid();
+		var infoGrid = Renderables.CreateEnvironmentGrid();
 		AnsiConsole.Write(infoGrid);
 
 		var app = new CommandApp<SearchCommand>();

@@ -31,7 +31,6 @@ internal record ShellSelection
 
 	public int Index()
 	{
-		int i      = 0, j = 0;
 		var scnIdx = 0;
 		int root   = 0;
 		int t      = 0;
@@ -95,14 +94,8 @@ internal record ShellSelection
 					sri       = sri2;
 					isScanned = true;
 				}
-
-				// if (sr.ScannedResults[sri].TryParseIndex(spl[1], out scnIdx, out sri2)) { }
-
 			}
-			else { }
-
 		}
-		else { }
 
 		return new ShellSelection(sri, resIdx, scnIdx, isScanned);
 	}
@@ -113,7 +106,7 @@ internal record ShellSelection
 
 		Elements.Prm_Selection.Validator = str =>
 		{
-			ret = ShellSelection.Parse(str, res);
+			ret = Parse(str, res);
 
 			if (ret == null) {
 				return ValidationResult.Error();
@@ -124,10 +117,8 @@ internal record ShellSelection
 
 
 		var val = AnsiConsole.Prompt(Elements.Prm_Selection);
-		var sri = ShellSelection.Parse(val, res);
+		var sri = Parse(val, res);
 		return sri;
-
-
 	}
 
 }

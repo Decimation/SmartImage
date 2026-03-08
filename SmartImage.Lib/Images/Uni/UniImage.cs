@@ -337,14 +337,10 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 	}
 
 	public static bool operator ==(UniImage left, UniImage right)
-	{
-		return Equals(left, right);
-	}
+		=> Equals(left, right);
 
 	public static bool operator !=(UniImage left, UniImage right)
-	{
-		return !Equals(left, right);
-	}
+		=> !Equals(left, right);
 
 #endregion
 
@@ -380,7 +376,7 @@ public enum UniImageType
 [Flags]
 public enum AllocFlags
 {
-
+	//todo
 	None   = 0,
 	Stream = 1 << 0,
 	Image  = 1 << 1,
