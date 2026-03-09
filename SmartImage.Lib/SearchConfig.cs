@@ -198,7 +198,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 
 			if (engine is ICookiesReceiver ck) {
 				s_logger.LogTrace("Applying cookies to {Engine}", engine.Name);
-				await ck.ApplyCookiesAsync(GetCookiesSource(), ct);
+				ck.CookiesSource = GetCookiesSource();
 			}
 		}
 	}

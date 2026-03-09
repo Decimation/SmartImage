@@ -2,6 +2,7 @@
 // Date: 2026/02/28 @ 19:02:49
 
 using System.ComponentModel;
+using System.Text;
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Images;
@@ -11,7 +12,7 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Results;
 
-public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, IComparable, IEquatable<SearchResultItem>, ISize
+public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, IComparable, ISize
 {
 
 	internal SearchResultItem(SearchResult r, bool isRaw = false)
@@ -22,6 +23,11 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 		IsRaw    = isRaw;
 
 		ScannedItems = [];
+	}
+
+	protected virtual bool PrintMembers(StringBuilder builder)
+	{
+		return false;
 	}
 
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchResultItem));
@@ -343,35 +349,6 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 
 		return Root.Equals(other.Root) && Url == other.Url;
 	}
-
-#region Equality members
-
-	/// <inheritdoc />
-	public override bool Equals(object obj)
-	{
-		if (obj is null)
-			return false;
-
-		if (ReferenceEquals(this, obj))
-			return true;
-
-		if (obj.GetType() != GetType())
-			return false;
-
-		return Equals((SearchResultItem) obj);
-	}
-
-	public static bool operator ==(SearchResultItem left, SearchResultItem right)
-	{
-		return Equals(left, right);
-	}
-
-	public static bool operator !=(SearchResultItem left, SearchResultItem right)
-	{
-		return !Equals(left, right);
-	}
-
-#endregion
 
 	public override int GetHashCode()
 	{

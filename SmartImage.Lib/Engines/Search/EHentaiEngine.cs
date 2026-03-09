@@ -28,11 +28,14 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 
 	static EHentaiEngine() { }
 
-	public EHentaiEngine(bool useExHentai = true) : base(EHentaiBase)
+	public ICookiesSource CookiesSource { get; set; }
+
+	public EHentaiEngine(bool useExHentai = true, [CBN] ICookiesSource cookiesSrc = null) : base(EHentaiBase)
 	{
-		IsLoggedIn  = false;
-		UseExHentai = useExHentai;
-		Jar         = new CookieJar();
+		IsLoggedIn    = false;
+		UseExHentai   = useExHentai;
+		Jar           = new CookieJar();
+		CookiesSource = cookiesSrc ?? new ListCookiesSource();
 	}
 
 	// NOTE: a separate HttpClient is used for EHentai because of special network requests and other unique requirements...
@@ -72,14 +75,14 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 	private Task<IFlurlResponse> GetSessionAsync()
 	{
 		return Client.Request(Url2)
-			.WithCookies(Jar)
-			.WithTimeout(Timeout)
-			.WithHeaders(new
-			{
-				User_Agent = R1.UserAgent1
-			})
-			.WithAutoRedirect(true)
-			.GetAsync();
+		             .WithCookies(Jar)
+		             .WithTimeout(Timeout)
+		             .WithHeaders(new
+		             {
+			             User_Agent = R1.UserAgent1
+		             })
+		             .WithAutoRedirect(true)
+		             .GetAsync();
 	}
 
 	protected override async Task<IDocument> GetSourceAsync(SearchResult sr, SearchQuery query, CancellationToken token = default)
@@ -154,10 +157,12 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		// Debug.WriteLine($"{res.StatusCode}");
 
 		sr.RawUrl = httpRes.RequestMessage.RequestUri;
-		var old = sr.Results.Find(static r => r is SearchResultItem { IsRaw: true});
-		if (old is SearchResultItem {} oldAsSri) {
+		var old = sr.Results.Find(static r => r is SearchResultItem { IsRaw: true });
+
+		if (old is SearchResultItem { } oldAsSri) {
 			oldAsSri.Url = sr.RawUrl;
 		}
+
 		Debug.Assert(old == sr.Results[0]);
 
 		var content = await httpRes.Content.ReadAsStringAsync(token).ConfigureAwait(false);
@@ -195,52 +200,6 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 	 */
 
 
-	public async ValueTask<bool> ApplyCookiesAsync(ICookiesSource source, CancellationToken ct = default)
-	{
-		if (source == null) {
-			return false;
-		}
-
-		if (IsLoggedIn) {
-			return IsLoggedIn;
-		}
-
-		Logger.LogInformation("{Name} logged in: {LoggedIn}", Name, IsLoggedIn);
-
-
-		var cookies = await source.GetOrLoadCookiesAsync(ct);
-
-		foreach (var bck in cookies) {
-
-			// var cookie = bck.AsFlurlCookie(OriginUrl);
-
-			var cookie = bck.AsCookie();
-
-			if (cookie == null) {
-				continue;
-			}
-
-			bool c = false;
-
-			var isEx = cookie.Domain.Contains(HOST_EX);
-			var isEh = cookie.Domain.Contains(HOST_EH);
-
-			if (UseExHentai) {
-				c |= isEx;
-			}
-
-			c |= isEh;
-
-			if (c) {
-				Jar.AddOrReplace(cookie.Name, cookie.Value, Url2);
-			}
-		}
-
-		var response = await GetSessionAsync().ConfigureAwait(false);
-		return IsLoggedIn = response.ResponseMessage.IsSuccessStatusCode;
-
-	}
-
 	public async Task<bool> LoginAsync(string username, string password)
 	{
 		/*
@@ -262,15 +221,15 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		};
 
 		var response = await EHentaiIndex.SetQueryParams(new
-			               {
-				               act  = "Login",
-				               CODE = 01
-			               }).WithHeaders(new
-			               {
-				               User_Agent = R1.UserAgent1
-			               })
-			               .WithCookies(out var cj)
-			               .PostAsync(content).ConfigureAwait(false);
+		                                 {
+			                                 act  = "Login",
+			                                 CODE = 01
+		                                 }).WithHeaders(new
+		                                 {
+			                                 User_Agent = R1.UserAgent1
+		                                 })
+		                                 .WithCookies(out var cj)
+		                                 .PostAsync(content).ConfigureAwait(false);
 
 		foreach (var fc in response.Cookies) {
 			Jar.AddOrReplace(fc);
@@ -335,7 +294,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 
 }
 
-public sealed class EhResult : SearchResultItem, IParseableSource<INode, EhResult>
+public sealed record EhResult : SearchResultItem, IParseableSource<INode, EhResult>
 {
 
 	public string TypeString { get; private set; }

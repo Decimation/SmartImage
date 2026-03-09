@@ -8,10 +8,10 @@ namespace SmartImage.Lib.Cookies;
 public interface ICookiesReceiver
 {
 
+	public ICookiesSource CookiesSource { get; set; }
+
 	public CookieJar Jar { get; }
 
 	// public ICookiesSource CookiesSource { get; }
-
-	public ValueTask<bool> ApplyCookiesAsync(ICookiesSource source, CancellationToken token = default);
 
 }

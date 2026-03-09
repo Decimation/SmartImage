@@ -81,7 +81,7 @@ public partial class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 
 }
 
-public class ChanPost : SearchResultItem, IParseableSource<INode, ChanPost>
+public record ChanPost : SearchResultItem, IParseableSource<INode, ChanPost>
 {
 
 	public string Board { get; private set; }
@@ -135,12 +135,12 @@ public class ChanPost : SearchResultItem, IParseableSource<INode, ChanPost>
 
 		var p = new ChanPost(r)
 		{
-			Id         = long.Parse(e.GetAttribute("id")),
+			Id         = Int64.Parse(e.GetAttribute("id")),
 			Board      = e.GetAttribute("data-board"),
 			Filename   = pff.TextContent,
 			File       = file,
-			Width      = int.Parse(wh[0]),
-			Height     = int.Parse(wh[1]),
+			Width      = Int32.Parse(wh[0]),
+			Height     = Int32.Parse(wh[1]),
 			SizeString = pfm[0],
 			Title      = pt,
 			Artist     = pa,

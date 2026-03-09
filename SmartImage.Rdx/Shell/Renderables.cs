@@ -105,7 +105,7 @@ internal static class Renderables
 			var elems = new List<IRenderable>() { name, url, sim, artist, wh };
 
 			// var elems2 = [sri.Character, sri.Source, sri.Description, sri.Site];
-			var elemNames = new String[]
+			var elemNames = new string[]
 			{
 				nameof(sri.Character),
 				nameof(sri.Source),

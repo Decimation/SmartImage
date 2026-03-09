@@ -15,7 +15,6 @@ using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Model;
 
 // ReSharper disable PossibleNullReferenceException
-
 // ReSharper disable PropertyCanBeMadeInitOnly.Local
 // ReSharper disable StringLiteralTypo
 // ReSharper disable UnusedAutoPropertyAccessor.Local
@@ -45,18 +44,17 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 
 	public Url Endpoint => URL_API;
 
-	public bool UsingAPI => !string.IsNullOrWhiteSpace(Authentication);
+	public bool UsingAPI => !String.IsNullOrWhiteSpace(Authentication);
 
 	public string Authentication { get; set; }
+
+	public override SearchEngineOptions Option => SearchEngineOptions.SauceNao;
 
 	public SauceNaoEngine(string authentication = null) : base(URL_QUERY)
 	{
 		Authentication = authentication;
 
 	}
-
-	public override SearchEngineOptions Option => SearchEngineOptions.SauceNao;
-
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken ct = default)
 	{
@@ -132,38 +130,24 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 		string         html     = null;
 		IFlurlResponse response = null;
 
-		response = await Client.Request(Endpoint)
-			           .AllowHttpStatus()
-			           .OnError(x =>
-			           {
-				           x.ExceptionHandled = true;
-				           Trace.WriteLine($"{x.Exception.Message}");
+		response = await Client.Request(Endpoint).WithTimeout(Timeout).PostMultipartAsync(m =>
+		{
+			m.AddString("url", query.Source.IsUri ? query.Source.Value : String.Empty);
+			string s;
 
-				           /*if (x.Exception is FlurlHttpException ex) {
-						           if (ex.StatusCode == (int)HttpStatusCode.TooManyRequests) { }
-					           }*/
+			if (query.Source.IsUri) { }
+			else {
+				if (query.Source.IsFile) {
+					s = query.Source.Value;
+				}
+				else {
+					s = query.Source.LocalFilePath;
+				}
 
-				           // html = await ((FlurlHttpException) x.Exception).GetResponseStringAsync();
-			           })
-			           .WithTimeout(Timeout)
-			           .PostMultipartAsync(m =>
-			           {
-				           m.AddString("url", query.Source.IsUri ? query.Source.Value : string.Empty);
-				           string s;
+				m.AddFile("file", s, fileName: "image.png");
+			}
 
-				           if (query.Source.IsUri) { }
-				           else {
-					           if (query.Source.IsFile) {
-						           s = query.Source.Value;
-					           }
-					           else {
-						           s = query.Source.LocalFilePath;
-					           }
-
-					           m.AddFile("file", s, fileName: "image.png");
-				           }
-
-			           }, cancellationToken: token).ConfigureAwait(false);
+		}, cancellationToken: token).ConfigureAwait(false);
 
 		html = await response.GetStringAsync().ConfigureAwait(false);
 
@@ -217,8 +201,6 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 	{
 		Logger.LogTrace("[{Name}] Using API", Name);
 
-		// var client = new HttpClient();
-
 		const string dbIndex = "999";
 
 		// const string numRes  = "6";
@@ -236,8 +218,8 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 		var content = new FormUrlEncodedContent(values);
 
 		var res = await Client.Request(URL_API)
-			          .WithTimeout(Timeout)
-			          .PostAsync(content).ConfigureAwait(false);
+		                      .WithTimeout(Timeout)
+		                      .PostAsync(content).ConfigureAwait(false);
 
 		var c = await res.GetStringAsync().ConfigureAwait(false);
 
@@ -270,7 +252,6 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 				obj          =  obj[..^1];
 				obj          += data.ToString()[1..].Insert(0, ",");
 				jsonArray[i] =  JsonNode.Parse(obj);
-
 			}
 
 			string json = jsonArray.ToString();
@@ -280,13 +261,13 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 
 			foreach (JsonNode t in resultArray) {
 				var   result     = t.AsObject();
-				float similarity = float.Parse(result[KeySimilarity].AsValue().ToString());
+				float similarity = Single.Parse(result[KeySimilarity].AsValue().ToString());
 
 				string[] strings = result.ContainsKey(KeyUrls)
 					                   ? [.. (result[KeyUrls] as JsonArray).Select(static j => j.ToString().CleanString())]
 					                   : null;
 
-				var index = (SauceNaoSiteIndex) int.Parse(result[KeyIndex].ToString());
+				var index = (SauceNaoSiteIndex) Int32.Parse(result[KeyIndex].ToString());
 
 				foreach (string t1 in strings) {
 					var item = new SearchResultItem(sr)
@@ -330,7 +311,7 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 /// <summary>
 /// Origin result
 /// </summary>
-public sealed class SauceNaoResultItem : SearchResultItem
+public sealed record SauceNaoResultItem : SearchResultItem
 {
 
 	private SauceNaoResultItem() : this(null, false) { }
@@ -422,52 +403,17 @@ public sealed class SauceNaoResultItem : SearchResultItem
 
 	}*/
 
-	/*public ValueTask<IEnumerable<SearchResultItem>> ToItem(SearchResult sr)
-	{
-		var sri = new SearchResultItem(sr)
-		{
-			Artist         = Creator,
-			Source         = Source,
-			Site           = Site,
-			Similarity     = Similarity,
-			Character      = Character,
-			Thumbnail      = Thumbnail,
-			ThumbnailTitle = ThumbnailTitle,
-			Title          = Title,
-			Url            = Urls[0],
-		};
-
-		var children = sri.CreateChildren(Urls[1..]);
-		return ValueTask.FromResult<IEnumerable<SearchResultItem>>([sri, .. children]);
-	}*/
-
-	public SauceNaoResultItem With3(Url u)
-	{
-		/*
-		var clone = (MemberwiseClone() as SauceNaoResultItem);
-		clone.Url = u;
-		return clone;
-	*/
-		return new SauceNaoResultItem(Root, false)
-		{
-			Url = u,
-
-		};
-	}
-
 	public static IEnumerable<SauceNaoResultItem> ParseSource(INode result, SearchResult r)
 	{
 		// TODO: OPTIMIZE
-
-		if (result == null) {
-			return [];
-		}
-
 		const string HIDDEN_ID_VAL = "result-hidden-notification";
 
-		if (result.TryGetAttribute(Serialization.Atr_id) == HIDDEN_ID_VAL) {
+		if (result == null || result.TryGetAttribute(Serialization.Atr_id) == HIDDEN_ID_VAL) {
 			return [];
 		}
+
+		var sndr    = new SauceNaoResultItem(r);
+		var results = new List<SauceNaoResultItem>();
 
 		var resultElem = result as IHtmlElement;
 		var ri         = resultElem.QuerySelector("img");
@@ -488,10 +434,7 @@ public sealed class SauceNaoResultItem : SearchResultItem
 		}
 
 
-		var resulttablecontent = result.FirstChild
-			.FirstChild
-			.FirstChild
-			.ChildNodes[1];
+		var resulttablecontent   = result.FirstChild.FirstChild.FirstChild.ChildNodes[1];
 		var resultmatchinfo      = resulttablecontent.FirstChild;
 		var resultsimilarityinfo = resultmatchinfo.FirstChild;
 
@@ -512,14 +455,14 @@ public sealed class SauceNaoResultItem : SearchResultItem
 
 		if (resulttablecontent is IElement { } e) {
 			var links1 = e.QuerySelectorAll(Serialization.Tag_a)
-				.Select(static x => x.GetAttribute(Serialization.Atr_href));
+			              .Select(static x => x.GetAttribute(Serialization.Atr_href));
 			links.AddRange(links1);
 		}
 
 		var element = resultcontentcolumn_rg.Select(static c => c.ChildNodes)
-			.SelectMany(static c => c.GetElementsByTagName(Serialization.Tag_a)
-				            .Select(static x => x.GetAttribute(Serialization.Atr_href)))
-			.Where(static ec => ec != null);
+		                                    .SelectMany(static c => c.GetElementsByTagName(Serialization.Tag_a)
+		                                                             .Select(static x => x.GetAttribute(Serialization.Atr_href)))
+		                                    .Where(static ec => ec != null);
 
 		if (element.Any()) {
 			links.AddRange(element);
@@ -527,8 +470,8 @@ public sealed class SauceNaoResultItem : SearchResultItem
 
 		if (resultmiscinfo != null) {
 			links.Add(resultmiscinfo.ChildNodes.GetElementsByTagName(Serialization.Tag_a)
-				          .FirstOrDefault(static x => x.GetAttribute(Serialization.Atr_href) != null)?
-				          .GetAttribute(Serialization.Atr_href));
+			                        .FirstOrDefault(static x => x.GetAttribute(Serialization.Atr_href) != null)?
+			                        .GetAttribute(Serialization.Atr_href));
 		}
 
 		//	//div[contains(@class, 'resulttitle')]
@@ -555,16 +498,41 @@ public sealed class SauceNaoResultItem : SearchResultItem
 			}
 		}
 
-		var nodes = resultcontentcolumn_rg.SelectMany(static e => e.ChildNodes)
-			.Where(static c => { return c is not (IElement { TagName: "BR" } or IElement { NodeName: "SPAN" }); })
-			.ToArray();
+		if (rtiHasArtist && String.IsNullOrWhiteSpace(sndr.Artist)) {
+			// sndr.Creator = rti;
+			// Debugger.Break();
+			sndr.Artist = rti;
+		}
 
-		float similarity = float.Parse(resultsimilarityinfo.TextContent.Replace("%", string.Empty));
 
-		// var results = new List<SearchResultItem>();
+		var rccNodes = resultcontentcolumn_rg.SelectMany(static e => e.ChildNodes)
+		                                     .Where(static c => c is not (IElement { TagName: "BR" } or IElement { NodeName: "SPAN" }))
+		                                     .ToArray();
+
+		for (int i = 0; i < rccNodes.Length; i++) {
+			var node     = rccNodes[i];
+			var nodeText = node.TextContent;
+
+			if (nodeText.StartsWith(KEY_SOURCE) || nodeText.StartsWith(KEY_MATERIAL)) {
+				sndr.Source = rccNodes[++i].TextContent.Trim(' ');
+				continue;
+			}
+
+			if (Keys_Characters.Any(nodeText.StartsWith)) {
+				sndr.Character = rccNodes[++i].TextContent.Trim(' ');
+				continue;
+			}
+
+			if (Keys_Artist.Any(nodeText.StartsWith) || nodeText.StartsWith(KEY_TWITTER)) {
+				sndr.Artist = rccNodes[++i].TextContent.Trim(' ');
+			}
+		}
+
+		float similarity = Single.Parse(resultsimilarityinfo.TextContent.Replace("%", String.Empty));
+
 		var urls = links.Where(static x =>
 		{
-			var b = !string.IsNullOrWhiteSpace(x);
+			var b = !String.IsNullOrWhiteSpace(x);
 			var c = true;
 
 			if (b) {
@@ -574,58 +542,12 @@ public sealed class SauceNaoResultItem : SearchResultItem
 			return b && c;
 		}).Distinct().ToArray();
 
-		var results = new List<SauceNaoResultItem>();
 
-
-		var sndr = new SauceNaoResultItem(r)
-		{
-			// Url  = url,
-			// Urls = urls,
-
-			// Url            = url,
-			Similarity     = Math.Round(similarity, 2),
-			Source         = material1,
-			Thumbnail      = thumbnail,
-			ThumbnailTitle = thumbnailTitle,
-
-			// Description = rti,
-			Title = rti,
-
-			// Site  = site
-		};
-
-		if (rtiHasArtist && string.IsNullOrWhiteSpace(sndr.Artist)) {
-			// sndr.Creator = rti;
-			// Debugger.Break();
-			sndr.Artist = rti;
-		}
-
-		for (int i = 0; i < nodes.Length; i++) {
-			var node     = nodes[i];
-			var nodeText = node.TextContent;
-
-			if (nodeText.StartsWith(KEY_SOURCE)) {
-				sndr.Source = nodes[++i].TextContent.Trim(' ');
-				continue;
-			}
-
-			if (nodeText.StartsWith(KEY_MATERIAL)) {
-				sndr.Source = nodes[++i].TextContent.Trim(' ');
-				continue;
-			}
-
-			if (Keys_Characters.Any(nodeText.StartsWith)) {
-				sndr.Character = nodes[++i].TextContent.Trim(' ');
-				continue;
-			}
-
-			if (Keys_Artist.Any(nodeText.StartsWith)
-			    || nodeText.StartsWith(KEY_TWITTER)) {
-				sndr.Artist = nodes[++i].TextContent.Trim(' ');
-
-				// var idx = Array.IndexOf(sndr.Urls, nodes[i].TryGetAttribute(Serialization.Atr_href));
-			}
-		}
+		sndr.Similarity     = Math.Round(similarity, 2);
+		sndr.Source         = material1;
+		sndr.Thumbnail      = thumbnail;
+		sndr.ThumbnailTitle = thumbnailTitle;
+		sndr.Title          = rti;
 
 		for (int i = 0; i < urls.Length; i++) {
 			Url    url  = urls[i];
@@ -638,8 +560,7 @@ public sealed class SauceNaoResultItem : SearchResultItem
 			}
 
 			// var sndri = sndr.With(url);
-			var sndri = sndr.With3(url);
-			sndri.Site = site;
+			var sndri = sndr with { Url = url, Site = site};
 			results.Add(sndri);
 		}
 
@@ -651,7 +572,6 @@ public sealed class SauceNaoResultItem : SearchResultItem
 		}*/
 
 		return results;
-
 	}
 
 }

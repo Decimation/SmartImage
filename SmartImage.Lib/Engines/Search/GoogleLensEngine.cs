@@ -5,7 +5,6 @@ using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using Flurl.Http;
-using Kantan.Net.Web;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;
@@ -32,10 +31,13 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 
 	public Url Endpoint => URL_BASE;
 
-	public GoogleLensEngine() : base(URL_BASE)
+	public GoogleLensEngine(ICookiesSource cookiesSrc = null) : base(URL_BASE)
 	{
-		Jar = new CookieJar();
+		Jar           = new CookieJar();
+		CookiesSource = cookiesSrc ?? new ListCookiesSource();
 	}
+
+	public ICookiesSource CookiesSource { get; set; }
 
 	public static readonly string[] SearchTypes = ["all", "products", "visual_matches", "exact_matches"];
 
@@ -91,17 +93,17 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 		filename = uif.LocalFileInfo.Name;
 
 		req = Client.Request(Endpoint, endpoint)
-			.SetQueryParam("hl", HlParam)
-			.WithTimeout(Timeout)
-			.WithCookies(Jar)
+		            .SetQueryParam("hl", HlParam)
+		            .WithTimeout(Timeout)
+		            .WithCookies(Jar)
 
-			// .WithCookie(Nid.Name, Nid.Value)
-			.WithHeaders(Headers)
-			.PostMultipartAsync(bc =>
-			{
-				//
-				bc.AddFile("encoded_image", uif.LocalFilePath, contentType: "image/jpeg", fileName: filename);
-			}, cancellationToken: token);
+		            // .WithCookie(Nid.Name, Nid.Value)
+		            .WithHeaders(Headers)
+		            .PostMultipartAsync(bc =>
+		            {
+			            //
+			            bc.AddFile("encoded_image", uif.LocalFilePath, contentType: "image/jpeg", fileName: filename);
+		            }, cancellationToken: token);
 
 		return req;
 	}
@@ -170,13 +172,13 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 		endpoint = "uploadbyurl";
 
 		var req1 = Client.Request(Endpoint, endpoint)
-			.SetQueryParam("hl", HlParam)
-			.SetQueryParam("url", url)
-			.WithCookies(Jar)
+		                 .SetQueryParam("hl", HlParam)
+		                 .SetQueryParam("url", url)
+		                 .WithCookies(Jar)
 
-			// .WithCookie(Nid.Name, Nid.Value)
-			.WithHeaders(Headers)
-			.WithTimeout(Timeout);
+		                 // .WithCookie(Nid.Name, Nid.Value)
+		                 .WithHeaders(Headers)
+		                 .WithTimeout(Timeout);
 
 		req = req1.GetAsync(cancellationToken: token);
 
@@ -194,32 +196,9 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 
 	public CookieJar Jar { get; private set; }
 
-	public async ValueTask<bool> ApplyCookiesAsync(ICookiesSource source, CancellationToken token = default)
-	{
-		if (source == null) {
-			return false;
-		}
-
-		var ck   = await source.GetOrLoadCookiesAsync(token).ConfigureAwait(false);
-		var nids = ck.OfType<FirefoxCookie>().Where(static x => x.Name == "NID" && x.Host.Contains("google.com"));
-		var nid  = nids.FirstOrDefault();
-
-		if (nid == null) {
-			return false;
-		}
-
-		var nidFc = nid.AsFlurlCookie(URL_BASE);
-
-		// Nid ??= nidFc;
-		Jar.AddOrReplace(nidFc);
-
-
-		return true;
-	}
-
 }
 
-public class GoogleLensItem : SearchResultItem, IParseableSource<INode, GoogleLensItem>
+public record GoogleLensItem : SearchResultItem, IParseableSource<INode, GoogleLensItem>
 {
 
 	// public string SiteName { get; private set; }

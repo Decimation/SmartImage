@@ -43,15 +43,17 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 
 	private readonly FlareSolverrClient m_fsClient;
 
-	public Ascii2DEngine() : base(MAIN_URL)
+	public Ascii2DEngine(ICookiesSource cookiesSource = null) : base(MAIN_URL)
 	{
-		Timeout    = TimeSpan.FromSeconds(30);
-		MaxLength  = 10_000_000;
-		Jar        = new CookieJar();
-		m_fsClient = new FlareSolverrClient();
+		Timeout       = TimeSpan.FromSeconds(30);
+		MaxLength     = 10_000_000;
+		Jar           = new CookieJar();
+		m_fsClient    = new FlareSolverrClient();
+		CookiesSource = cookiesSource ?? new ListCookiesSource();
 
 	}
 
+	public ICookiesSource CookiesSource { get; set; }
 
 	// public const int MAX_WIDTH = 1000;
 
@@ -190,28 +192,12 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 	private async Task<IFlurlResponse> GetResponseByUrlAsync(Url origin, CancellationToken token)
 	{
 		var res = await Client.Request(origin)
-			          .AllowAnyHttpStatus()
-			          .WithCookies(Jar)
-			          .WithTimeout(Timeout)
-			          .GetAsync(cancellationToken: token)
-			          .ConfigureAwait(false);
+		                      .AllowAnyHttpStatus()
+		                      .WithCookies(Jar)
+		                      .WithTimeout(Timeout)
+		                      .GetAsync(cancellationToken: token)
+		                      .ConfigureAwait(false);
 		return res;
-	}
-
-	public async ValueTask<bool> ApplyCookiesAsync(ICookiesSource source, CancellationToken ct)
-	{
-		var cookies = await source.GetOrLoadCookiesAsync(ct).ConfigureAwait(false);
-
-		foreach (var bck in cookies) {
-			var ck = bck.AsCookie();
-
-			if (ck.Domain.Contains("ascii2d")) {
-				Jar.AddOrReplace(new FlurlCookie(ck.Name, ck.Value, Url));
-			}
-		}
-
-
-		return true;
 	}
 
 	public async ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
@@ -230,7 +216,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 
 }
 
-public class Ascii2DItem : SearchResultItem, IParseableSource<INode, Ascii2DItem>
+public record Ascii2DItem : SearchResultItem, IParseableSource<INode, Ascii2DItem>
 {
 
 	public string HashString { get; private set; }
@@ -251,8 +237,8 @@ public class Ascii2DItem : SearchResultItem, IParseableSource<INode, Ascii2DItem
 
 		sri.Thumbnail = Url.Combine(r.Engine.Url.Root, thumb?.Value);
 
-		var info = n.ChildNodes.Where(static n1 => !string.IsNullOrWhiteSpace(n1.TextContent))
-			.ToArray();
+		var info = n.ChildNodes.Where(static n1 => !String.IsNullOrWhiteSpace(n1.TextContent))
+		            .ToArray();
 
 		sri.HashString = info.First().TextContent;
 
@@ -261,8 +247,8 @@ public class Ascii2DItem : SearchResultItem, IParseableSource<INode, Ascii2DItem
 		string[] data = info[1].TextContent.Split(' ');
 
 		string[] res = data[0].Split('x');
-		sri.Width  = int.Parse(res[0]);
-		sri.Height = int.Parse(res[1]);
+		sri.Width  = Int32.Parse(res[0]);
+		sri.Height = Int32.Parse(res[1]);
 
 		sri.Format = data[1];
 

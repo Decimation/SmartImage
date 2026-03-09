@@ -220,10 +220,10 @@ public class TraceMoeDoc
 					s1 = s1.Split('|')[0];
 				}
 
-				return long.Parse(s1 ?? string.Empty);
+				return Int64.Parse(s1 ?? String.Empty);
 			}).QuickJoin(),
 
-			_ => string.Empty
+			_ => String.Empty
 		};
 	}
 

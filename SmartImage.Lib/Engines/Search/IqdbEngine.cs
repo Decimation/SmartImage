@@ -172,7 +172,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 
 }
 
-public class IqdbItem : SearchResultItem, IParseableSource<IHtmlCollection<IElement>, IqdbItem>
+public record IqdbItem : SearchResultItem, IParseableSource<IHtmlCollection<IElement>, IqdbItem>
 {
 
 	private IqdbItem(SearchResult r) : base(r) { }
@@ -212,12 +212,12 @@ public class IqdbItem : SearchResultItem, IParseableSource<IHtmlCollection<IElem
 			string[] wh = res.TextContent.Split(Strings.Constants.MUL_SIGN);
 
 			string wStr = wh[0].SelectOnlyDigits();
-			w = int.Parse(wStr);
+			w = Int32.Parse(wStr);
 
 			// May have NSFW caption, so remove it
 
 			string hStr = wh[1].SelectOnlyDigits();
-			h = int.Parse(hStr);
+			h = Int32.Parse(hStr);
 		}
 
 		double? sim;
@@ -225,7 +225,7 @@ public class IqdbItem : SearchResultItem, IParseableSource<IHtmlCollection<IElem
 		if (tr.Length >= 5) {
 			var    simNode = tr[4];
 			string simStr  = simNode.TextContent.Split('%')[0];
-			sim = double.Parse(simStr);
+			sim = Double.Parse(simStr);
 			sim = Math.Round(sim.Value, 2);
 		}
 		else {
