@@ -188,6 +188,8 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 		return HasImage;
 	}
 
+	// TODO: Dispose failed
+
 	/// <returns><see cref="AllocSourceAsync"/>, <see cref="AllocImageAsync"/></returns>
 	public async ValueTask<(bool AllocSourceOk, bool AllocImageOk)> AllocAllAsync(CancellationToken ct)
 	{

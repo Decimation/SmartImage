@@ -70,7 +70,7 @@ public partial class SearchCommand
 				ci.Mutate(static act =>
 				{
 					var cs = act.GetCurrentSize();
-					var ns = cs.ResizeByFactor(new SizeIS(_profWidth, _profHeight));
+					var ns = cs.ResizeByFactor(new SizeIS(AC.Profile.Width, AC.Profile.Height));
 					act.Resize(ns);
 				});
 
