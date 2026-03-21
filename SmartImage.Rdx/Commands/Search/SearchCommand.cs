@@ -216,10 +216,10 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 				var prompt = new SelectionPrompt<IResultItem>()
 				{
-					Converter     = static r => { return r.Url; },
-					Mode          = SelectionMode.Independent,
+					Converter     = static r => { return $"{r.Index}"; },
+					Mode          = SelectionMode.Leaf,
 					SearchEnabled = true,
-
+					PageSize = 4,
 				};
 				prompt.AddChoices(result.Results);
 
@@ -265,7 +265,42 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					AnsiConsole.Write(srTable);
 				}
 
-				cmd = AnsiConsole.Prompt(Elements.Prm_Command);
+				// cmd = AnsiConsole.Prompt(Elements.Prm_Command);
+
+				var item    = AC.Prompt(m_prompts[sr]);
+				var sri     = item as SearchResultItem;
+				var sriScn  = item as ScannedResultItem;
+				var isScn   = sriScn is not null;
+				var selIdx  = ShellSelection.Index(item);
+				var selIdx2 = ShellSelection.Index2(item);
+
+				s_logger.LogDebug("Selected {Item} {Scn} | {Idx1}, {Idx2}", item, isScn, selIdx, selIdx2);
+
+				var cmdPrompt = new SelectionPrompt<string>()
+				{
+					Mode          = SelectionMode.Independent,
+					SearchEnabled = true,
+				};
+
+				cmdPrompt.AddChoices([R2.Chc_Open, R2.Chc_Back, R2.Chc_Exit]);
+
+				if (!isScn) {
+					cmdPrompt.AddChoice(R2.Chc_Scan);
+				}
+
+				if (item.HasHash && !item.HasSimilarity) {
+					cmdPrompt.AddChoice(R2.Chc_Calc);
+				}
+
+				if (isScn && !sriScn.HasLocalFilePath) {
+					cmdPrompt.AddChoice(R2.Chc_Download);
+				}
+
+				if (isScn && sriScn.HasImage) {
+					cmdPrompt.AddChoice(R2.Chc_Preview);
+				}
+
+				cmd = AC.Prompt(cmdPrompt);
 
 				if (cmd == R2.Chc_Exit) {
 					return;
@@ -274,16 +309,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				if (cmd == R2.Chc_Back) {
 					break;
 				}
-
-				var item     = AC.Prompt(m_prompts[sr]);
-				var sri = item as SearchResultItem;
-				// var itemIdx = sr.Results.IndexOf(sri);
-				// var isScn   = sri is ScannedResultItem;
-				// ScannedResultItem sriScn = isScn? sri as ScannedResultItem : null;
-				// var selIdx2 = new ShellSelection(sri, sri.Index, sriScn.Index, isScn);
-
-				var selIdx = ShellSelection.Index(item);
-				var selIdx2 = ShellSelection.Index2(item);
 
 				/*var sel     = ShellSelection.GetSelectionChoice(sr);
 				var item    = sel.Item;
@@ -294,12 +319,12 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				// s_logger.LogDebug("Selected {Item} {Scn} | {Idx1}, {Idx2}", sel.Item, sel.IsScannedItem, selIdx, selIdx2);
 
 				if (cmd == R2.Chc_Open) {
-					SearchClient.OpenResult(sri.Url);
+					SearchClient.OpenResult(item.Url);
 					clrWrite = false;
 					continue;
 				}
 
-				if (cmd == R2.Chc_Scan && !sri.IsChild) {
+				if (cmd == R2.Chc_Scan) {
 					await AnsiConsole.Live(srTable).StartAsync(async f =>
 					{
 						s_logger.LogTrace("Scanning {Item}", sri);
@@ -310,12 +335,11 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 							return;
 						}
 
-						for (int i = 0; i < sri.ScannedItems.Count; i++) {
-							IResultItem scnItm = sri.ScannedItems[i];
-							scnItm.CalculateSimilarity(Query.Source);
+						foreach (var item2 in sri.ScannedItems) {
+							var scnRow = item2.GetItemRow(item.Index, item2.Index);
+							srTable.InsertRow(selIdx + item2.Index + 1, scnRow);
 
-							var scnRow = scnItm.GetItemRow(item.Index, i);
-							srTable.InsertRow(selIdx + i + 1, scnRow);
+							// scnItm.CalculateSimilarity(Query.Source);
 						}
 
 						m_prompts[sr].AddChoiceGroup(sri, sri.ScannedItems);
@@ -328,13 +352,13 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					continue;
 				}
 
-				if (cmd == R2.Chc_Calc && sri.HasHash) {
+				if (cmd == R2.Chc_Calc) {
 
 					AnsiConsole.Live(srTable).Start(f =>
 					{
 						item.CalculateSimilarity(Query.Source);
 
-						srTable.Rows.Update(selIdx2, (int) ResultRowIndex.ROW_SIMILARITY, sri.GetSimilarity());
+						srTable.Rows.Update(selIdx2, (int) ResultRowIndex.ROW_SIMILARITY, item.GetSimilarity());
 						f.Refresh();
 					});
 
@@ -343,11 +367,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					continue;
 				}
 
-				if (cmd == R2.Chc_Preview && item is ScannedResultItem { } sriScn) {
-					if (!sriScn.HasBytes || !sriScn.HasImage) {
-						continue;
-					}
-
+				if (cmd == R2.Chc_Preview) {
 					var ci = GetPreviewCanvasImage(sriScn);
 
 					AnsiConsole.AlternateScreen(() =>
@@ -358,9 +378,9 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					clrWrite = true;
 				}
 
-				if (cmd == R2.Chc_Download && item is ScannedResultItem { } sriScnDl) {
+				if (cmd == R2.Chc_Download) {
 
-					HandleDownload(sriScnDl);
+					HandleDownload(sriScn);
 				}
 
 				if (cmd == R2.Chc_Expand) {
