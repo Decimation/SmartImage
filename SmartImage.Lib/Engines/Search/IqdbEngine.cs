@@ -13,6 +13,7 @@ using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Search.Base;
 
 // ReSharper disable StringLiteralTypo
 
@@ -39,13 +40,6 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 
 	private const string URL_BASE  = "https://iqdb.org/";
 	private const string URL_QUERY = "https://iqdb.org/?url=";
-
-	protected override string[] ErrorBodyMessages =>
-	[
-		"Can't read query result!",
-		"too large",
-		$"Could not retrieve data"
-	];
 
 
 	protected override async Task<IDocument> GetSourceAsync(SearchResult sr, SearchQuery query, CancellationToken token = default)

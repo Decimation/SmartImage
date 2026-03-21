@@ -8,6 +8,7 @@ using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Search.Base;
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE1006, IDE0051

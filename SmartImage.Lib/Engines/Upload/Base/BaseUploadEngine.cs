@@ -1,16 +1,13 @@
-﻿using System.Diagnostics;
-using Flurl.Http;
+﻿using Flurl.Http;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Search.Other;
-using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
-using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Diagnostics;
 
 #pragma warning disable CS0618 // Type or member is obsolete
 #pragma warning disable CS0612
-namespace SmartImage.Lib.Engines.Upload;
+namespace SmartImage.Lib.Engines.Upload.Base;
 
 public abstract class BaseUploadEngine : IUploadEngine, IDisposable
 {

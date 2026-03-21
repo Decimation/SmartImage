@@ -7,7 +7,6 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.Memory;
 using SmartImage.Lib;
-using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
@@ -17,6 +16,7 @@ using Spectre.Console.Cli;
 using Spectre.Console.Rendering;
 using AnsiConsoleExtensions = Spectre.Console.Advanced.AnsiConsoleExtensions;
 using Kantan.Console;
+using SmartImage.Lib.Engines.Search.Base;
 
 // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
 // ReSharper disable InconsistentNaming

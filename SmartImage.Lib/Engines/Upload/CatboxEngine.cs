@@ -1,4 +1,6 @@
-﻿#pragma warning disable CS0618 // Type or member is obsolete
+﻿using SmartImage.Lib.Engines.Upload.Base;
+
+#pragma warning disable CS0618 // Type or member is obsolete
 namespace SmartImage.Lib.Engines.Upload;
 
 public sealed class CatboxEngine : BaseCatboxEngine

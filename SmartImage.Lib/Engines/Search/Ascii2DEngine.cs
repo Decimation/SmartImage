@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Model;
 
 // ReSharper disable CognitiveComplexity
@@ -30,12 +31,6 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 	public override SearchEngineOptions Option => SearchEngineOptions.Ascii2D;
 
 	public CookieJar Jar { get; }
-
-	protected override string[] ErrorBodyMessages =>
-	[
-		"検索できるのは 縦 10000px での画像です。",
-		"ごく最近、このURLからのダウンロードに失敗しています。少し時間を置いてください。"
-	];
 
 	public const string ALT_URL = "https://ascii2d.obfs.dev/search/url/";
 

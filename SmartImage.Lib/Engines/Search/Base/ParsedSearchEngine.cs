@@ -4,7 +4,7 @@
 using System.Diagnostics;
 using SmartImage.Lib.Engines.Results;
 
-namespace SmartImage.Lib.Engines;
+namespace SmartImage.Lib.Engines.Search.Base;
 
 /// <summary>
 /// Represents a search engine whose results are parsed: <para />

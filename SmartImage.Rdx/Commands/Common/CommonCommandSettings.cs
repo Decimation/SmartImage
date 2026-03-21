@@ -4,9 +4,9 @@
 using System.ComponentModel;
 using SmartImage.Lib;
 using SmartImage.Lib.Clients;
-using SmartImage.Lib.Engines;
+using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Engines.Upload;
-
+using SmartImage.Lib.Engines.Upload.Base;
 using Spectre.Console.Cli;
 
 namespace SmartImage.Rdx.Commands.Common;

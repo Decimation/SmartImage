@@ -6,6 +6,7 @@ using Flurl.Http;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Search.Base;
 
 namespace SmartImage.Lib.Engines.Search.Other;
 

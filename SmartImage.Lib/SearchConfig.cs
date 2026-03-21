@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Cookies;
-using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Search;
 using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Utilities;
@@ -11,6 +10,8 @@ using System.Configuration;
 using SmartImage.Lib.Model;
 using Configuration = System.Configuration.Configuration;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
+using SmartImage.Lib.Engines.Search.Base;
+using SmartImage.Lib.Engines.Upload.Base;
 
 namespace SmartImage.Lib;
 

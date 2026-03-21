@@ -9,6 +9,8 @@
 
 // ReSharper disable StringLiteralTypo
 
+using SmartImage.Lib.Engines.Search.Base;
+
 namespace SmartImage.Lib.Engines.Search;
 
 #nullable disable

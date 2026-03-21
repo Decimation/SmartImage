@@ -6,7 +6,7 @@ using AngleSharp.Html.Parser;
 using Flurl.Http;
 using SmartImage.Lib.Engines.Results;
 
-namespace SmartImage.Lib.Engines;
+namespace SmartImage.Lib.Engines.Search.Base;
 
 public abstract class WebSearchEngine<TItem, TIntermediate> : ParsedSearchEngine<TItem, TIntermediate, IDocument>
 	where TItem : SearchResultItem
@@ -43,15 +43,8 @@ public abstract class WebSearchEngine<TItem, TIntermediate> : ParsedSearchEngine
 	/// <inheritdoc />
 	protected override bool ValidateSource(IDocument doc)
 	{
-
 		if (doc is null or { Body: null }) {
 			return false;
-		}
-
-		foreach (string s in ErrorBodyMessages) {
-			if (doc.Body.TextContent.Contains(s)) {
-				return false;
-			}
 		}
 
 		return true;

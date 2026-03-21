@@ -2,13 +2,14 @@
 using Microsoft.Extensions.Logging;
 using Novus;
 using Novus.OS;
-using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using SmartImage.Lib.Engines.Upload;
+using SmartImage.Lib.Engines.Search.Base;
+using SmartImage.Lib.Engines.Upload.Base;
 
 #pragma warning disable CS0162, CS2255
 namespace SmartImage.Lib;

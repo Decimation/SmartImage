@@ -7,6 +7,7 @@ using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.XPath;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Utilities.Diagnostics;
 // ReSharper disable UnusedVariable
 

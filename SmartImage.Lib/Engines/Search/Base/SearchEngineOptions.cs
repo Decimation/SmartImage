@@ -3,7 +3,7 @@
 using SmartImage.Lib.Engines.Search;
 using SmartImage.Lib.Engines.Search.Other;
 
-namespace SmartImage.Lib.Engines;
+namespace SmartImage.Lib.Engines.Search.Base;
 
 /// <summary>
 ///     Search engine options

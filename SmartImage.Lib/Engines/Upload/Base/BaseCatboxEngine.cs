@@ -5,7 +5,7 @@ using Flurl.Http;
 using Flurl.Http.Content;
 using SmartImage.Lib.Utilities;
 
-namespace SmartImage.Lib.Engines.Upload;
+namespace SmartImage.Lib.Engines.Upload.Base;
 
 [Obsolete("No longer in service")]
 public abstract class BaseCatboxEngine : BaseUploadEngine

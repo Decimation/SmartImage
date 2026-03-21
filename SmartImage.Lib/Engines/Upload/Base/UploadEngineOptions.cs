@@ -3,7 +3,7 @@
 
 using SmartImage.Lib.Engines.Search.Other;
 
-namespace SmartImage.Lib.Engines.Upload;
+namespace SmartImage.Lib.Engines.Upload.Base;
 
 public enum UploadEngineOptions
 {

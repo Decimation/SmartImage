@@ -12,6 +12,7 @@ using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Model;
 
 // ReSharper disable PossibleNullReferenceException
@@ -40,8 +41,6 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 	 * https://github.com/luk1337/SauceNAO/blob/master/app/src/main/java/com/luk/saucenao/MainActivity.java
 	 */
 
-	protected override string[] ErrorBodyMessages { get; } = [];
-
 	public Url Endpoint => URL_API;
 
 	public bool UsingAPI => !String.IsNullOrWhiteSpace(Authentication);
@@ -53,7 +52,6 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 	public SauceNaoEngine(string authentication = null) : base(URL_QUERY)
 	{
 		Authentication = authentication;
-
 	}
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken ct = default)
@@ -100,19 +98,6 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 		}
 
 		result.Status = SearchResultStatus.Success;
-
-		// TODO: HACK
-
-		/*var allSisters = imageResults
-				.SelectMany(ir => ir.Children)
-				.DistinctBy(s => s.Url)
-				.ToList(); // note: need ToList()
-
-			for (int i = 0; i < imageResults.Count; i++) {
-				var ir = imageResults[i];
-				ir.Children.Clear();
-				ir.Children.AddRange(allSisters.Where(irs => irs.Parent == ir));
-			}*/
 
 	ret:
 
@@ -341,68 +326,6 @@ public sealed record SauceNaoResultItem : SearchResultItem
 	internal static readonly string[] Keys_Characters = ["Characters:"];
 
 
-	/*public SearchResultItem Convert(SearchResult r)
-	{
-		var    idxStr   = Index.ToString();
-		string siteName = Index != 0 ? idxStr : null;
-
-		var site  = Strings.NormalizeNull(siteName);
-		var title = Strings.NormalizeNull(WebsiteTitle);
-
-		var sb = new StringBuilder();
-
-		if (site is { }) {
-			sb.Append(site);
-		}
-
-		if (title is { }) {
-			sb.Append($" [{title}]");
-		}
-
-		site = sb.ToString().Trim(' ');
-
-		/*var urls = sn.Urls.OrderByDescending(s =>
-			{
-				Url u = s;
-				return u.Host == "gelbooru" || u.Host == "danbooru";
-			}).ToArray();#1#
-
-		string[] urls = (Urls != null)
-			                ? Urls.Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray()
-			                : [];
-
-		string[] meta = [];
-
-		if ((urls.Length >= 2)) {
-			meta = urls[1..].Where(u => !SauceNaoEngine.IsLookupUrl((Url) u)).ToArray();
-		}
-
-		var imageResult = new SearchResultItem(r)
-		{
-			Url        = urls.FirstOrDefault(),
-			Similarity = Math.Round(Similarity, 2),
-
-			// Similarity = Similarity,
-			Description    = siteName,
-			Artist         = Strings.NormalizeNull(Creator),
-			Source         = Strings.NormalizeNull(Material),
-			Character      = Strings.NormalizeNull(Character),
-			Site           = site,
-			Title          = Strings.NormalizeNull(Title),
-			Metadata       = meta,
-			Thumbnail      = Thumbnail,
-			ThumbnailTitle = ThumbnailTitle
-
-		};
-
-		var children = imageResult.CreateChildren(meta);
-
-		r.Results.AddRange(children);
-
-		return imageResult;
-
-	}*/
-
 	public static IEnumerable<SauceNaoResultItem> ParseSource(INode result, SearchResult r)
 	{
 		// TODO: OPTIMIZE
@@ -560,16 +483,9 @@ public sealed record SauceNaoResultItem : SearchResultItem
 			}
 
 			// var sndri = sndr.With(url);
-			var sndri = sndr with { Url = url, Site = site};
+			var sndri = sndr with { Url = url, Site = site };
 			results.Add(sndri);
 		}
-
-		/*sr.Results.Add(sndr);
-
-		if (urls.Length >= 1) {
-			var children = sndr.CreateChildren(urls[1..]);
-			sr.Results.AddRange(children);
-		}*/
 
 		return results;
 	}

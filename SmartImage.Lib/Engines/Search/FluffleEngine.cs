@@ -1,6 +1,7 @@
 ﻿using Argon;
 using Flurl.Http;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Search;

@@ -4,6 +4,7 @@
 
 using Flurl.Http;
 using Flurl.Http.Content;
+using SmartImage.Lib.Engines.Upload.Base;
 using SmartImage.Lib.Utilities;
 
 #pragma warning disable CS0618 // Type or member is obsolete

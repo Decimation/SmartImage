@@ -11,6 +11,7 @@ using Flurl.Http;
 using Kantan.Net.Utilities;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Search.Base;
 
 // ReSharper disable SuggestVarOrType_SimpleTypes
 
@@ -28,12 +29,6 @@ public sealed class YandexEngine : BaseSearchEngine
 	public static readonly Url BaseSearchUrl = Url.Combine(URL_YANDEX, "images", "search");
 
 	public override SearchEngineOptions Option => SearchEngineOptions.Yandex;
-
-	protected override string[] ErrorBodyMessages =>
-	[
-		"Please confirm that you and not a robot are sending requests",
-		"Изображение не загрузилось, попробуйте загрузить другое."
-	];
 
 	public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=")
 	{

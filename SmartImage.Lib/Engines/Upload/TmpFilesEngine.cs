@@ -7,6 +7,7 @@ using AngleSharp.Html.Parser;
 using Flurl.Http;
 using Kantan.Numeric;
 using Microsoft.Identity.Client;
+using SmartImage.Lib.Engines.Upload.Base;
 using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Upload;

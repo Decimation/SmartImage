@@ -6,24 +6,23 @@ using System.Runtime.CompilerServices;
 using Flurl.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
-using SmartImage.Lib;
+using SmartImage.Shared;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search;
 using SmartImage.Lib.Engines.Search.Other;
 using SmartImage.Lib.Utilities.Diagnostics;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
-using SmartImage.Shared;
 
 [assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_TEST)]
 [assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_UI2)]
 
-namespace SmartImage.Lib.Engines;
+namespace SmartImage.Lib.Engines.Search.Base;
 
 #pragma warning disable CA1822
 #nullable disable
 
-public abstract class BaseSearchEngine : INamedEnumOption<SearchEngineOptions>, IDisposable, IEquatable<BaseSearchEngine>, IUrl, IMaxLength
+public abstract class BaseSearchEngine : INamedEnumOption<SearchEngineOptions>, IDisposable, IEquatable<BaseSearchEngine>, IUrl, IMaxLength, ITimeout
 {
 
 	protected static readonly ILogger Logger = AppSupport.Factory.CreateLogger(nameof(BaseSearchEngine));
@@ -34,10 +33,7 @@ public abstract class BaseSearchEngine : INamedEnumOption<SearchEngineOptions>, 
 
 	public virtual Url Url { get; private set; }
 
-	Url IUrl.Url
-	{
-		get => Url;
-	}
+	// Url IUrl.Url => Url;
 
 	public virtual string Name => Option.ToString();
 
@@ -49,9 +45,6 @@ public abstract class BaseSearchEngine : INamedEnumOption<SearchEngineOptions>, 
 	[JI]
 	public long? MaxLength { get; protected init; }
 
-	[JI]
-	protected virtual string[] ErrorBodyMessages { get; }
-
 	protected static IFlurlClient Client {get;}
 
 
@@ -62,7 +55,6 @@ public abstract class BaseSearchEngine : INamedEnumOption<SearchEngineOptions>, 
 			builder.Headers.AddOrReplace(HeaderNames.UserAgent, R1.UserAgent1);
 
 			// builder.Settings.JsonSerializer = new DefaultJsonSerializer();
-
 
 			builder.Settings.AllowedHttpStatusRange = "*";
 			builder.Settings.HttpVersion            = "2.0";
@@ -81,10 +73,9 @@ public abstract class BaseSearchEngine : INamedEnumOption<SearchEngineOptions>, 
 
 	protected BaseSearchEngine([NN] Url url)
 	{
-		Url               = url;
-		Timeout           = TimeSpan.FromSeconds(30);
-		ErrorBodyMessages = [];
-		MaxLength         = null;
+		Url       = url;
+		Timeout   = TimeSpan.FromSeconds(30);
+		MaxLength = null;
 		
 	}
 

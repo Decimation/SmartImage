@@ -2,6 +2,7 @@
 using System.Text.Json;
 using Flurl.Http;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Search.Base;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 #pragma warning disable CS0649
@@ -21,8 +22,6 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 	private const string URL_QUERY = "https://repostsleuth.com/search?url=";
 
 	public Url Endpoint => URL_API;
-
-	protected override string[] ErrorBodyMessages => [];
 
 	private static readonly JsonSerializerOptions JsOptions = new(JsonSerializerDefaults.Web)
 	{

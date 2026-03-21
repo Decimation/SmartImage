@@ -1,5 +1,7 @@
 ﻿//todo
 
+using SmartImage.Lib.Engines.Search.Base;
+
 namespace SmartImage.Lib.Engines.Search.Other;
 
 public sealed class KarmaDecayEngine : BaseSearchEngine

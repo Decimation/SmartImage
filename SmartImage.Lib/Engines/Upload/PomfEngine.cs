@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
 using Flurl.Http;
+using SmartImage.Lib.Engines.Upload.Base;
 using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Upload;

@@ -25,10 +25,8 @@ using System.Diagnostics;
 using System.Runtime.Caching;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
-using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Images;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Diagnostics;
 using SmartImage.Rdx.Commands.Common;
@@ -37,7 +35,7 @@ using SmartImage.Shared;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Rendering;
-using Size = SixLabors.ImageSharp.Size;
+
 // ReSharper disable UseSymbolAlias
 
 // TODO: Create separate SearchCommands for interactive/non-interactive?

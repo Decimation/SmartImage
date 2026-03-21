@@ -5,7 +5,7 @@ using Flurl.Http;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Model;
 
-namespace SmartImage.Lib.Engines.Upload;
+namespace SmartImage.Lib.Engines.Upload.Base;
 
 public interface IUploadEngine : INamedEnumOption<UploadEngineOptions>, IMaxLength, IUrl, ITimeout, IDisposable
 {

@@ -32,6 +32,7 @@ using SmartImage.Lib.Images.Uni;
 using System.ComponentModel;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib;
+using SmartImage.Lib.Engines.Upload.Base;
 using SmartImage.Lib.Utilities;
 using SmartImage.Shared;
 

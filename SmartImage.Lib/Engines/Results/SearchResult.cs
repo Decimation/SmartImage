@@ -4,6 +4,7 @@ using SmartImage.Lib.Utilities;
 using System.ComponentModel;
 using System.Diagnostics;
 using SmartImage.Lib.Model;
+using SmartImage.Lib.Engines.Search.Base;
 
 namespace SmartImage.Lib.Engines.Results;
 
