@@ -3,15 +3,16 @@ using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Search;
+using SmartImage.Lib.Engines.Search.Base;
+using SmartImage.Lib.Engines.Search.Other;
 using SmartImage.Lib.Engines.Upload;
+using SmartImage.Lib.Engines.Upload.Base;
+using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 using System.ComponentModel;
 using System.Configuration;
-using SmartImage.Lib.Model;
 using Configuration = System.Configuration.Configuration;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
-using SmartImage.Lib.Engines.Search.Base;
-using SmartImage.Lib.Engines.Upload.Base;
 
 namespace SmartImage.Lib;
 
@@ -187,6 +188,57 @@ public sealed class SearchConfig : INotifyPropertyChanged
 #endregion
 
 	
+	/*public IEnumerable<BaseSearchEngine> GetSelectedEngines()
+	{
+		// TODO
+		if (SearchEngines.HasFlag(SearchEngineOptions.SauceNao))
+			yield return new SauceNaoEngine(authentication: SauceNaoKey);
+
+		if (SearchEngines.HasFlag(SearchEngineOptions.ImgOps))
+			yield return new ImgOpsEngine();
+
+		if (SearchEngines.HasFlag(SearchEngineOptions.GoogleImages))
+			yield return new GoogleImagesEngine();
+
+		if (SearchEngines.HasFlag(SearchEngineOptions.TinEye))
+			yield return new TinEyeEngine();
+
+		if (SearchEngines.HasFlag(SearchEngineOptions.Iqdb))
+			yield return new IqdbEngine();
+
+		if (SearchEngines.HasFlag(SearchEngineOptions.TraceMoe))
+			yield return new TraceMoeEngine();
+
+		if (SearchEngines.HasFlag(SearchEngineOptions.KarmaDecay))
+			yield return new KarmaDecayEngine();
+
+		if (SearchEngines.HasFlag(SearchEngineOptions.Yandex))
+			yield return new YandexEngine();
+
+		if (SearchEngines.HasFlag(SearchEngineOptions.Bing))
+			yield return new BingEngine();
+
+		if (SearchEngines.HasFlag(SearchEngineOptions.Ascii2D))
+			yield return new Ascii2DEngine(GetCookiesSource());
+
+		if (SearchEngines.HasFlag(SearchEngineOptions.RepostSleuth))
+			yield return new RepostSleuthEngine();
+
+		if (SearchEngines.HasFlag(SearchEngineOptions.EHentai))
+			yield return new EHentaiEngine(cookiesSrc: GetCookiesSource());
+
+		if (SearchEngines.HasFlag(SearchEngineOptions.ArchiveMoe))
+			yield return new ArchiveMoeEngine();
+
+		if (SearchEngines.HasFlag(SearchEngineOptions.Iqdb3D))
+			yield return new Iqdb3DEngine();
+
+		if (SearchEngines.HasFlag(SearchEngineOptions.Fluffle))
+			yield return new FluffleEngine();
+
+		if (SearchEngines.HasFlag(SearchEngineOptions.GoogleLens))
+			yield return new GoogleLensEngine();
+	}*/
 
 	public async ValueTask LoadEngines(IEnumerable<BaseSearchEngine> engines2, CancellationToken ct)
 	{

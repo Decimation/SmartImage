@@ -2,11 +2,14 @@
 // 2023-05-28 @ 7:49 PM
 
 using System.Text.Json.Serialization;
+using SmartImage.Lib.Engines.Upload.Base;
 using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Upload;
 
-public class UploadResult : IUrl, ILength
+public interface IUploadResult : IUrl, ILength { }
+
+public class UploadResult : IUploadResult
 {
 
 	public Url Url { get; set; }

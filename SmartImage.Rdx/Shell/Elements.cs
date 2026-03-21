@@ -48,6 +48,15 @@ internal static class Elements
 
 	}.AsReadOnly();
 
+	internal static SpcColor GetColor(this SearchEngineOptions opt)
+	{
+		if (!EngineColors.TryGetValue(opt, out var color)) {
+			color = SpcColor.White;
+		}
+
+		return color;
+	}
+
 #endregion
 
 #region Styles
@@ -148,14 +157,5 @@ internal static class Elements
 
 #endregion
 #endif
-
-	internal static SpcColor GetColor(this SearchEngineOptions opt)
-	{
-		if (!EngineColors.TryGetValue(opt, out var color)) {
-			color = SpcColor.White;
-		}
-
-		return color;
-	}
 
 }

@@ -2,7 +2,7 @@
 // 2023-01-13 @ 11:09 PM
 
 namespace SmartImage.Lib.Model;
-
+// TODO: remove; use DI
 public interface ISearchConfigReceiver
 {
 

@@ -26,7 +26,7 @@ public abstract class BaseUploadEngine : IUploadEngine, IDisposable
 				Logger.LogError(f.Exception, $"from {nameof(BaseUploadEngine)}");
 			});
 
-			builder.AddMiddleware(static () => new HttpLoggingHandler(Logger));
+			// builder.AddMiddleware(static () => new HttpLoggingHandler(Logger));
 
 		});
 	}
@@ -50,36 +50,9 @@ public abstract class BaseUploadEngine : IUploadEngine, IDisposable
 		Timeout = TimeSpan.FromSeconds(15);
 	}
 
-	public static IUploadEngine GetUploadEngine(UploadEngineOptions options)
-	{
-		return options switch
-		{
-			UploadEngineOptions.Catbox    => new CatboxEngine(),
-			UploadEngineOptions.Litterbox => new LitterboxEngine(),
-			UploadEngineOptions.Pomf      => new PomfEngine(),
-			UploadEngineOptions.ImgOps    => new ImgOpsEngine(),
-			UploadEngineOptions.TmpFiles  => new TmpFilesEngine(),
+	public abstract Task<IUploadResult> UploadFileAsync(string file, CancellationToken ct = default);
 
-			UploadEngineOptions.None or _ => throw new ArgumentOutOfRangeException(nameof(options), options, null)
-		};
-	}
-
-	public virtual Task<UploadResult> UploadAsync(IUniImage query, CancellationToken ct = default)
-	{
-		Verify(query);
-
-		if (query is UniImageUrl { } uri) {
-			Logger.LogTrace("Not uploading {Uni} {Val}", query, query.Value);
-			var ur = new UploadResult(uri.Url, uri.Length) { };
-			return Task.FromResult(ur);
-		}
-
-		return UploadFileAsync(query.Value, ct);
-	}
-
-	public abstract Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default);
-
-	public abstract Task<UploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default);
+	public abstract Task<IUploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default);
 
 	public void Verify(IUniImage file)
 	{
@@ -92,6 +65,20 @@ public abstract class BaseUploadEngine : IUploadEngine, IDisposable
 	public virtual void Dispose()
 	{
 		GC.SuppressFinalize(this);
+	}
+
+	public static IUploadEngine GetUploadEngine(UploadEngineOptions options)
+	{
+		return options switch
+		{
+			UploadEngineOptions.Catbox    => new CatboxEngine(),
+			UploadEngineOptions.Litterbox => new LitterboxEngine(),
+			UploadEngineOptions.Pomf      => new PomfEngine(),
+			UploadEngineOptions.ImgOps    => new ImgOpsEngine(),
+			UploadEngineOptions.TmpFiles  => new TmpFilesEngine(),
+
+			UploadEngineOptions.None or _ => throw new ArgumentOutOfRangeException(nameof(options), options, null)
+		};
 	}
 
 }

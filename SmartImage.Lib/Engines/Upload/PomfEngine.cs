@@ -16,20 +16,13 @@ public sealed class PomfEngine : BaseUploadEngine
 
 	public override long? MaxLength => 1_000_000_000;
 
-	public override async Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default)
+	public override async Task<IUploadResult> UploadFileAsync(string file, CancellationToken ct = default)
 	{
-		using var response = await Client.Request(Url)
-			                     .WithTimeout(Timeout)
-			                     .OnError(r =>
-			                     {
-				                     r.ExceptionHandled = true;
-				                     Trace.WriteLine($"{r.Exception.Message}: {file} {Name}");
-			                     })
-			                     .PostMultipartAsync(mp =>
-			                     {
-				                     //
-				                     mp.AddFile("files[]", file);
-			                     }, cancellationToken: ct);
+		using var response = await Client.Request(Url).WithTimeout(Timeout).PostMultipartAsync(mp =>
+		{
+			//
+			mp.AddFile("files[]", file);
+		}, cancellationToken: ct);
 
 		if (response == null) {
 			Debugger.Break();
@@ -42,7 +35,7 @@ public sealed class PomfEngine : BaseUploadEngine
 		return ur;
 	}
 
-	public override async Task<UploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default)
+	public override async Task<IUploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default)
 	{
 		// var pr = await response.GetJsonAsync<PomfResult>();
 		var sz = await response.GetStringAsync();
@@ -57,14 +50,18 @@ public sealed class PomfEngine : BaseUploadEngine
 
 public sealed class PomfResult
 {
+
 	public bool Success { get; set; }
 
 	public PomfFileResult[] Files { get; set; }
+
 }
 
 public sealed class PomfFileResult : UploadResult
 {
+
 	public string Hash { get; set; }
 
 	public string Name { get; set; }
+
 }

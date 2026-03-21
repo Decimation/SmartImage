@@ -24,7 +24,7 @@ public class TmpFilesEngine : BaseUploadEngine
 
 	public override UploadEngineOptions Option => UploadEngineOptions.TmpFiles;
 
-	public override async Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default)
+	public override async Task<IUploadResult> UploadFileAsync(string file, CancellationToken ct = default)
 	{
 		using var req = await Client.Request(TMPFILES_URL_API).PostMultipartAsync(act =>
 		{
@@ -36,7 +36,7 @@ public class TmpFilesEngine : BaseUploadEngine
 		return prc;
 	}
 
-	public override async Task<UploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default)
+	public override async Task<IUploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default)
 	{
 		var str    = await response.GetStringAsync();
 		var tmpRes = JsonSerializer.Deserialize<TmpFilesResponse>(str, SearchUtil.DefaultSerializerOptions);

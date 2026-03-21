@@ -10,11 +10,9 @@ namespace SmartImage.Lib.Engines.Upload.Base;
 public interface IUploadEngine : INamedEnumOption<UploadEngineOptions>, IMaxLength, IUrl, ITimeout, IDisposable
 {
 
-	Task<UploadResult> UploadAsync(IUniImage query, CancellationToken ct = default);
+	Task<IUploadResult> UploadFileAsync(string file, CancellationToken ct = default);
 
-	Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default);
-
-	Task<UploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default);
+	Task<IUploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default);
 
 	void Verify(IUniImage file);
 

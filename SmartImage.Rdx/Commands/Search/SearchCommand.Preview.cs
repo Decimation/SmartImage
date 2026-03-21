@@ -84,7 +84,7 @@ public partial class SearchCommand
 			Key         = ConsoleKey.M,
 			Func = static (ci, sri) =>
 			{
-				ci.MaxWidth = _profWidth;
+				ci.MaxWidth = AC.Profile.Width;
 				return false;
 			},
 		},

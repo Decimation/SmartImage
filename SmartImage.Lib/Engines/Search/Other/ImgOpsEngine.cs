@@ -7,6 +7,7 @@ using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Model;
 using System.Collections;
 using SmartImage.Lib.Engines.Upload.Base;
+#pragma warning disable CS0162 // Unreachable code detected
 
 namespace SmartImage.Lib.Engines.Search.Other;
 
@@ -19,13 +20,7 @@ public sealed class ImgOpsEngine : BaseSearchEngine, IUploadEngine
 
 	UploadEngineOptions INamedEnumOption<UploadEngineOptions>.Option => UploadEngineOptions.ImgOps;
 
-	public Task<UploadResult> UploadAsync(IUniImage query, CancellationToken ct = default)
-	{
-		// stopgap
-		return UploadFileAsync(query.Value, ct);
-	}
-
-	public async Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default)
+	public async Task<IUploadResult> UploadFileAsync(string file, CancellationToken ct = default)
 	{
 		Url redirUrl;
 
@@ -44,7 +39,7 @@ public sealed class ImgOpsEngine : BaseSearchEngine, IUploadEngine
 		return ur;
 	}
 
-	public async Task<UploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default)
+	public async Task<IUploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default)
 	{
 		return new UploadResult(default, default);
 	}

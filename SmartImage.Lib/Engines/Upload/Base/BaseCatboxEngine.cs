@@ -30,7 +30,7 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 		         .AddString("userhash", String.Empty);
 	}
 
-	public override async Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default)
+	public override async Task<IUploadResult> UploadFileAsync(string file, CancellationToken ct = default)
 	{
 		using var response = await BuildRequest().PostMultipartAsync(mp =>
 		{
@@ -43,7 +43,7 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 		return ur;
 	}
 
-	public override async Task<UploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default)
+	public override async Task<IUploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default)
 	{
 		var   url  = await response.ResponseMessage.Content.ReadAsStringAsync(ct);
 		long? size = response.TryGetContentLength();

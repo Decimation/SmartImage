@@ -47,7 +47,8 @@ using SmartImage.Shared;
 
 namespace SmartImage.Lib;
 
-public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyPropertyChanged
+// TODO: This should be a UniImage?
+public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyPropertyChanged, IUploadable
 {
 
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchQuery));
@@ -56,7 +57,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 	public bool IsUploaded => Upload != null && Url.IsValid(Upload.Url);
 
 	[MN]
-	public UploadResult Upload
+	public IUploadResult Upload
 	{
 		get;
 		private set
@@ -114,7 +115,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 
 	public void Dispose()
 	{
-		Trace.WriteLine($"Disposing {Source}");
+		s_logger.LogTrace($"Disposing {Source}");
 		Source?.Dispose();
 	}
 

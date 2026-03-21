@@ -60,14 +60,11 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	/// </summary>
 	private readonly ConcurrentDictionary<SearchResult, SpcTable> m_resultTables;
 
-	// private readonly ConcurrentDictionary<SearchResult, SelectionPrompt<SearchResultItem>> m_prompts;
+	private readonly ConcurrentDictionary<SearchResult, SelectionPrompt<IResultItem>> m_prompts;
 
 	private Layout m_layout;
 
 	private SpcTable m_mainTable;
-
-	private static int _profWidth;
-	private static int _profHeight;
 
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchCommand));
 
@@ -86,9 +83,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		m_resultTables       = new ConcurrentDictionary<SearchResult, SpcTable>();
 		m_previewCanvasCache = new MemoryCache("Buf");
 
-		// m_prompts = new ConcurrentDictionary<SearchResult, SelectionPrompt<SearchResultItem>>();
-		Query                     = SearchQuery.Null;
-		(_profWidth, _profHeight) = (AnsiConsole.Profile.Width, AC.Profile.Height);
+		m_prompts = new ConcurrentDictionary<SearchResult, SelectionPrompt<IResultItem>>();
+		Query     = SearchQuery.Null;
 	}
 
 
@@ -218,7 +214,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 				m_resultTables.TryAdd(result, table);
 
-				/*var prompt = new SelectionPrompt<SearchResultItem>()
+				var prompt = new SelectionPrompt<IResultItem>()
 				{
 					Converter     = static r => { return r.Url; },
 					Mode          = SelectionMode.Independent,
@@ -227,7 +223,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				};
 				prompt.AddChoices(result.Results);
 
-				m_prompts.TryAdd(result, prompt);*/
+				m_prompts.TryAdd(result, prompt);
 
 				m_mainTable.AddRow(result.GetMainRows());
 				Elements.Prm_SearchResult.AddChoice(result);
@@ -279,15 +275,21 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					break;
 				}
 
-				/*var sri     = AC.Prompt(m_prompts[sr]);
-				var itemIdx = sr.Results.IndexOf(sri);
-				var selIdx2 = ShellSelection.GetIndex2(sri);*/
+				var item     = AC.Prompt(m_prompts[sr]);
+				var sri = item as SearchResultItem;
+				// var itemIdx = sr.Results.IndexOf(sri);
+				// var isScn   = sri is ScannedResultItem;
+				// ScannedResultItem sriScn = isScn? sri as ScannedResultItem : null;
+				// var selIdx2 = new ShellSelection(sri, sri.Index, sriScn.Index, isScn);
 
-				var sel     = ShellSelection.GetSelectionChoice(sr);
+				var selIdx = ShellSelection.Index(item);
+				var selIdx2 = ShellSelection.Index2(item);
+
+				/*var sel     = ShellSelection.GetSelectionChoice(sr);
 				var item    = sel.Item;
 				var sri     = item as SearchResultItem;
 				var selIdx  = sel.Index();
-				var selIdx2 = sel.Index2();
+				var selIdx2 = sel.Index2();*/
 
 				// s_logger.LogDebug("Selected {Item} {Scn} | {Idx1}, {Idx2}", sel.Item, sel.IsScannedItem, selIdx, selIdx2);
 
@@ -312,11 +314,11 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 							IResultItem scnItm = sri.ScannedItems[i];
 							scnItm.CalculateSimilarity(Query.Source);
 
-							var scnRow = scnItm.GetItemRow(sel.ItemIdx, i);
+							var scnRow = scnItm.GetItemRow(item.Index, i);
 							srTable.InsertRow(selIdx + i + 1, scnRow);
 						}
 
-						// m_prompts[sr].AddChoiceGroup(sri, sri.ScannedItems);
+						m_prompts[sr].AddChoiceGroup(sri, sri.ScannedItems);
 
 						f.Refresh();
 

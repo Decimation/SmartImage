@@ -42,6 +42,9 @@ public class ScannedResultItem : UniImageUrl, IResultItem, ILoadFromResult<Scann
 
 	public int? Height { get; }
 
+	public int Index => Parent is SearchResultItem sri ? sri.ScannedItems.IndexOf(this) : -1;
+
+
 	internal ScannedResultItem(Url url, IResultItem parent) : base(url)
 	{
 		Parent  = parent;

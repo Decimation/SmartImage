@@ -205,11 +205,6 @@ public abstract class BaseSearchEngine : INamedEnumOption<SearchEngineOptions>, 
 		return Equals((BaseSearchEngine) obj);
 	}
 
-	/*public override int GetHashCode()
-	{
-		return (int) Option;
-	}*/
-
 	public abstract void Dispose();
 
 	public bool Equals([CBN] BaseSearchEngine other)

@@ -110,6 +110,7 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 	[MNNW(true, nameof(Hash))]
 	public bool HasHash => Hash.HasValue;
 
+	public int Index => Root.Results.IndexOf(this);
 
 	public virtual double Score
 	{
@@ -223,35 +224,6 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 	[MNNW(true, nameof(ScannedItems))]
 	public bool HasScannedItems => ScannedItems is { Count: > 0 };
 
-	/*[MNNW(true, nameof(Image))]
-	public override async ValueTask<bool> AllocImageAsync(CancellationToken ct = default)
-	{
-		if (Url == null) {
-			return false;
-		}
-
-		if (HasImage) {
-			return true;
-		}
-
-		bool allocImgOk = false;
-		var  allocOk    = await AllocSourceAsync(ct);
-
-		if (allocOk) {
-			allocImgOk = await base.AllocImageAsync(ct);
-		}
-
-		if (allocImgOk) {
-			Width  ??= Image.Width;
-			Height ??= Image.Height;
-
-			// Root.Results.Add(this);
-		}
-		else { }
-
-		return HasImage;
-	}*/
-
 	[MNNW(true, nameof(Thumbnail))]
 	public async ValueTask<bool> LoadThumbnailAsync(CancellationToken ct = default)
 	{
@@ -281,6 +253,8 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 
 		if (scr is { HasImage: true }) {
 			ScannedItems.Add(scr);
+			// scr.Index = ScannedItems.IndexOf(scr);
+
 			await cw.Writer.WriteAsync(scr, ct);
 			cw.Writer.TryComplete();
 			return true;
@@ -309,8 +283,6 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 		clone.Parent = this;
 		return clone;
 	}
-
-	// public IFlurlResponse Response { get; private set; }
 
 	public void Dispose()
 	{
