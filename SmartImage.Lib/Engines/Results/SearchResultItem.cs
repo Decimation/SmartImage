@@ -25,11 +25,6 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 		ScannedItems = [];
 	}
 
-	protected virtual bool PrintMembers(StringBuilder builder)
-	{
-		return false;
-	}
-
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchResultItem));
 
 	/// <summary>
@@ -164,36 +159,6 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 	{
 		Similarity = ISimilarity.CalculateHashSimilarity(this, hashable);
 		return Similarity.HasValue;
-	}
-
-	public SearchResultItem MemberwiseCloneWithUrl(Url u)
-	{
-		var clone = (MemberwiseClone() as SearchResultItem);
-		clone.Url    = u;
-		clone.Parent = this;
-		return clone;
-	}
-
-	// public IFlurlResponse Response { get; private set; }
-
-	public override string ToString()
-	{
-		return
-			$"{Url} {Similarity / 100:P} {Artist} {Description} {Site} {Source} {Title} {Character} {Time} {Width}x{Height}";
-	}
-
-	public void Dispose()
-	{
-		GC.SuppressFinalize(this);
-
-		s_logger.LogDebug("Disposing {Item} of {Name}", Url, Root.Engine.Name);
-		ThumbnailImage?.Dispose();
-
-		foreach (IResultItem item in ScannedItems) {
-			item.Dispose();
-		}
-
-		ScannedItems.Clear();
 	}
 
 #region
@@ -336,6 +301,41 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 
 #endregion
 
+
+	public SearchResultItem MemberwiseCloneWithUrl(Url u)
+	{
+		var clone = (MemberwiseClone() as SearchResultItem);
+		clone.Url    = u;
+		clone.Parent = this;
+		return clone;
+	}
+
+	// public IFlurlResponse Response { get; private set; }
+
+	public void Dispose()
+	{
+		GC.SuppressFinalize(this);
+
+		s_logger.LogDebug("Disposing {Item} of {Name}", Url, Root.Engine.Name);
+		ThumbnailImage?.Dispose();
+
+		foreach (IResultItem item in ScannedItems) {
+			item.Dispose();
+		}
+
+		ScannedItems.Clear();
+	}
+
+	public override string ToString()
+	{
+		return
+			$"{Url} {Similarity / 100:P} {Artist} {Description} {Site} {Source} {Title} {Character} {Time} {Width}x{Height}";
+	}
+
+	protected virtual bool PrintMembers(StringBuilder builder)
+	{
+		return false;
+	}
 
 #region Relational members
 

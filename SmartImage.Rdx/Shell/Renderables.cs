@@ -17,6 +17,8 @@ using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Utilities.Integration;
 using Spectre.Console;
 using Spectre.Console.Rendering;
+using Kantan.Console;
+using static Kantan.Console.RenderableUtility;
 
 namespace SmartImage.Rdx.Shell;
 
@@ -50,7 +52,8 @@ internal static class Renderables
 	extension(IResultItem sri)
 	{
 
-		public IRenderable GetResolution() => sri.HasDimensions ? GetResolution(new SizeIS(sri.Width.Value, sri.Height.Value)) : Elements.Txt_NA;
+		public IRenderable GetResolution()
+			=> sri.HasDimensions ? GetResolution(new SizeIS(sri.Width.Value, sri.Height.Value)) : ElementUtility.Txt_NA;
 
 		public IRenderable GetSimilarity() => AsRenderable(sri.Similarity);
 
@@ -65,7 +68,7 @@ internal static class Renderables
 				url       = new Markup(Markup.Escape(link.ToString()), linkStyle);
 			}
 			else {
-				url       = Elements.Txt_NA;
+				url       = ElementUtility.Txt_NA;
 				linkStyle = style;
 			}
 
@@ -91,7 +94,7 @@ internal static class Renderables
 				url       = new Markup(Markup.Escape(link.ToString()), linkStyle);
 			}
 			else {
-				url = Elements.Txt_NA;
+				url = ElementUtility.Txt_NA;
 			}
 
 			var gr = new Grid();
@@ -132,7 +135,7 @@ internal static class Renderables
 			}
 
 			if (elems.Count % 2 != 0) {
-				elems.Add(Elements.Txt_NA);
+				elems.Add(ElementUtility.Txt_NA);
 			}
 
 			for (int i = 0; i < elems.Count - 1; i += 2) {
@@ -144,48 +147,56 @@ internal static class Renderables
 
 		public IRenderable[] GetItemRow(int idx, int subIdx)
 		{
-			// var url = ui is UniImageUrl uiu ? uiu.Url.ToString() : String.Empty;
-
 			var result = sri.Root;
-
-			var style = new Style(link: sri.Url, foreground: result.Engine.Option.GetColor());
+			var style  = new Style(link: sri.Url, foreground: result.Engine.Option.GetColor());
 
 			return
 			[
 				new Text($"#{idx}.{subIdx}", style),
 				new Text(Markup.Escape(sri.Url), new Style(link: sri.Url)),
 				sri.GetSimilarity(),
-				Elements.Txt_NA,
+				ElementUtility.Txt_NA,
 				sri.GetResolution()
 			];
+		}
+
+		public Grid CreateExtendedGrid()
+		{
+			// TODO: WIP
+			var grid = new Grid();
+			grid.AddColumns(2);
+
+			var inteer    = new[] { typeof(IResultItem), typeof(ISimilarity), typeof(IHashable), typeof(IResultMetadata), typeof(IUniImage) };
+			var interProp = inteer.Select(x => x.GetProperties()).Distinct();
+
+			var properties = sri.GetType()
+			                    .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+			                    .Where(p => !p.IsCalculated())
+			                    .Where(x => x.Name is not (nameof(SearchResultItem.ScannedItems) or nameof(SearchResultItem.IsRaw)
+				                                or nameof(ScannedResultItem.Width) or nameof(ScannedResultItem.Height)
+				                                or nameof(SearchResultItem.Metadata) or nameof(SearchResultItem.Parent)));
+
+			foreach (var property in properties) {
+				var propVal = property.GetValue(sri);
+
+				if (propVal is string s && String.IsNullOrWhiteSpace(s) || (RuntimeProperties.IsNullable(propVal) && propVal == null)) {
+					continue;
+				}
+
+				var render = AsRenderable(propVal);
+				grid.AddRow(new Text($"{property.Name}", Elements.Sty_ResultHeader), render);
+			}
+
+			grid.AddRow(new Text("Resolution", Elements.Sty_ResultHeader), sri.GetResolution());
+
+			return grid;
 		}
 
 	}
 
 #region
 
-	public static IRenderable AsRenderable<T>(T? val) where T : struct
-		=> val.HasValue ? AsRenderable(val.Value) : Elements.Txt_NA;
-
-	public static IRenderable AsRenderable<T>(T val)
-	{
-		IRenderable renderable = val switch
-		{
-			IRenderable r => r,
-
-			string sz when String.IsNullOrWhiteSpace(sz) => Elements.Txt_NA,
-
-			string sz => new Text(Markup.Escape(sz)),
-			bool b    => b.ToPrettyText(),
-			null      => Elements.Txt_NA,
-			_         => new Text(val?.ToString())
-		};
-		return renderable;
-	}
-
 	public static IRenderable GetResolution(SizeIS sz) => new Text($"{sz.Width}{Strings.Constants.MUL_SIGN}{sz.Height}");
-
-	public static Text ToPrettyText(this bool b) => b ? Elements.Txt_Rad : Elements.Txt_Mul;
 
 #endregion
 
@@ -197,13 +208,11 @@ internal static class Renderables
 		{
 			new(new Text("Engine", Elements.Sty_ResultHeader)),
 			new(new Text("Results", Elements.Sty_ResultHeader)),
-
 		};
 
 		SpcTable tb = CreateEmptyResultTable();
 
 		tb.AddColumns(col);
-
 		tb = tb.Centered();
 
 		return tb;
@@ -239,34 +248,6 @@ internal static class Renderables
 		return tb;
 	}
 
-	public static Grid CreateExtendedGrid(IResultItem item)
-	{
-		var grid = new Grid();
-		grid.AddColumns(2);
-
-		var inteer    = new Type[] { typeof(IResultItem), typeof(ISimilarity), typeof(IHashable), typeof(IResultMetadata), typeof(IUniImage) };
-		var interProp = inteer.Select(x => x.GetProperties()).Distinct();
-
-		var properties = item.GetType()
-		                     .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-		                     .Where(p => !p.IsCalculated())
-		                     .Where(x => x.Name is not (nameof(SearchResultItem.ScannedItems) or nameof(SearchResultItem.IsRaw)
-			                                 or nameof(ScannedResultItem.Width) or nameof(ScannedResultItem.Height)
-			                                 or nameof(SearchResultItem.Metadata) or nameof(SearchResultItem.Parent)));
-		foreach (PropertyInfo property in properties) {
-			var propVal = property.GetValue(item);
-
-			if (propVal is string s && String.IsNullOrWhiteSpace(s) || (RuntimeProperties.IsNullable(propVal) && propVal == null)) {
-				continue;
-			}
-			var render = AsRenderable(propVal);
-			grid.AddRow(new Text($"{property.Name}",Elements.Sty_ResultHeader), render);
-		}
-
-		grid.AddRow(new Text("Resolution", Elements.Sty_ResultHeader), item.GetResolution());
-
-		return grid;
-	}
 
 	internal static Grid CreateConfigGrid(SearchConfig cfg, SearchQuery query)
 	{
@@ -327,60 +308,6 @@ internal static class Renderables
 	}
 
 #endregion
-
-	internal static Grid AddRowsByChunk(this Grid g, int cnt, params IEnumerable<IRenderable> items)
-	{
-		var chunks = items.Chunk(cnt);
-
-		foreach (IRenderable[] chunk in chunks) {
-			g.AddRow(chunk);
-		}
-
-		return g;
-	}
-
-	internal static Grid MapToGrid<TKey, TValue>(IDictionary<TKey, TValue>       dictionary,
-	                                             [CBN] Func<TKey, IRenderable>   keyFunc = null,
-	                                             [CBN] Func<TValue, IRenderable> valFunc = null)
-	{
-		var grd = new Grid();
-		grd.AddColumns(2);
-
-		keyFunc ??= static k =>
-		{
-			//
-			var s = k.ToString();
-			ArgumentNullException.ThrowIfNull(s);
-			return new Text(s, Elements.Sty_Grid1);
-		};
-
-		valFunc ??= AsRenderable;
-
-		foreach (var (k, v) in dictionary) {
-			grd.AddRow(keyFunc(k), valFunc(v));
-		}
-
-		return grd;
-	}
-
-	public static SpcTable ToSpcTable(this DTable dt)
-	{
-		var t = new SpcTable();
-
-		foreach (DataColumn row in dt.Columns) {
-			t.AddColumn(new TableColumn(row.ColumnName));
-		}
-
-		Func<object, IRenderable> selector = Renderables.AsRenderable;
-
-		foreach (DataRow row in dt.Rows) {
-			var obj = row.ItemArray.Select(selector);
-
-			t.AddRow(obj);
-		}
-
-		return t;
-	}
 
 }
 

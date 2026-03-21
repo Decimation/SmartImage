@@ -14,6 +14,7 @@ namespace SmartImage.Rdx.Commands.Search;
 
 public partial class SearchCommand
 {
+
 	private readonly MemoryCache m_previewCanvasCache;
 
 	private CanvasImage GetPreviewCanvasImage(ScannedResultItem sri)
@@ -25,24 +26,6 @@ public partial class SearchCommand
 			AbsoluteExpiration = DateTimeOffset.Now + TimeSpan.FromMinutes(1),
 			RemovedCallback = static arguments =>
 			{
-				switch (arguments.RemovedReason) {
-
-					case CacheEntryRemovedReason.Removed:
-						break;
-
-					case CacheEntryRemovedReason.Expired:
-						break;
-
-					case CacheEntryRemovedReason.Evicted:
-						break;
-
-					case CacheEntryRemovedReason.ChangeMonitorChanged:
-						break;
-
-					case CacheEntryRemovedReason.CacheSpecificEviction:
-						break;
-				}
-
 				s_logger.LogDebug("Cache item {CacheItem} removed: {RemRes}", arguments.CacheItem.Key, arguments.RemovedReason);
 			}
 		};
@@ -87,9 +70,8 @@ public partial class SearchCommand
 				ci.Mutate(static act =>
 				{
 					var cs = act.GetCurrentSize();
-
-					var cs2 = cs.ResizeByFactor(new SizeIS(_profWidth, _profHeight));
-					act.Resize(cs2);
+					var ns = cs.ResizeByFactor(new SizeIS(_profWidth, _profHeight));
+					act.Resize(ns);
 				});
 
 				ci.MaxWidth = null;
@@ -110,7 +92,7 @@ public partial class SearchCommand
 		{
 			Description = "Exit preview",
 			Key         = ConsoleKey.Escape,
-			Func = static (_, _) => { return true; },
+			Func        = static (_, _) => { return true; },
 		}
 
 	];

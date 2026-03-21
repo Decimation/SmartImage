@@ -24,20 +24,9 @@ public sealed class TinEyeEngine : BaseSearchEngine
 		Logger.LogTrace("Disposing {Name}", Name);
 	}
 
-	
 
 	public override bool VerifyQuery(SearchQuery q)
 	{
-		/*var ok = await q.Source.AllocImageAsync().ConfigureAwait(false);
-
-		if (ok) {
-			if (q.Source.Image.Width >= 10000) {
-				return false;
-			}
-
-		}
-
-		return await base.VerifyQuery(q);*/
 
 		var ok = base.VerifyQuery(q);
 
@@ -64,12 +53,11 @@ public sealed class TinEyeEngine : BaseSearchEngine
 			goto ret;
 		}
 
-		response = await Client.Request(API_URL)
-			           .PostMultipartAsync(b =>
-			           {
-				           //
-				           b.AddString("url", query.Upload.Url);
-			           }, cancellationToken: ct).ConfigureAwait(false);
+		response = await Client.Request(API_URL).PostMultipartAsync(b =>
+		{
+			//
+			b.AddString("url", query.Upload.Url);
+		}, cancellationToken: ct).ConfigureAwait(false);
 
 		TinEyeRoot tinEyeRoot = null;
 
@@ -120,10 +108,13 @@ public sealed class TinEyeEngine : BaseSearchEngine
 				for (int m = 1; m < backlinks.Count; m++) {
 					var bl = backlinks[m];
 
-					var resultItemSister = resultItem.MemberwiseCloneWithUrl(bl.Backlink);
-					resultItemSister.Description = bl.ImageName;
-					resultItemSister.Title       = bl.ImageName;
-					resultItemSister.Time        = DateTime.Parse(bl.CrawlDate);
+					var resultItemSister = resultItem with
+					{
+						Url = bl.Backlink,
+						Source = bl.SourceId.GetValueOrDefault().ToString(),
+						Title = bl.ImageName,
+						Time = DateTime.Parse(bl.CrawlDate)
+					};
 
 					sr.Results.Add(resultItemSister);
 

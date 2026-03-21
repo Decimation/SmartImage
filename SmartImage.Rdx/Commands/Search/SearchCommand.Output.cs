@@ -1,6 +1,8 @@
 ﻿using System.Text;
 using CliWrap;
 using SmartImage.Lib.Engines.Results;
+using Spectre.Console;
+// ReSharper disable UseSymbolAlias
 
 #pragma warning disable CS8604 // Possible null reference argument.
 
@@ -17,6 +19,8 @@ public enum OutputFields
 	Similarity = 1 << 2,
 	Artist     = 1 << 3,
 	Site       = 1 << 4,
+
+	// todo: dynamically select fields from object itself rather than explicit enums as reference
 
 	// Default = Name | Url | Similarity
 
@@ -50,7 +54,7 @@ public partial class SearchCommand
 
 		var commandTask = command.ExecuteAsync(ct);
 
-		AnsiConsole.WriteLine($"Process id: {commandTask.ProcessId}");
+		AC.WriteLine($"Process id: {commandTask.ProcessId}");
 
 		var result = await commandTask;
 

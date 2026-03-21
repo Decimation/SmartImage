@@ -1,9 +1,4 @@
-﻿#region Aliases
-
-
-#endregion
-
-using System.Data;
+﻿using System.Data;
 using System.Data.SqlTypes;
 using Kantan.Text;
 using Novus.OS;
@@ -21,6 +16,7 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Rendering;
 using AnsiConsoleExtensions = Spectre.Console.Advanced.AnsiConsoleExtensions;
+using Kantan.Console;
 
 // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
 // ReSharper disable InconsistentNaming
@@ -32,11 +28,25 @@ namespace SmartImage.Rdx.Shell;
 internal static class Elements
 {
 
-	// Ideally a dictionary would be used here...
-
 #region Colors
 
 	internal static readonly SpcColor Clr_Misc1 = new(0x80, 0xFF, 0x80);
+
+	public static readonly IReadOnlyDictionary<SearchEngineOptions, SpcColor> EngineColors = new Dictionary<SearchEngineOptions, SpcColor>
+	{
+		{ SearchEngineOptions.SauceNao, SpcColor.Green },
+		{ SearchEngineOptions.EHentai, SpcColor.Purple },
+		{ SearchEngineOptions.Iqdb, SpcColor.LightGreen },
+		{ SearchEngineOptions.Ascii2D, SpcColor.Cyan1 },
+		{ SearchEngineOptions.TraceMoe, SpcColor.DodgerBlue1 },
+		{ SearchEngineOptions.RepostSleuth, SpcColor.RosyBrown },
+		{ SearchEngineOptions.ArchiveMoe, SpcColor.Wheat1 },
+		{ SearchEngineOptions.Yandex, SpcColor.Orange1 },
+		{ SearchEngineOptions.Iqdb3D, SpcColor.SeaGreen1 },
+		{ SearchEngineOptions.Fluffle, SpcColor.LightYellow3 },
+		{ SearchEngineOptions.TinEye, SpcColor.SkyBlue1 },
+
+	}.AsReadOnly();
 
 #endregion
 
@@ -57,20 +67,6 @@ internal static class Elements
 	internal static readonly Style Sty_RootResults = new(foreground: SpcColor.Aqua, decoration: Decoration.Underline);
 
 	internal static readonly Style Sty_ResultHeader = new(decoration: Decoration.Bold, background: SpcColor.Blue, foreground: SpcColor.White);
-
-#endregion
-
-#region Text
-
-	internal static readonly Text Txt_Empty = new(String.Empty);
-
-	internal static readonly Text Txt_NA = new(STR_NA);
-
-	internal static readonly Text Txt_Rad = new(Strings.Constants.RAD_SIGN.ToString());
-
-	internal static readonly Text Txt_Mul = new(Strings.Constants.MUL_SIGN.ToString());
-
-	internal const string STR_NA = "-";
 
 #endregion
 
@@ -114,12 +110,6 @@ internal static class Elements
 		}
 	};
 
-	static Elements()
-	{
-		// Prm_SearchResult2.AddChoice("Exit");
-		
-	}
-
 #endregion
 
 #if SERVER
@@ -159,25 +149,9 @@ internal static class Elements
 #endregion
 #endif
 
-	public static readonly IReadOnlyDictionary<SearchEngineOptions, SpcColor> EngineColors = new Dictionary<SearchEngineOptions, SpcColor>
-	{
-		{ SearchEngineOptions.SauceNao, SpcColor.Green },
-		{ SearchEngineOptions.EHentai, SpcColor.Purple },
-		{ SearchEngineOptions.Iqdb, SpcColor.LightGreen },
-		{ SearchEngineOptions.Ascii2D, SpcColor.Cyan1 },
-		{ SearchEngineOptions.TraceMoe, SpcColor.DodgerBlue1 },
-		{ SearchEngineOptions.RepostSleuth, SpcColor.RosyBrown },
-		{ SearchEngineOptions.ArchiveMoe, SpcColor.Wheat1 },
-		{ SearchEngineOptions.Yandex, SpcColor.Orange1 },
-		{ SearchEngineOptions.Iqdb3D, SpcColor.SeaGreen1 },
-		{ SearchEngineOptions.Fluffle, SpcColor.LightYellow3 },
-		{ SearchEngineOptions.TinEye, SpcColor.SkyBlue1 },
-
-	}.AsReadOnly();
-
 	internal static SpcColor GetColor(this SearchEngineOptions opt)
 	{
-		if (!Elements.EngineColors.TryGetValue(opt, out var color)) {
+		if (!EngineColors.TryGetValue(opt, out var color)) {
 			color = SpcColor.White;
 		}
 

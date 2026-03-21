@@ -15,8 +15,6 @@ namespace SmartImage.Lib.Engines.Results;
 public class SearchResult : IDisposable, INotifyPropertyChanged
 {
 
-	// IDEA: FLATTEN SearchResult to SearchResultItem and eliminate SearchResult ≡ SearchResultItem?
-
 	/// <summary>
 	/// Engine which returned this result
 	/// </summary>
@@ -43,8 +41,6 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	[NN]
 	public List<IResultItem> Results { get; }
 
-	// TODO: IResultItem
-
 
 	[CBN]
 	public string ErrorMessage { get; internal set; }
@@ -55,7 +51,6 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 
 	[CBN]
 	public string Overview { get; internal set; }
-
 
 	[JI]
 	public SearchResultItem RawResultItem { get; }
@@ -79,7 +74,6 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 		if (Status.IsError()) {
 			return;
 		}
-
 	}
 
 

@@ -11,7 +11,6 @@ global using ISImage = SixLabors.ImageSharp.Image;
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using INN = JetBrains.Annotations.ItemNotNullAttribute;
 global using AC = Spectre.Console.AnsiConsole;
-global using AnsiConsole = Spectre.Console.AnsiConsole;
 global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
 global using MNNW = System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute;
 global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
@@ -39,6 +38,7 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Rendering;
 using Size = SixLabors.ImageSharp.Size;
+// ReSharper disable UseSymbolAlias
 
 // TODO: Create separate SearchCommands for interactive/non-interactive?
 
@@ -425,7 +425,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				var choice = AnsiConsole.Prompt(prompt);
 
 				if (choice) {
-					var proc = Process.Start(new ProcessStartInfo
+					using var proc = Process.Start(new ProcessStartInfo
 					{
 						FileName         = sri.LocalFilePath,
 						WorkingDirectory = String.Empty,
@@ -433,7 +433,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					});
 
 					proc?.WaitForExit();
-					proc?.Dispose();
 				}
 			});
 		}
