@@ -29,28 +29,30 @@ internal record ShellSelection
 		IsScannedItem = isScanned;
 	}
 
-	public static int Index(IResultItem item)
+	public int Index()
 	{
 		var scnIdx = 0;
 		int root   = 0;
 		int t      = 0;
 
-		if (item.IsChild) {
+		if (Item.IsChild) {
 			// scnIdx = Item.Parent.ScannedItems.IndexOf(Item);
-			root = item.Parent.Root.Results.IndexOf(item.Parent);
+			root = Item.Parent.Root.Results.IndexOf(Item.Parent);
 
 			scnIdx++;
+
 		}
 		else {
-			root = item.Root.Results.IndexOf(item);
+			root = Item.Root.Results.IndexOf(Item);
+
 		}
 
 		for (int k = 0; k < root; k++) {
 
-			var result = item.Parent.Root.Results[k] as SearchResultItem;
+			var result  = Item.Parent.Root.Results[k] as SearchResultItem;
 
 			var scnItm  = result.ScannedItems;
-			var scnIdx2 = scnItm.IndexOf(item);
+			var scnIdx2 = scnItm.IndexOf(Item);
 
 			if (scnIdx2 == -1) {
 				t += scnItm.Count;
@@ -64,15 +66,13 @@ internal record ShellSelection
 		return root + scnIdx + t;
 	}
 
-	public static int Index2(IResultItem item)
+	public int Index2()
 	{
-		var rg        = item.Index + item.Root.Results[..item.Index].OfType<SearchResultItem>().Sum(x => x.ScannedItems.Count);
-		var isScanned = item is ScannedResultItem;
-		var scnItem   = isScanned ? (ScannedResultItem) item : null;
-		var scanIdx   = isScanned ? scnItem.Index : 0;
 
-		var sumIdx  = rg + scanIdx + (isScanned ? ((scanIdx == 0) ? 1 : 0) : 0);
-		var sumIdx2 = rg + scanIdx + (isScanned ? ((scanIdx == 0) ? 1 : 0) : 1);
+		var rg = ItemIdx + Item.Root.Results[..ItemIdx].OfType<SearchResultItem>().Sum(x => x.ScannedItems.Count);
+
+		var sumIdx  = rg + ScanIdx + (IsScannedItem ? ((ScanIdx == 0) ? 1 : 0) : 0);
+		var sumIdx2 = rg + ScanIdx + (IsScannedItem ? ((ScanIdx == 0) ? 1 : 0) : 1);
 
 		return sumIdx2;
 	}

@@ -19,6 +19,7 @@ using SmartImage.Lib.Utilities;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing.Imaging;
+using System.Net.WebSockets;
 
 namespace SmartImage.Lib.Images.Uni;
 
@@ -246,6 +247,33 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 		return ui;
 	}
 
+	/*public static bool Union(object o, [CBN] out UniImage img)
+	{
+		img = null;
+
+		switch (o) {
+			case string s when String.IsNullOrWhiteSpace(s) && File.Exists(s):
+				img = new UniImageFile(new FileInfo(s));
+				break;
+
+			case string s2 when Url.IsValid(s2):
+				Url u2 = s2;
+
+				if (ImageScanner.LegalSchemeWhitelist.Contains(u2.Scheme)) {
+					img = new UniImageUrl(u2);
+				}
+
+				break;
+
+			case Url u when ImageScanner.LegalSchemeWhitelist.Contains(u.Scheme):
+				img = new UniImageUrl(u);
+				break;
+		}
+
+
+		return img != null;
+	}*/
+
 	public static bool IsValidSourceType(object o)
 	{
 		bool isFile = UniImageFile.IsFileType(o, out var f);
@@ -370,16 +398,20 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 /// </summary>
 public enum UniImageType
 {
+
 	Unknown = 0,
 	File,
 	Uri
+
 }
 
 [Flags]
 public enum AllocFlags
 {
+
 	//todo
 	None   = 0,
 	Stream = 1 << 0,
 	Image  = 1 << 1,
+
 }

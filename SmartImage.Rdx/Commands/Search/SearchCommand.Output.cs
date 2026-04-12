@@ -2,6 +2,7 @@
 using CliWrap;
 using SmartImage.Lib.Engines.Results;
 using Spectre.Console;
+
 // ReSharper disable UseSymbolAlias
 
 #pragma warning disable CS8604 // Possible null reference argument.
@@ -28,8 +29,10 @@ public enum OutputFields
 
 public enum OutputFileFormat
 {
+
 	None = 0,
 	Delimited,
+
 }
 
 public partial class SearchCommand
@@ -50,7 +53,7 @@ public partial class SearchCommand
 		}
 
 		command = command.WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
-			.WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer));
+		                 .WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer));
 
 		var commandTask = command.ExecuteAsync(ct);
 
@@ -77,12 +80,12 @@ public partial class SearchCommand
 		var  fSite   = fields.HasFlag(OutputFields.Site);
 
 		var names = Enum.GetValues<OutputFields>()
-			.Where(f => fields.HasFlag(f) && !f.Equals(default(OutputFields)))
-			.Select(Enum.GetName);
+		                .Where(f => fields.HasFlag(f) && !f.Equals(default(OutputFields)))
+		                .Select(Enum.GetName);
 
 		sw.WriteLine(String.Join(CommandSettings.OutputFileDelimiter, names));
 
-		foreach (SearchResult sr in m_resultTables.Keys) {
+		foreach (SearchResult sr in m_dialogs.Keys) {
 			for (int j = 0; j < sr.Results.Count; j++) {
 				var sri = sr.Results[j];
 

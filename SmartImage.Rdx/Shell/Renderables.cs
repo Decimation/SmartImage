@@ -3,6 +3,7 @@
 
 global using SizeIS = SixLabors.ImageSharp.Size;
 using System.Data;
+using System.Runtime.InteropServices;
 using Novus.Runtime;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Model;
@@ -179,7 +180,7 @@ internal static class Renderables
 			foreach (var property in properties) {
 				var propVal = property.GetValue(sri);
 
-				if (propVal is string s && String.IsNullOrWhiteSpace(s) || (RuntimeProperties.IsNullable(propVal) && propVal == null)) {
+				if (propVal is string s && String.IsNullOrWhiteSpace(s) || (ObjectUtility.IsNullable(propVal) && propVal == null)) {
 					continue;
 				}
 

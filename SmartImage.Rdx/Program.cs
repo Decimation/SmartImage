@@ -96,6 +96,7 @@ public static class Program
 
 		}
 		catch (Exception e) {
+			AnsiConsole.Write($"Unhandled exception: {e.Message}");
 			AnsiConsole.WriteException(e);
 			x = Common.EC_ERROR;
 		}

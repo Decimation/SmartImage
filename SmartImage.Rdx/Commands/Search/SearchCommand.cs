@@ -39,6 +39,8 @@ using Spectre.Console.Rendering;
 // ReSharper disable UseSymbolAlias
 
 // TODO: Create separate SearchCommands for interactive/non-interactive?
+// TODO: Create types representing shell UI state
+// TODO: Create types ...
 
 [assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_LIB_UNITTEST)]
 
@@ -49,30 +51,21 @@ namespace SmartImage.Rdx.Commands.Search;
 public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSettings>
 {
 
+	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchCommand));
+
 	private readonly CancellationTokenSource m_cts;
 	private readonly CancellationTokenSource m_ctsRun;
 	private readonly CancellationTokenSource m_ctsRunSearch;
 
-
-	/// <summary>
-	/// Key: <see cref="SearchResult" />
-	/// Value: <see cref="m_mainTable" /> index
-	/// </summary>
-	private readonly ConcurrentDictionary<SearchResult, SpcTable> m_resultTables;
-
-	private readonly ConcurrentDictionary<SearchResult, SelectionPrompt<IResultItem>> m_prompts;
+	private readonly ConcurrentDictionary<SearchResult, ResultViewState> m_dialogs;
 
 	private Layout m_layout;
 
 	private SpcTable m_mainTable;
 
-	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchCommand));
-
 	public SearchClient Client { get; private set; }
 
 	public SearchQuery Query { get; private set; }
-
-	static SearchCommand() { }
 
 	public SearchCommand()
 	{
@@ -80,11 +73,9 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		m_ctsRun       = new CancellationTokenSource();
 		m_ctsRunSearch = new CancellationTokenSource();
 
-		m_resultTables       = new ConcurrentDictionary<SearchResult, SpcTable>();
-		m_previewCanvasCache = new MemoryCache("Buf");
-
-		m_prompts = new ConcurrentDictionary<SearchResult, SelectionPrompt<IResultItem>>();
-		Query     = SearchQuery.Null;
+		m_previewCanvasCache = new MemoryCache("PreviewCache");
+		m_dialogs            = new ConcurrentDictionary<SearchResult, ResultViewState>();
+		Query                = SearchQuery.Null;
 	}
 
 
@@ -131,31 +122,11 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		Console.CancelKeyPress += OnCancelKeyPress;
 
-		var initTask = AnsiConsole.Progress().AutoRefresh(true)
-		                          .StartAsync(InitQueryAsync);
+		var initTask = AnsiConsole.Progress().AutoRefresh(true).StartAsync(InitQueryAsync);
 
 		await initTask;
 
-		var queryCi = new CanvasImage(Query.Source.GetSource());
-
-		var ciPanel = new Panel(queryCi)
-		{
-			Header = new PanelHeader($"{Query.Source.Value}"),
-			Expand = true,
-		};
-
-		var cfgGrid = Renderables.CreateConfigGrid(Config, Query);
-
-		var cfgPanel = new Panel(cfgGrid) { Header = new PanelHeader("Search Options") };
-
-		m_layout = new Layout("Root")
-			.SplitColumns(
-				new Layout("L").SplitRows(
-					new("LC", cfgPanel),
-					new("LT", m_mainTable)),
-				new Layout("R", ciPanel));
-
-		// AnsiConsole.Write(m_layout);
+		m_layout = CreateLayout();
 
 		try {
 
@@ -188,51 +159,39 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		return Shared.Common.EC_OK;
 	}
 
+#region
+
+	private async Task ContinueInteractive(Task<SearchResult> task)
+	{
+		var result = await task;
+
+		m_dialogs.TryAdd(result, ResultViewState.Create(result));
+
+		m_mainTable.AddRow(result.GetMainRows());
+		Elements.Prm_SearchResult.AddChoice(result);
+	}
+
+	private async Task ContinueNonInteractive(Task<SearchResult> task)
+	{
+		var result = await task;
+
+		var fullRows = result.GetFullResultRows();
+
+		foreach (IRenderable[] row in fullRows) {
+			m_mainTable.AddRow(row);
+		}
+	}
 
 	private async Task RunSearchLiveAsync(LiveDisplayContext c, CancellationToken ct = default)
 	{
-
-#if UNITTEST
-		return;
-#endif
-
 		var search = Client.RunSearchAsync(Query, token: ct);
 
 		while (!ct.IsCancellationRequested && await Client.ResultChannel.Reader.WaitToReadAsync(ct)) {
-			var task = Client.ResultChannel.Reader.ReadAsync(ct);
+			var task = Client.ResultChannel.Reader.ReadAsync(ct).AsTask();
 
-			var result = await task;
+			var task2 = CommandSettings.Interactive ? task.ContinueWith(ContinueInteractive, ct) : task.ContinueWith(ContinueNonInteractive, ct);
 
-			var fullRows = result.GetFullResultRows();
-
-			if (CommandSettings.Interactive) {
-				var table = Renderables.CreateResultTable();
-
-				foreach (IRenderable[] row in fullRows) {
-					table.AddRow(row);
-				}
-
-				m_resultTables.TryAdd(result, table);
-
-				var prompt = new SelectionPrompt<IResultItem>()
-				{
-					Converter     = static r => { return $"{r.Index}"; },
-					Mode          = SelectionMode.Leaf,
-					SearchEnabled = true,
-					PageSize = 4,
-				};
-				prompt.AddChoices(result.Results);
-
-				m_prompts.TryAdd(result, prompt);
-
-				m_mainTable.AddRow(result.GetMainRows());
-				Elements.Prm_SearchResult.AddChoice(result);
-			}
-			else {
-				foreach (IRenderable[] row in fullRows) {
-					m_mainTable.AddRow(row);
-				}
-			}
+			await task2;
 
 			c.Refresh();
 
@@ -240,6 +199,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		await search;
 	}
+
+#endregion
 
 	private async Task RunInteractiveAsync(CancellationToken ct = default)
 	{
@@ -255,8 +216,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 			sr = AnsiConsole.Prompt(Elements.Prm_SearchResult);
 
-			srTable = m_resultTables[sr];
-
+			var dialog = m_dialogs[sr];
+			srTable  = dialog.Table;
 			clrWrite = true;
 
 			do {
@@ -265,42 +226,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					AnsiConsole.Write(srTable);
 				}
 
-				// cmd = AnsiConsole.Prompt(Elements.Prm_Command);
-
-				var item    = AC.Prompt(m_prompts[sr]);
-				var sri     = item as SearchResultItem;
-				var sriScn  = item as ScannedResultItem;
-				var isScn   = sriScn is not null;
-				var selIdx  = ShellSelection.Index(item);
-				var selIdx2 = ShellSelection.Index2(item);
-
-				s_logger.LogDebug("Selected {Item} {Scn} | {Idx1}, {Idx2}", item, isScn, selIdx, selIdx2);
-
-				var cmdPrompt = new SelectionPrompt<string>()
-				{
-					Mode          = SelectionMode.Independent,
-					SearchEnabled = true,
-				};
-
-				cmdPrompt.AddChoices([R2.Chc_Open, R2.Chc_Back, R2.Chc_Exit]);
-
-				if (!isScn) {
-					cmdPrompt.AddChoice(R2.Chc_Scan);
-				}
-
-				if (item.HasHash && !item.HasSimilarity) {
-					cmdPrompt.AddChoice(R2.Chc_Calc);
-				}
-
-				if (isScn && !sriScn.HasLocalFilePath) {
-					cmdPrompt.AddChoice(R2.Chc_Download);
-				}
-
-				if (isScn && sriScn.HasImage) {
-					cmdPrompt.AddChoice(R2.Chc_Preview);
-				}
-
-				cmd = AC.Prompt(cmdPrompt);
+				cmd = AnsiConsole.Prompt(Elements.Prm_Command);
 
 				if (cmd == R2.Chc_Exit) {
 					return;
@@ -310,21 +236,25 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					break;
 				}
 
-				/*var sel     = ShellSelection.GetSelectionChoice(sr);
+				/*var sri     = AC.Prompt(m_prompts[sr]);
+				var itemIdx = sr.Results.IndexOf(sri);
+				var selIdx2 = ShellSelection.GetIndex2(sri);*/
+
+				var sel     = ShellSelection.GetSelectionChoice(sr);
 				var item    = sel.Item;
 				var sri     = item as SearchResultItem;
 				var selIdx  = sel.Index();
-				var selIdx2 = sel.Index2();*/
+				var selIdx2 = sel.Index2();
 
-				// s_logger.LogDebug("Selected {Item} {Scn} | {Idx1}, {Idx2}", sel.Item, sel.IsScannedItem, selIdx, selIdx2);
+				s_logger.LogDebug("Selected {Item} {Scn} | {Idx1}, {Idx2}", sel.Item, sel.IsScannedItem, selIdx, selIdx2);
 
 				if (cmd == R2.Chc_Open) {
-					SearchClient.OpenResult(item.Url);
+					SearchClient.OpenResult(sri.Url);
 					clrWrite = false;
 					continue;
 				}
 
-				if (cmd == R2.Chc_Scan) {
+				if (cmd == R2.Chc_Scan && !sri.IsChild) {
 					await AnsiConsole.Live(srTable).StartAsync(async f =>
 					{
 						s_logger.LogTrace("Scanning {Item}", sri);
@@ -335,30 +265,29 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 							return;
 						}
 
-						foreach (var item2 in sri.ScannedItems) {
-							var scnRow = item2.GetItemRow(item.Index, item2.Index);
-							srTable.InsertRow(selIdx + item2.Index + 1, scnRow);
+						for (int i = 0; i < sri.ScannedItems.Count; i++) {
+							IResultItem scnItm = sri.ScannedItems[i];
+							scnItm.CalculateSimilarity(Query.Source);
 
-							// scnItm.CalculateSimilarity(Query.Source);
+							var scnRow = scnItm.GetItemRow(sel.ItemIdx, i);
+							srTable.InsertRow(selIdx + i + 1, scnRow);
 						}
 
-						m_prompts[sr].AddChoiceGroup(sri, sri.ScannedItems);
+						// m_prompts[sr].AddChoiceGroup(sri, sri.ScannedItems);
 
 						f.Refresh();
-
-
 					});
 					clrWrite = true;
 					continue;
 				}
 
-				if (cmd == R2.Chc_Calc) {
+				if (cmd == R2.Chc_Calc && item.HasHash) {
 
 					AnsiConsole.Live(srTable).Start(f =>
 					{
 						item.CalculateSimilarity(Query.Source);
 
-						srTable.Rows.Update(selIdx2, (int) ResultRowIndex.ROW_SIMILARITY, item.GetSimilarity());
+						srTable.Rows.Update(selIdx2, (int) ResultRowIndex.ROW_SIMILARITY, sri.GetSimilarity());
 						f.Refresh();
 					});
 
@@ -367,7 +296,9 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					continue;
 				}
 
-				if (cmd == R2.Chc_Preview) {
+
+				if (cmd == R2.Chc_Preview && item is ScannedResultItem { HasImage: true } sriScn) {
+
 					var ci = GetPreviewCanvasImage(sriScn);
 
 					AnsiConsole.AlternateScreen(() =>
@@ -378,10 +309,19 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					clrWrite = true;
 				}
 
-				if (cmd == R2.Chc_Download) {
+				if (cmd == R2.Chc_Download && item is ScannedResultItem { } sriScnDl) {
 
-					HandleDownload(sriScn);
+					if (!sriScnDl.HasLocalFilePath) {
+						HandleDownload(sriScnDl);
+					}
+					else {
+						AnsiConsole.WriteLine($"Already downloaded {sriScnDl}");
+						var proc = Process.Start(sriScnDl.LocalFilePath);
+						await proc.WaitForExitAsync(ct);
+						proc.Dispose();
+					}
 				}
+
 
 				if (cmd == R2.Chc_Expand) {
 
@@ -399,6 +339,28 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	}
 
 #endregion
+
+	private Layout CreateLayout()
+	{
+		var queryCi = new CanvasImage(Query.Source.GetSource());
+
+		var ciPanel = new Panel(queryCi)
+		{
+			Header = new PanelHeader($"{Query.Source.Value}"),
+			Expand = true,
+		};
+
+		var cfgGrid = Renderables.CreateConfigGrid(Config, Query);
+
+		var cfgPanel = new Panel(cfgGrid) { Header = new PanelHeader("Search Options") };
+
+		return new Layout("Root")
+			.SplitColumns(
+				new Layout("L").SplitRows(
+					new("LC", cfgPanel),
+					new("LT", m_mainTable)),
+				new Layout("R", ciPanel));
+	}
 
 	private Layout GetExpandedLayout(IResultItem sri)
 	{
@@ -483,13 +445,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	{
 		s_logger.LogDebug("Disposing search command");
 
-		foreach (var sr in m_resultTables.Keys) {
-			sr.Dispose();
-		}
-
 		Elements.Prm_Selection.Validator = null;
 
-		m_resultTables.Clear();
 		m_cts.Dispose();
 		m_ctsRun.Dispose();
 		m_ctsRunSearch.Dispose();

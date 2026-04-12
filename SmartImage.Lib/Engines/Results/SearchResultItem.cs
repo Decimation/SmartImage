@@ -12,7 +12,7 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Results;
 
-public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, IComparable, ISize
+public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, IComparable
 {
 
 	internal SearchResultItem(SearchResult r, bool isRaw = false)
@@ -110,7 +110,20 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 	[MNNW(true, nameof(Hash))]
 	public bool HasHash => Hash.HasValue;
 
-	public int Index => Root.Results.IndexOf(this);
+	// public int Index => Root.Results.IndexOf(this);
+
+	/// <summary>
+	///     Result containing this result item
+	/// </summary>
+	[NN]
+	[JI]
+	public SearchResult Root { get; }
+
+	[CBN]
+	[JI]
+	public IResultItem Parent { get; set; }
+
+	public bool IsChild => false;
 
 	public virtual double Score
 	{
@@ -156,31 +169,6 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 		}
 	}
 
-	public virtual bool CalculateSimilarity(IHashable hashable)
-	{
-		Similarity = ISimilarity.CalculateHashSimilarity(this, hashable);
-		return Similarity.HasValue;
-	}
-
-#region
-
-	/// <summary>
-	///     Result containing this result item
-	/// </summary>
-	[NN]
-	[JI]
-	public SearchResult Root { get; }
-
-	[CBN]
-	[JI]
-	public IResultItem Parent { get; set; }
-
-	public bool IsCloned => false;
-
-	public bool IsChild => false;
-
-#endregion
-
 #region
 
 	[CBN]
@@ -224,23 +212,6 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 	[MNNW(true, nameof(ScannedItems))]
 	public bool HasScannedItems => ScannedItems is { Count: > 0 };
 
-	[MNNW(true, nameof(Thumbnail))]
-	public async ValueTask<bool> LoadThumbnailAsync(CancellationToken ct = default)
-	{
-		if (!HasThumbnail) {
-			try {
-				using var response    = await ImageScanner.GetResponseAsync(Thumbnail, ct);
-				var       responseStr = await response.GetStreamAsync();
-				ThumbnailImage = await ISImage.LoadAsync(responseStr, ct);
-			}
-			catch (Exception e) {
-				s_logger.LogError(e, "Could not load {Thumb}", Thumbnail);
-			}
-		}
-
-		return HasThumbnail;
-	}
-
 	public async ValueTask<bool> ScanAsync(CancellationToken ct = default)
 	{
 		if (HasScannedItems) {
@@ -273,15 +244,30 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 		return ok;
 	}
 
+	[MNNW(true, nameof(Thumbnail))]
+	public async ValueTask<bool> LoadThumbnailAsync(CancellationToken ct = default)
+	{
+		if (!HasThumbnail) {
+			try {
+				using var response    = await ImageScanner.GetResponseAsync(Thumbnail, ct);
+				var       responseStr = await response.GetStreamAsync();
+				ThumbnailImage = await ISImage.LoadAsync(responseStr, ct);
+			}
+			catch (Exception e) {
+				s_logger.LogError(e, "Could not load {Thumb}", Thumbnail);
+			}
+		}
+
+		return HasThumbnail;
+	}
+
 #endregion
 
 
-	public SearchResultItem MemberwiseCloneWithUrl(Url u)
+	public virtual bool CalculateSimilarity(IHashable hashable)
 	{
-		var clone = (MemberwiseClone() as SearchResultItem);
-		clone.Url    = u;
-		clone.Parent = this;
-		return clone;
+		Similarity = ISimilarity.CalculateHashSimilarity(this, hashable);
+		return Similarity.HasValue;
 	}
 
 	public void Dispose()
@@ -290,23 +276,23 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 
 		s_logger.LogDebug("Disposing {Item} of {Name}", Url, Root.Engine.Name);
 		ThumbnailImage?.Dispose();
-
-		foreach (IResultItem item in ScannedItems) {
+		
+		foreach (var item in ScannedItems) {
 			item.Dispose();
 		}
 
 		ScannedItems.Clear();
 	}
 
+	protected virtual bool PrintMembers(StringBuilder builder)
+	{
+		return false;
+	}
+
 	public override string ToString()
 	{
 		return
 			$"{Url} {Similarity / 100:P} {Artist} {Description} {Site} {Source} {Title} {Character} {Time} {Width}x{Height}";
-	}
-
-	protected virtual bool PrintMembers(StringBuilder builder)
-	{
-		return false;
 	}
 
 #region Relational members
