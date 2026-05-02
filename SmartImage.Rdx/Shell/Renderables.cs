@@ -4,6 +4,7 @@
 global using SizeIS = SixLabors.ImageSharp.Size;
 using System.Data;
 using System.Runtime.InteropServices;
+using Flurl;
 using Novus.Runtime;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Model;
@@ -19,7 +20,7 @@ using SmartImage.Lib.Utilities.Integration;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 using Kantan.Console;
-using static Kantan.Console.RenderableUtility;
+using RU = Kantan.Console.RenderableUtility;
 
 namespace SmartImage.Rdx.Shell;
 
@@ -36,19 +37,11 @@ internal static class Renderables
 			return [new Text($"{result.Engine.Name}", style), new Text($"{result.Results.Count}")];
 		}
 
-		public IEnumerable<IRenderable[]> GetFullResultRows()
-		{
-			Style style = result.Engine.Option.GetColor();
-
-			for (int i = 0; i < result.Results.Count; i++) {
-				var res = result.Results[i];
-
-				yield return res.GetResultRow(i, style);
-			}
-
-		}
+		public IEnumerable<IList<IRenderable>> GetFullRows()
+			=> result.Results.Select(static res => res.GetMainRows(true));
 
 	}
+
 
 	extension(IResultItem sri)
 	{
@@ -56,60 +49,27 @@ internal static class Renderables
 		public IRenderable GetResolution()
 			=> sri.HasDimensions ? GetResolution(new SizeIS(sri.Width.Value, sri.Height.Value)) : ElementUtility.Txt_NA;
 
-		public IRenderable GetSimilarity() => AsRenderable(sri.Similarity);
+		public IRenderable GetSimilarity() => RU.AsRenderable(sri.Similarity);
 
-		public IRenderable[] GetResultRow(int i, Style style)
+		public IRenderable GetUrl()
 		{
-			IRenderable url;
-			var         link = sri.Url;
-			Style       linkStyle;
-
-			if (link != null) {
-				linkStyle = new Style(link: link);
-				url       = new Markup(Markup.Escape(link.ToString()), linkStyle);
-			}
-			else {
-				url       = ElementUtility.Txt_NA;
-				linkStyle = style;
+			if (Url.IsValid(sri.Url)) {
+				return new Text(Markup.Escape(sri.Url), new Style(link: sri.Url));
 			}
 
-
-			var name   = new Text($"#{i}" + (sri.IsRaw ? " (Raw)" : null), style);
-			var sim    = sri.GetSimilarity();
-			var artist = AsRenderable(sri.Artist);
-			var wh     = sri.GetResolution();
-
-			return [name, url, sim, artist, wh];
+			return ElementUtility.Txt_NA;
 		}
 
 		public Grid GetItemInfoGrid()
 		{
 			// TODO
 
-			IRenderable url;
-			var         link = sri.Url;
-			Style       linkStyle;
-
-			if (link != null) {
-				linkStyle = new Style(link: link);
-				url       = new Markup(Markup.Escape(link.ToString()), linkStyle);
-			}
-			else {
-				url = ElementUtility.Txt_NA;
-			}
-
 			var gr = new Grid();
 			gr.AddColumns(2);
 
-			var name   = new Text($"{sri.Root.Engine.Name}");
-			var sim    = sri.GetSimilarity();
-			var artist = AsRenderable(sri.Artist);
-			var wh     = sri.GetResolution();
+			var elems = sri.GetMainRows(false).ToList();
 
-			var elems = new List<IRenderable>() { name, url, sim, artist, wh };
-
-			// var elems2 = [sri.Character, sri.Source, sri.Description, sri.Site];
-			var elemNames = new string[]
+			var elemNames = new[]
 			{
 				nameof(sri.Character),
 				nameof(sri.Source),
@@ -121,19 +81,7 @@ internal static class Renderables
 			/*var fields = sri.GetType().GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public)
 			.Where(x => x.GetValue(sri) != null);*/
 
-			foreach (string elemName in elemNames) {
-				var prop = sri.GetType().GetProperty(elemName, BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public);
-
-				if (prop is { }) {
-					var val = prop.GetValue(sri);
-					var s   = val?.ToString();
-
-					if (!String.IsNullOrWhiteSpace(s)) {
-						elems.Add(new Text(s));
-
-					}
-				}
-			}
+			elems.AddRange(sri.GetElementProperties(elemNames));
 
 			if (elems.Count % 2 != 0) {
 				elems.Add(ElementUtility.Txt_NA);
@@ -146,19 +94,39 @@ internal static class Renderables
 			return gr;
 		}
 
-		public IRenderable[] GetItemRow(int idx, int subIdx)
+		public IList<IRenderable> GetMainRows(bool full)
+		{
+			IRenderable name;
+
+			if (full) {
+				var i     = sri.Root.Results.IndexOf(sri);
+				var style = sri.Root.Engine.Option.GetColor();
+
+				name = new Text($"#{i}" + (sri.IsRaw ? " (Raw)" : null), style);
+			}
+			else {
+				name = new Text($"{sri.Root.Engine.Name}");
+			}
+
+
+			var sim    = sri.GetSimilarity();
+			var artist = RU.AsRenderable(sri.Artist);
+			var wh     = sri.GetResolution();
+			var url    = sri.GetUrl();
+
+			return [name, url, sim, artist, wh];
+		}
+
+
+		public IList<IRenderable> GetItemRow(int idx, int subIdx)
 		{
 			var result = sri.Root;
 			var style  = new Style(link: sri.Url, foreground: result.Engine.Option.GetColor());
+			var name   = new Text($"#{idx}.{subIdx}", style);
 
-			return
-			[
-				new Text($"#{idx}.{subIdx}", style),
-				new Text(Markup.Escape(sri.Url), new Style(link: sri.Url)),
-				sri.GetSimilarity(),
-				ElementUtility.Txt_NA,
-				sri.GetResolution()
-			];
+			var rows = sri.GetMainRows(false);
+			rows[0] = name;
+			return rows;
 		}
 
 		public Grid CreateExtendedGrid()
@@ -170,12 +138,14 @@ internal static class Renderables
 			var inteer    = new[] { typeof(IResultItem), typeof(ISimilarity), typeof(IHashable), typeof(IResultMetadata), typeof(IUniImage) };
 			var interProp = inteer.Select(x => x.GetProperties()).Distinct();
 
-			var properties = sri.GetType()
-			                    .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-			                    .Where(p => !p.IsCalculated())
-			                    .Where(x => x.Name is not (nameof(SearchResultItem.ScannedItems) or nameof(SearchResultItem.IsRaw)
-				                                or nameof(ScannedResultItem.Width) or nameof(ScannedResultItem.Height)
-				                                or nameof(SearchResultItem.Metadata) or nameof(SearchResultItem.Parent)));
+			var properties = sri.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+			                    .Where(static p => !p.IsCalculated())
+			                    .Where(static x =>
+			                    {
+				                    return x.Name is not (nameof(SearchResultItem.ScannedItems) or nameof(SearchResultItem.IsRaw)
+					                           or nameof(ScannedResultItem.Width) or nameof(ScannedResultItem.Height)
+					                           or nameof(SearchResultItem.Metadata) or nameof(SearchResultItem.Parent));
+			                    });
 
 			foreach (var property in properties) {
 				var propVal = property.GetValue(sri);
@@ -184,13 +154,28 @@ internal static class Renderables
 					continue;
 				}
 
-				var render = AsRenderable(propVal);
+				var render = RU.AsRenderable(propVal);
 				grid.AddRow(new Text($"{property.Name}", Elements.Sty_ResultHeader), render);
 			}
 
 			grid.AddRow(new Text("Resolution", Elements.Sty_ResultHeader), sri.GetResolution());
 
 			return grid;
+		}
+
+		public IEnumerable<IRenderable> GetElementProperties(IEnumerable<string> propNames)
+		{
+			const BindingFlags OPTIONS = BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public;
+
+			foreach (string name in propNames) {
+				var prop = sri.GetType().GetProperty(name, OPTIONS);
+
+				if (prop is { }) {
+					var val = prop.GetValue(sri);
+
+					yield return RU.AsRenderable(val);
+				}
+			}
 		}
 
 	}
@@ -279,7 +264,7 @@ internal static class Renderables
 				kR = new Text(s?.ToString(), Elements.Sty_Grid1);
 			}
 
-			dt.AddRow(kR, AsRenderable(o));
+			dt.AddRow(kR, RU.AsRenderable(o));
 		}
 
 

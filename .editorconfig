@@ -1,7 +1,0 @@
-﻿[*.{cs,vb}]
-
-# IDE0049: Simplify Names
-dotnet_diagnostic.ide0049.severity = none
-
-# ReSharper properties
-resharper_keep_existing_switch_expression_arrangement = false

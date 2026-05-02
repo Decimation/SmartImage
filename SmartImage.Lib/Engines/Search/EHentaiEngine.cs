@@ -22,7 +22,7 @@ namespace SmartImage.Lib.Engines.Search;
 ///     <see cref="SearchEngineOptions.EHentai" />
 /// </summary>
 /// <remarks>Handles both ExHentai and E-Hentai</remarks>
-public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INotifyPropertyChanged, ICookiesReceiver, ISearchConfigReceiver
+public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, ICookiesReceiver, ISearchConfigReceiver
 {
 
 	public override SearchEngineOptions Option => SearchEngineOptions.EHentai;
@@ -78,10 +78,6 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		return Client.Request(Url2)
 		             .WithCookies(Jar)
 		             .WithTimeout(Timeout)
-		             .WithHeaders(new
-		             {
-			             User_Agent = R1.UserAgent1
-		             })
 		             .WithAutoRedirect(true)
 		             .GetAsync();
 	}
@@ -111,7 +107,6 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		}
 
 		if (filePath != null) {
-			// Trace.WriteLine($"allocated {filePath}", nameof(GetDocumentAsync));
 			Logger.LogTrace("Allocated {Path}", filePath);
 		}
 
@@ -128,8 +123,6 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		};
 
 
-		// Debug.WriteLine($"{LookupUrl}", nameof(GetDocumentAsync));
-
 		var req = new FlurlRequest(LookupUrl)
 		{
 			CookieJar = Jar,
@@ -144,19 +137,6 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		using var flurlRes = await Client.SendAsync(req, cancellationToken: token).ConfigureAwait(false);
 		using var httpRes  = flurlRes.ResponseMessage;
 
-		/*using var flurlRes = await LookupUrl.
-			                     WithCookies(Jar)
-			                     .WithHeader("User-Agent", HttpUtilities.UserAgent)
-			                     .PostMultipartAsync(bc =>
-			                     {
-									 //
-				                     bc.AddFile(path: filePath, fileName: fileName, name: "sfile");
-			                     }, cancellationToken: token);*/
-
-		// using var httpRes  = flurlRes.ResponseMessage;
-
-		// Debug.WriteLine($"{res.StatusCode}");
-
 		sr.RawUrl = httpRes.RequestMessage.RequestUri;
 		var old = sr.Results.Find(static r => r is SearchResultItem { IsRaw: true });
 
@@ -170,7 +150,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 
 		if (content.Contains("Please wait a bit longer between each file search.")) {
 			// Debug.WriteLine("cooldown", Name);
-			sr.Status = SearchResultStatus.Cooldown;
+			sr.ResponseStatus = SearchResponseStatus.Cooldown;
 
 			return null;
 		}
@@ -179,7 +159,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		return await parser.ParseDocumentAsync(content, token).ConfigureAwait(false);
 	}
 
-	protected override ValueTask<IList<INode>> ParseIntermediateAsync(IDocument src)
+	protected override ValueTask<IList<INode>> ParseDataAsync(IDocument src)
 	{
 		// Index 0 is table header
 		var array = src.Body.SelectNodes(Serialization.S_EHentai);
@@ -203,13 +183,6 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 
 	public async Task<bool> LoginAsync(string username, string password)
 	{
-		/*
-		if (IsLoggedIn) {
-			return false;
-		}
-		*/
-
-		// var fcc = await ReadCookiesAsync();
 
 		var content = new MultipartFormDataContent()
 		{
@@ -276,26 +249,9 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		IsLoggedIn = false;
 	}
 
-	public event PropertyChangedEventHandler PropertyChanged;
-
-	private void OnPropertyChanged([CMN] string propertyName = null)
-	{
-		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-	}
-
-	private bool SetField<T>(ref T field, T value, [CMN] string propertyName = null)
-	{
-		if (EqualityComparer<T>.Default.Equals(field, value))
-			return false;
-
-		field = value;
-		OnPropertyChanged(propertyName);
-		return true;
-	}
-
 }
 
-public sealed record EhResult : SearchResultItem, IParseableSource<INode, EhResult>
+public sealed record EhResult : SearchResultItem, IParseableResult<INode, EhResult>
 {
 
 	public string TypeString { get; private set; }

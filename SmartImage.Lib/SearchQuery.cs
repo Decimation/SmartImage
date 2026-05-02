@@ -30,6 +30,7 @@ using System.Runtime.CompilerServices;
 using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Images.Uni;
 using System.ComponentModel;
+using Flurl;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Upload.Base;

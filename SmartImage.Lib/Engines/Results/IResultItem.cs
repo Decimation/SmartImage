@@ -21,11 +21,13 @@ public interface IResultItem : IDisposable, ISimilarity, IHashable, IUrl, IResul
 
 	// public int Index { get; }
 
+	/*
 	/// <summary>
 	/// Index 1
 	/// If <see cref="IsChild"/> (<see cref="ScannedResultItem"/>) scan index ++
 	/// </summary>
-	// public int ResultsIndex => IsChild ? Parent.Root.Results.IndexOf(Parent) : Root.Results.IndexOf(this);
+	public int ResultsIndex => IsChild ? Parent.Root.Results.IndexOf(Parent) : Root.Results.IndexOf(this);
+	*/
 
 	/*public int GetIndex1()
 	{
@@ -50,6 +52,7 @@ public interface IResultItem : IDisposable, ISimilarity, IHashable, IUrl, IResul
 		return root + scnIdx + t;
 	}*/
 
+	/*
 	public static int GetIndex(IResultItem item)
 	{
 		var rootIdx = item.Root.Results.IndexOf(item.Parent);
@@ -63,5 +66,6 @@ public interface IResultItem : IDisposable, ISimilarity, IHashable, IUrl, IResul
 
 		return idx;
 	}
+	*/
 
 }

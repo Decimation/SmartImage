@@ -8,30 +8,21 @@ using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Engines.Search.Base;
 
-public abstract class WebSearchEngine<TItem, TIntermediate> : ParsedSearchEngine<TItem, TIntermediate, IDocument>
+public abstract class WebSearchEngine<TItem, TData> : ParsedSearchEngine<TItem, TData, IDocument>
 	where TItem : SearchResultItem
 {
 
 	protected WebSearchEngine(Url url) : base(url) { }
 
-	[ICBN]
 	[MURV]
 	protected override async Task<IDocument> GetSourceAsync(SearchResult sr, SearchQuery query, CancellationToken token = default)
 	{
 		var parser = new HtmlParser();
 
 		using var res = await Client.Request(sr.RawUrl)
-			                .WithCookies(out var cj)
-			                .WithTimeout(Timeout)
-			                .WithHeaders(new
-			                {
-				                User_Agent = R1.UserAgent1
-			                })
-			                /*.OnError(s =>
-						                {
-							                s.ExceptionHandled = true;
-						                })*/
-			                .GetAsync(cancellationToken: token);
+		                            .WithCookies(out var cj)
+		                            .WithTimeout(Timeout)
+		                            .GetAsync(cancellationToken: token);
 
 		var str = await res.GetStreamAsync();
 

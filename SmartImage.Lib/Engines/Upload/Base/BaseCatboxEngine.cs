@@ -1,8 +1,10 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: BaseCatboxEngine.cs
 // Date: 2026/02/21 @ 15:02:55
 
+using System.Globalization;
 using Flurl.Http;
 using Flurl.Http.Content;
+using Microsoft.Net.Http.Headers;
 using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Upload.Base;
@@ -45,8 +47,19 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 
 	public override async Task<IUploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default)
 	{
-		var   url  = await response.ResponseMessage.Content.ReadAsStringAsync(ct);
-		long? size = response.TryGetContentLength();
+		var  url  = await response.ResponseMessage.Content.ReadAsStringAsync(ct);
+		bool cl;
+		long l = default;
+
+		if (response.Headers.TryGetFirst(HeaderNames.ContentLength, out string cl1)) {
+			l = long.Parse(cl1, CultureInfo.CurrentCulture);
+			cl         = true;
+		}
+		else {
+			cl = false;
+		}
+
+		long? size = cl ? null : l;
 
 		return new UploadResult(url, size);
 	}

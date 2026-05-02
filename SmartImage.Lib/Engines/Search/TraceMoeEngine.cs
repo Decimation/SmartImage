@@ -54,7 +54,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 
 		if (tm is null) {
 			Debugger.Break();
-			sr.Status = SearchResultStatus.UnknownError;
+			sr.ResponseStatus = SearchResponseStatus.Unknown;
 			goto ret;
 		}
 
@@ -68,12 +68,12 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 				sr.Results.Add(tr);
 			}
 
-			sr.Status = SearchResultStatus.Success;
+			sr.ResponseStatus = SearchResponseStatus.Success;
 			sr.RawUrl = new Url(Url + query.Upload);
 		}
 		catch (Exception e) {
 			sr.ErrorMessage = e.Message;
-			sr.Status       = SearchResultStatus.UnknownError;
+			sr.ResponseStatus       = SearchResponseStatus.Unknown;
 		}
 
 	ret:
@@ -82,10 +82,10 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 			// Debug.WriteLine($"{Name} :: API error: {tm.Error}", nameof(GetResultAsync));
 			Logger.LogDebug("{Name} :: API error {Err} in {Fn}", Name, tm.Error, nameof(GetResultAsync));
 			sr.ErrorMessage = tm.Error;
-			sr.Status       = SearchResultStatus.IllegalInput;
+			sr.ResponseStatus       = SearchResponseStatus.IllegalInput;
 
 			if (sr.ErrorMessage.Contains("Search queue is full")) {
-				sr.Status = SearchResultStatus.Unavailable;
+				sr.ResponseStatus = SearchResponseStatus.Unavailable;
 			}
 		}
 

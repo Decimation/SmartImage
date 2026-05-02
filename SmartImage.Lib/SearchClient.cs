@@ -7,6 +7,7 @@ using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
+using Flurl;
 using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Engines.Upload.Base;

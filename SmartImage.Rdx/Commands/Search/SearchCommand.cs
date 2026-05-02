@@ -175,7 +175,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	{
 		var result = await task;
 
-		var fullRows = result.GetFullResultRows();
+		var fullRows = result.GetFullRows();
 
 		foreach (IRenderable[] row in fullRows) {
 			m_mainTable.AddRow(row);
@@ -240,7 +240,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				var itemIdx = sr.Results.IndexOf(sri);
 				var selIdx2 = ShellSelection.GetIndex2(sri);*/
 
-				var sel     = ShellSelection.GetSelectionChoice(sr);
+				var sel     = ShellSelection.GetSelectionChoice(sr); 
 				var item    = sel.Item;
 				var sri     = item as SearchResultItem;
 				var selIdx  = sel.Index();
@@ -254,7 +254,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					continue;
 				}
 
-				if (cmd == R2.Chc_Scan && !sri.IsChild) {
+				if (cmd == R2.Chc_Scan && !sri.IsChild && sri is not { HasScannedItems: true }) {
 					await AnsiConsole.Live(srTable).StartAsync(async f =>
 					{
 						s_logger.LogTrace("Scanning {Item}", sri);
@@ -287,7 +287,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					{
 						item.CalculateSimilarity(Query.Source);
 
-						srTable.Rows.Update(selIdx2, (int) ResultRowIndex.ROW_SIMILARITY, sri.GetSimilarity());
+						srTable.Rows.Update(selIdx2, (int) ResultRowIndex.ROW_SIMILARITY, (sri ?? item).GetSimilarity());
 						f.Refresh();
 					});
 

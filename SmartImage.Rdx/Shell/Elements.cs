@@ -139,7 +139,7 @@ internal static class Elements
 		var table = new SpcTable();
 
 		var columns = GetColumns("Thread", nameof(BaseSearchEngine.Name), nameof(SearchResult.Results),
-		                         nameof(SearchResult.Status), nameof(BaseSearchEngine.Timeout));
+		                         nameof(SearchResult.ResponseStatus), nameof(BaseSearchEngine.Timeout));
 
 		table.AddColumns(columns.ToArray());
 		return table;

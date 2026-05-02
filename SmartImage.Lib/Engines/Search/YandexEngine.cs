@@ -100,12 +100,12 @@ public sealed class YandexEngine : BaseSearchEngine
 			doc = null;
 			Logger.LogError(e, "{Name} error", Name);
 
-			sr.Status = SearchResultStatus.UnknownError;
+			sr.ResponseStatus = SearchResponseStatus.Unknown;
 		}
 		finally { }
 
 
-		sr.Status = SearchResultStatus.Success;
+		sr.ResponseStatus = SearchResponseStatus.Success;
 	ret:
 		sr.Update();
 		res?.Dispose();

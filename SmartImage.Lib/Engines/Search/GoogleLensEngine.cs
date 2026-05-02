@@ -64,7 +64,7 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 		return br;
 	}
 
-	protected override ValueTask<IList<INode>> ParseIntermediateAsync(IDocument src)
+	protected override ValueTask<IList<INode>> ParseDataAsync(IDocument src)
 	{
 		var nodes = src.QuerySelectorAll(".LBcIee").OfType<INode>().ToList();
 		return ValueTask.FromResult<IList<INode>>(nodes);
@@ -199,7 +199,7 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 
 }
 
-public record GoogleLensItem : SearchResultItem, IParseableSource<INode, GoogleLensItem>
+public record GoogleLensItem : SearchResultItem, IParseableResult<INode, GoogleLensItem>
 {
 
 	// public string SiteName { get; private set; }

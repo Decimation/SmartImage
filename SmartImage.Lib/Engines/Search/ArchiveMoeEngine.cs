@@ -9,6 +9,7 @@ using AngleSharp.XPath;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Utilities.Diagnostics;
+
 // ReSharper disable UnusedVariable
 
 #nullable disable
@@ -19,11 +20,14 @@ namespace SmartImage.Lib.Engines.Search;
 
 public partial class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 {
+
+	public const string URL_ENDPOINT = "https://archived.moe/_/search/";
+
 	public override SearchEngineOptions Option => SearchEngineOptions.ArchiveMoe;
 
 	protected string Base64MD5Hash { get; set; }
 
-	public ArchiveMoeEngine() : this("https://archived.moe/_/search/") { }
+	public ArchiveMoeEngine() : this(URL_ENDPOINT) { }
 
 	protected ArchiveMoeEngine(Url url) : base(url) { }
 
@@ -31,21 +35,11 @@ public partial class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 	{
 		Base64MD5Hash = GetBase64MD5Hash(query.Source.Bytes);
 
-		var r = Url.Combine(Url, "image", Base64MD5Hash);
-		return r;
-
-		// return (Url.AppendPathSegments("image").AppendPathSegment(Base64Hash));
+		return Url.Combine(Url, "image", Base64MD5Hash);
 	}
 
 
-	
-
-	public override void Dispose()
-	{
-		GC.SuppressFinalize(this);
-	}
-
-	protected override ValueTask<IList<INode>> ParseIntermediateAsync(IDocument src)
+	protected override ValueTask<IList<INode>> ParseDataAsync(IDocument src)
 	{
 		return ValueTask.FromResult<IList<INode>>(src.Body.SelectNodes("//article[contains(@class,'post')]"));
 	}
@@ -61,8 +55,7 @@ public partial class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 		return ValueTask.FromResult<IEnumerable<ChanPost>>(buf);
 	}
 
-	/// <see cref="SearchHashType.Base64MD5"/>
-	public static string GetBase64MD5Hash(byte[] srcBytes)
+	public static string GetBase64MD5Hash(Span<byte> srcBytes)
 	{
 		//var digestBase64URL = digestBase64.replace('==', '').replace(/\//g, '_').replace(/\+/g, '-');
 		var data = MD5.HashData(srcBytes);
@@ -80,9 +73,14 @@ public partial class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 	[GeneratedRegex(@"\+")]
 	private static partial Regex r_fwLook();
 
+	public override void Dispose()
+	{
+		GC.SuppressFinalize(this);
+	}
+
 }
 
-public record ChanPost : SearchResultItem, IParseableSource<INode, ChanPost>
+public record ChanPost : SearchResultItem, IParseableResult<INode, ChanPost>
 {
 
 	public string Board { get; private set; }

@@ -8,9 +8,9 @@ namespace SmartImage.Lib.Engines.Search.Base;
 
 /// <summary>
 /// Represents a search engine whose results are parsed: <para />
-/// <typeparamref name="TSource"/> &#8594; <typeparamref name="TIntermediate"/> &#8594; <typeparamref name="TItem"/>
+/// <typeparamref name="TSource"/> &#8594; <typeparamref name="TData"/> &#8594; <typeparamref name="TItem"/>
 /// </summary>
-public abstract class ParsedSearchEngine<TItem, TIntermediate, TSource> : BaseSearchEngine
+public abstract class ParsedSearchEngine<TItem, TData, TSource> : BaseSearchEngine
 	where TItem : IResultItem
 {
 
@@ -23,7 +23,7 @@ public abstract class ParsedSearchEngine<TItem, TIntermediate, TSource> : BaseSe
 
 		TSource src = default;
 
-		if (res.Status == SearchResultStatus.IllegalInput) {
+		if (res.ResponseStatus == SearchResponseStatus.IllegalInput) {
 			goto ret;
 		}
 
@@ -33,7 +33,7 @@ public abstract class ParsedSearchEngine<TItem, TIntermediate, TSource> : BaseSe
 			goto ret;
 		}
 
-		var inter = await ParseIntermediateAsync(src);
+		var inter = await ParseDataAsync(src);
 		var items = await ParseItemsAsync(inter, res);
 
 		if (items is IEnumerable<IResultItem> { } items2) {
@@ -44,7 +44,7 @@ public abstract class ParsedSearchEngine<TItem, TIntermediate, TSource> : BaseSe
 		}
 
 
-		res.Status = SearchResultStatus.Success;
+		res.ResponseStatus = SearchResponseStatus.Success;
 
 	ret:
 		res.Update();
@@ -57,9 +57,9 @@ public abstract class ParsedSearchEngine<TItem, TIntermediate, TSource> : BaseSe
 		return res;
 	}
 
-	protected abstract ValueTask<TIntermediate> ParseIntermediateAsync(TSource src);
+	protected abstract ValueTask<TData> ParseDataAsync(TSource src);
 
-	protected abstract ValueTask<IEnumerable<TItem>> ParseItemsAsync(TIntermediate source, SearchResult r);
+	protected abstract ValueTask<IEnumerable<TItem>> ParseItemsAsync(TData source, SearchResult r);
 
 	[ICBN]
 	[MURV]

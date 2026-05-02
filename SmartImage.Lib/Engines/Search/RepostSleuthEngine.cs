@@ -62,18 +62,18 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 		}
 		catch (JsonException e) {
 			sr.ErrorMessage = e.Message;
-			sr.Status       = SearchResultStatus.UnknownError;
+			sr.ResponseStatus       = SearchResponseStatus.Unknown;
 			goto ret;
 		}
 		catch (FlurlHttpException e) {
 			sr.ErrorMessage = e.Message;
-			sr.Status       = SearchResultStatus.Unavailable;
+			sr.ResponseStatus       = SearchResponseStatus.Unavailable;
 
 			goto ret;
 		}
 
 		if (obj?.matches == null || obj.matches.Count == 0) {
-			sr.Flags |= SearchResultFlags.NoResults;
+			sr.ResultsFlags |= SearchResultsFlags.NoResults;
 			goto ret;
 		}
 
@@ -82,7 +82,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 		}
 
 		if (sr.HasResults) {
-			sr.Status = SearchResultStatus.Success;
+			sr.ResponseStatus = SearchResponseStatus.Success;
 		}
 
 	ret:

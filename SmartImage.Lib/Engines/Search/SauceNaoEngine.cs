@@ -59,13 +59,13 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 		// var result = await base.GetResultAsync(query, token);
 		var b = VerifyQuery(query);
 
-		var srs = b ? SearchResultStatus.None : SearchResultStatus.IllegalInput;
+		var srs = b ? SearchResponseStatus.None : SearchResponseStatus.IllegalInput;
 
 		var rawUrl = GetRawUrl(query);
 
 		var result = new SearchResult(this, rawUrl)
 		{
-			Status = srs,
+			ResponseStatus = srs,
 		};
 
 		if (UsingAPI) {
@@ -77,11 +77,11 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 
 			var src = await GetSourceAsync(result, query, ct).ConfigureAwait(false);
 
-			if (src is null || result is { Status: SearchResultStatus.Cooldown }) {
+			if (src is null || result is { ResponseStatus: SearchResponseStatus.Cooldown }) {
 				goto ret1;
 			}
 
-			var source = await ParseIntermediateAsync(src);
+			var source = await ParseDataAsync(src);
 			var items  = await ParseItemsAsync(source, result);
 			result.Results.AddRange(items);
 		}
@@ -91,13 +91,13 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 
 		if (!result.HasResults) {
 			result.ErrorMessage = "Daily search limit (50) exceeded";
-			result.Status       = SearchResultStatus.Cooldown;
+			result.ResponseStatus       = SearchResponseStatus.Cooldown;
 
 			//return sresult;
 			goto ret;
 		}
 
-		result.Status = SearchResultStatus.Success;
+		result.ResponseStatus = SearchResponseStatus.Success;
 
 	ret:
 
@@ -146,9 +146,9 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 		if (response.StatusCode == (int) HttpStatusCode.TooManyRequests) {
 			Logger.LogWarning("[{Name}] Parsing HTML", Name);
 
-			sr.Status       = SearchResultStatus.Cooldown;
+			sr.ResponseStatus       = SearchResponseStatus.Cooldown;
 			sr.ErrorMessage = "On cooldown!";
-			sr.Flags        = SearchResultFlags.NoResults;
+			sr.ResultsFlags        = SearchResultsFlags.NoResults;
 			goto ret;
 		}
 
@@ -160,7 +160,7 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 		return doc;
 	}
 
-	protected override ValueTask<IList<INode>> ParseIntermediateAsync(IDocument src)
+	protected override ValueTask<IList<INode>> ParseDataAsync(IDocument src)
 	{
 		var results = src.Body.SelectNodes("//div[@class='result']");
 
@@ -284,12 +284,12 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 		return ValueTask.FromResult(UsingAPI);
 	}
 
-	public override void Dispose() { }
-
 	public static bool IsLookupUrl(Url url)
 	{
 		return url.QueryParams.Contains("lookup_type");
 	}
+
+	public override void Dispose() { }
 
 }
 

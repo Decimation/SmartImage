@@ -17,7 +17,6 @@ using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Model;
 
 // ReSharper disable CognitiveComplexity
-
 // ReSharper disable IdentifierTypo
 // ReSharper disable StringLiteralTypo
 
@@ -52,26 +51,6 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 
 	// public const int MAX_WIDTH = 1000;
 
-	/*protected override bool VerifyQuery(SearchQuery q)
-	{
-		var  b = base.VerifyQuery(q);
-		bool b2;
-		bool ok = q.HasImage;
-
-		if (!ok) {
-			ok = q.AllocImage();
-
-		}
-		if (ok) {
-			// b2 = q.ImageInfo.Width < MAX_WIDTH;
-		}
-		else {
-			b2 = true;
-		}
-
-		return b && b2;
-	}*/
-
 	protected override Url GetRawUrl(SearchQuery query)
 	{
 		var url = base.GetRawUrl(query);
@@ -93,7 +72,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 	}
 
 
-	protected override ValueTask<IList<INode>> ParseIntermediateAsync(IDocument src)
+	protected override ValueTask<IList<INode>> ParseDataAsync(IDocument src)
 	{
 		var nodes = src.Body.SelectNodes(Serialization.S_Ascii2D_Images2);
 
@@ -123,19 +102,6 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 			var origin = sr.RawUrl;
 
 			string str = null;
-
-			/*var res = await new HttpClient(new FlareSolverrHandler()).SendAsync(
-				          new HttpRequestMessage(HttpMethod.Get, origin));
-
-			if (res != null) {
-				var fsr = await res.GetJsonAsync<FlareSolverrRoot>();
-				str = fsr.Solution.Response;
-			}
-			else {
-				res = await GetResponseByUrlAsync(origin, token);
-				str = await res.GetStringAsync();
-
-			}*/
 
 			if (m_fsClient.IsInitialized) {
 
@@ -177,8 +143,6 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 
 		}
 		catch (FlurlHttpException e) {
-			// return await Task.FromException<IDocument>(e);
-			// Debug.WriteLine($"{this} :: {e.Message}", nameof(GetDocumentAsync));
 			Logger.LogError(e, "{Name} error in {Fn}", Name, nameof(GetSourceAsync));
 			return null;
 		}
@@ -211,7 +175,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 
 }
 
-public record Ascii2DItem : SearchResultItem, IParseableSource<INode, Ascii2DItem>
+public record Ascii2DItem : SearchResultItem, IParseableResult<INode, Ascii2DItem>
 {
 
 	public string HashString { get; private set; }

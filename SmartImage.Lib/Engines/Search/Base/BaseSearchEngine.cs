@@ -31,7 +31,7 @@ public abstract class BaseSearchEngine : INamedEnumOption<SearchEngineOptions>, 
 	/// Base URI
 	/// </summary>
 
-	public virtual Url Url { get; private set; }
+	public virtual Url Url { get; }
 
 	// Url IUrl.Url => Url;
 
@@ -84,12 +84,12 @@ public abstract class BaseSearchEngine : INamedEnumOption<SearchEngineOptions>, 
 	{
 		var b = VerifyQuery(query);
 
-		var srs = b ? SearchResultStatus.None : SearchResultStatus.IllegalInput;
+		var srs = b ? SearchResponseStatus.None : SearchResponseStatus.IllegalInput;
 
 		var res = GetRawResult(query);
-		res.Status = srs;
+		res.ResponseStatus = srs;
 
-		Logger.LogInformation("{Engine} with {Query} returned {Status}", Name, query, res.Status);
+		Logger.LogInformation("{Engine} with {Query} returned {Status}", Name, query, res.ResponseStatus);
 
 		return Task.FromResult(res);
 	}

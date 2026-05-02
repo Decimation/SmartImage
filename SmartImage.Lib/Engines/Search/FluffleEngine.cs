@@ -1,5 +1,9 @@
-﻿using Argon;
+﻿using System.Net.Http.Headers;
+using System.Net.Mime;
+using AngleSharp.Css.Values;
+using Argon;
 using Flurl.Http;
+using Microsoft.Net.Http.Headers;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Utilities;
@@ -10,6 +14,8 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 {
 
 	public override SearchEngineOptions Option => SearchEngineOptions.Fluffle;
+
+	public Url Endpoint => URL_ENDPOINT;
 
 	public const string URL_BASE     = "https://fluffle.xyz/";
 	public const string URL_API_BASE = "https://api.fluffle.xyz";
@@ -25,13 +31,11 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 	}
 
 
-	public Url Endpoint => URL_ENDPOINT;
-
 	private async Task<bool> GetLegacyResponseAsync(SearchResult sr, SearchQuery query, CancellationToken ct = default)
 	{
 		IFlurlResponse response = null;
 
-		if (sr.Status == SearchResultStatus.IllegalInput) {
+		if (sr.ResponseStatus == SearchResponseStatus.IllegalInput) {
 			// return sr;
 			goto ret;
 		}
@@ -39,15 +43,12 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 		const int LIM_MAX = 32;
 
 		response = await Client.Request(Endpoint, "search")
-		                       .WithHeaders(new
-		                       {
-			                       User_Agent = $"{R1.Name}/{AppSupport.Version}"
-		                       })
 		                       .WithTimeout(Timeout)
+		                       .WithHeaders(new { User_Agent = $"{R1.Name}/{AppSupport.Version}" })
 		                       .OnError(e => { e.ExceptionHandled = true; })
 		                       .PostMultipartAsync(c =>
 		                       {
-			                       var file = query.Source.WriteImageToFile();
+			                       string file = query.Source.WriteImageToFile();
 			                       c.AddFile("file", file, "file");
 			                       c.AddString("includeNsfw", true.ToString());
 			                       c.AddString("limit", LIM_MAX.ToString());
@@ -56,22 +57,22 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 		if (response is { ResponseMessage.IsSuccessStatusCode: false }) {
 			var er = await response.GetJsonAsync<FluffleErrorCode>().ConfigureAwait(false);
 
-			sr.ErrorMessage = $"{er.Message}: {er.Code}";
-			sr.Status       = SearchResultStatus.UnknownError;
+			sr.ErrorMessage   = $"{er.Message}: {er.Code}";
+			sr.ResponseStatus = SearchResponseStatus.Unknown;
 
 			// return sr;
 			goto ret;
 		}
 
 		if (response == null) {
-			sr.Status = SearchResultStatus.UnknownError;
+			sr.ResponseStatus = SearchResponseStatus.Unknown;
 			goto ret;
 		}
 
 		var fr = await response.GetJsonAsync<FluffleResponse>().ConfigureAwait(false);
 		sr.Results.EnsureCapacity(sr.Results.Count + fr.Results.Count);
 		sr.Results.AddRange(fr.Results.Select(result => result.ToItem(sr)));
-		sr.Status = SearchResultStatus.Success;
+		sr.ResponseStatus = SearchResponseStatus.Success;
 
 	ret:
 		response?.Dispose();

@@ -32,9 +32,7 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	}
 
 	[JI]
-	public bool HasResults => !Flags.HasFlagFast(SearchResultFlags.NoResults);
-
-	public bool IsSuccessful => Status.IsSuccessful();
+	public bool HasResults => !ResultsFlags.HasFlagFast(SearchResultsFlags.NoResults);
 
 	/// <summary>
 	/// Results; first element should be <see cref="RawResultItem"/>
@@ -46,9 +44,9 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	[CBN]
 	public string ErrorMessage { get; internal set; }
 
-	public SearchResultStatus Status { get; internal set; }
+	public SearchResponseStatus ResponseStatus { get; internal set; }
 
-	public SearchResultFlags Flags { get; internal set; }
+	public SearchResultsFlags ResultsFlags { get; internal set; }
 
 	[CBN]
 	public string Overview { get; internal set; }
@@ -70,9 +68,9 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 
 	public virtual void Update()
 	{
-		if (Status.IsUnknown()) { }
+		if (ResponseStatus == SearchResponseStatus.None) { }
 
-		if (Status.IsError()) {
+		if (ResponseStatus.IsError()) {
 			return;
 		}
 	}
@@ -82,12 +80,12 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 
 	public event PropertyChangedEventHandler PropertyChanged;
 
-	private void OnPropertyChanged([CMN] string propertyName = null)
+	protected virtual void OnPropertyChanged([CMN] string propertyName = null)
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 
-	private bool SetField<T>(ref T field, T value, [CMN] string propertyName = null)
+	protected virtual bool SetField<T>(ref T field, T value, [CMN] string propertyName = null)
 	{
 		if (EqualityComparer<T>.Default.Equals(field, value))
 			return false;
@@ -100,7 +98,7 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 #endregion
 
 	[CBN]
-	public IResultItem GetBestResult()
+	public virtual IResultItem GetBestResult()
 	{
 		// TODO *? IMPROVE
 
@@ -112,7 +110,7 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 
 	public override string ToString()
 	{
-		return $"[{Engine.Name}] {RawUrl} | {Results.Count} | {Status} {ErrorMessage}";
+		return $"[{Engine.Name}] {RawUrl} | {Results.Count} | {ResponseStatus} {ErrorMessage}";
 	}
 
 	public void Dispose()
@@ -120,7 +118,7 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 		GC.SuppressFinalize(this);
 		Debug.WriteLine($"Disposing {Engine.Name} with {Results.Count}", LogCategories.C_VERBOSE);
 
-		foreach (SearchResultItem item in Results) {
+		foreach (var item in Results) {
 			/*if (ScannedResults.TryGetValue(item, out var scanned)) {
 				foreach (var sci in scanned) {
 					sci.Dispose();
@@ -133,52 +131,3 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 
 }
 
-[Flags]
-public enum SearchResultFlags
-{
-
-	None = 0,
-
-	/// <summary>
-	/// Engine returned no results
-	/// </summary>
-	NoResults = 1 << 0,
-
-	/// <summary>
-	/// Result is extraneous
-	/// </summary>
-	Extraneous = 1 << 1,
-
-}
-
-public enum SearchResultStatus
-{
-
-	/// <summary>
-	/// N/A
-	/// </summary>
-	None = 0,
-
-	/// <summary>
-	/// Result obtained successfully
-	/// </summary>
-	Success,
-
-	/// <summary>
-	/// Engine is on cooldown due to too many requests
-	/// </summary>
-	Cooldown,
-
-	/// <summary>
-	/// Obtaining results failed due to an engine error
-	/// </summary>
-	UnknownError,
-
-	IllegalInput,
-
-	/// <summary>
-	/// Engine is unavailable
-	/// </summary>
-	Unavailable
-
-}

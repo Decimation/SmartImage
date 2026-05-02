@@ -109,7 +109,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 
 	
 
-	protected override ValueTask<IEnumerable<IHtmlCollection<IElement>>> ParseIntermediateAsync(IDocument src)
+	protected override ValueTask<IEnumerable<IHtmlCollection<IElement>>> ParseDataAsync(IDocument src)
 	{
 		var pages  = src.Body.SelectSingleNode(Serialization.S_Iqdb_Pages);
 		var tables = ((IHtmlElement) pages).SelectNodes(Serialization.S_Iqdb_DivTable);
@@ -166,7 +166,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 
 }
 
-public record IqdbItem : SearchResultItem, IParseableSource<IHtmlCollection<IElement>, IqdbItem>
+public record IqdbItem : SearchResultItem, IParseableResult<IHtmlCollection<IElement>, IqdbItem>
 {
 
 	private IqdbItem(SearchResult r) : base(r) { }

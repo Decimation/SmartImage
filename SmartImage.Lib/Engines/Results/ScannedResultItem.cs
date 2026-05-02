@@ -12,7 +12,7 @@ using SmartImage.Lib.Images;
 
 namespace SmartImage.Lib.Engines.Results;
 
-public class ScannedResultItem : UniImageUrl, IResultItem, ILoadFromResult<ScannedResultItem>
+public class ScannedResultItem : UniImageUrl, IResultItem, IFromResult<ScannedResultItem>
 {
 
 	public SearchResult Root { get; }

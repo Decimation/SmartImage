@@ -24,11 +24,11 @@ public class ResultViewState
 
 	public static ResultViewState Create(SearchResult result)
 	{
-		var fullRows = result.GetFullResultRows();
+		var fullRows = result.GetFullRows();
 
 		var table = Renderables.CreateResultTable();
 
-		foreach (IRenderable[] row in fullRows) {
+		foreach (var row in fullRows) {
 			table.AddRow(row);
 		}
 

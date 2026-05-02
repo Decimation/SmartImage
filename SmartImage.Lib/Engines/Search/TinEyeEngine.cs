@@ -19,12 +19,6 @@ public sealed class TinEyeEngine : BaseSearchEngine
 
 	public override SearchEngineOptions Option => SearchEngineOptions.TinEye;
 
-	public override void Dispose()
-	{
-		// Debug.WriteLine($"Disposing {Name}");
-		Logger.LogTrace("Disposing {Name}", Name);
-	}
-
 
 	public override bool VerifyQuery(SearchQuery q)
 	{
@@ -50,7 +44,7 @@ public sealed class TinEyeEngine : BaseSearchEngine
 
 		IFlurlResponse response = null;
 
-		if (sr.Status == SearchResultStatus.IllegalInput) {
+		if (sr.ResponseStatus == SearchResponseStatus.IllegalInput) {
 			goto ret;
 		}
 
@@ -72,12 +66,12 @@ public sealed class TinEyeEngine : BaseSearchEngine
 		catch (Exception e) {
 			// Debugger.Break();
 			Logger.LogError(e, "{Name}", Name);
-			sr.Status = SearchResultStatus.UnknownError;
+			sr.ResponseStatus = SearchResponseStatus.Unknown;
 			goto ret;
 		}
 
 		if (tinEyeRoot?.Matches == null) {
-			sr.Flags |= SearchResultFlags.NoResults;
+			sr.ResultsFlags |= SearchResultsFlags.NoResults;
 
 			goto ret;
 		}
@@ -126,7 +120,7 @@ public sealed class TinEyeEngine : BaseSearchEngine
 			sr.Results.Add(resultItem);
 		}
 
-		sr.Status = SearchResultStatus.Success;
+		sr.ResponseStatus = SearchResponseStatus.Success;
 
 	ret:
 		response?.Dispose();
@@ -136,6 +130,12 @@ public sealed class TinEyeEngine : BaseSearchEngine
 	protected override Url GetRawUrl(SearchQuery query)
 	{
 		return base.GetRawUrl(query);
+	}
+
+	public override void Dispose()
+	{
+		// Debug.WriteLine($"Disposing {Name}");
+		Logger.LogTrace("Disposing {Name}", Name);
 	}
 
 	// Root myDeserializedClass = JsonSerializer.Deserialize<Root>(myJsonResponse);
