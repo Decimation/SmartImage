@@ -63,7 +63,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 	private SpcTable m_mainTable;
 
-	public SearchClient Client { get; private set; }
+	// private Dictionary<SearchResult, Dictionary<IResultItem, int>>
+	public  SearchClient Client { get; private set; }
 
 	public SearchQuery Query { get; private set; }
 
@@ -209,6 +210,11 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		SpcTable     srTable  = null;
 		SearchResult sr       = null;
 
+		/*
+		 * TODO: organize logic and UI state machine into discrete objects instead of this
+		 * epically complex nested logic
+		 */
+
 		do {
 
 			AnsiConsole.Clear();
@@ -254,7 +260,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					continue;
 				}
 
-				if (cmd == R2.Chc_Scan && !sri.IsChild && sri is not { HasScannedItems: true }) {
+				if (cmd == R2.Chc_Scan && !item.IsChild && sri is not { HasScannedItems: true }) {
 					await AnsiConsole.Live(srTable).StartAsync(async f =>
 					{
 						s_logger.LogTrace("Scanning {Item}", sri);

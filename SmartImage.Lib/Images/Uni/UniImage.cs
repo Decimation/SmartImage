@@ -152,7 +152,8 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 	public Stream GetSource()
 	{
 		if (!HasBytes) {
-			throw new InvalidOperationException($"{nameof(Bytes)} not loaded");
+			// throw new InvalidOperationException($"{nameof(Bytes)} not loaded");
+			return Stream.Null;
 		}
 
 		return UniImage.MemMgr.GetStream(Name, Bytes);

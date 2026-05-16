@@ -15,12 +15,20 @@ namespace SmartImage.Lib.Engines.Upload;
 public class TmpFilesEngine : BaseUploadEngine
 {
 
-	public const long MinExpiry     = 60;
-	public const long MaxExpiry     = 86400;
-	public const long DefaultExpiry = 3600;
+	#region 
+
+	public const long MIN_EXPIRY_SEC     = 60;
+	public const long MAX_EXPIRY_SEC     = 86400;
+	public const long DEFAULT_EXPIRY_SEC = 3600;
+
+	#endregion
+
+	#region 
 
 	public const string TMPFILES_URL_BASE = "https://tmpfiles.org";
 	public const string TMPFILES_URL_API  = $"{TMPFILES_URL_BASE}/api/v1/upload";
+
+	#endregion
 
 	public TmpFilesEngine() : base(TMPFILES_URL_BASE) { }
 
@@ -34,7 +42,7 @@ public class TmpFilesEngine : BaseUploadEngine
 		{
 			//
 			act.AddFile("file", file);
-			act.AddString("expire", DefaultExpiry.ToString());
+			act.AddString("expire", DEFAULT_EXPIRY_SEC.ToString());
 		}, cancellationToken: ct);
 
 		var prc = await ProcessResponseAsync(req, ct);

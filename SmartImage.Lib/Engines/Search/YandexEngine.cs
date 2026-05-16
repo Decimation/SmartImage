@@ -54,11 +54,22 @@ public sealed class YandexEngine : BaseSearchEngine
 		IFlurlResponse res = null;
 
 		try {
-			res = await Client.Request(sr.RawUrl)
-				      .WithAutoRedirect(true)
-				      .AllowAnyHttpStatus()
-				      .WithTimeout(Timeout)
-				      .GetAsync(cancellationToken: ct).ConfigureAwait(false);
+
+			var req = Client.Request(sr.RawUrl)
+			                .WithAutoRedirect(true)
+			                .AllowAnyHttpStatus()
+			                .WithTimeout(Timeout);
+
+			if (query.Source.IsFile) {
+				res = await req.PostMultipartAsync(content =>
+				{
+					//
+					content.AddFile("file", query.Source.GetSource(), query.Source.Name);
+				}, cancellationToken: ct);
+			}
+			else {
+				res = await req.GetAsync(cancellationToken: ct);
+			}
 
 			string str = await res.GetStringAsync().ConfigureAwait(false);
 
@@ -80,6 +91,7 @@ public sealed class YandexEngine : BaseSearchEngine
 			var ocr     = jsonNode["initialState"]["cbirOcr"];
 			var ocrText = ocr["hasText"].GetValue<bool>() ? ocr["plainText"] : null;
 			sr.Overview = $"OCR: {ocrText}";
+
 			foreach (var site in sitesObj) {
 				// site.Root = sr;
 				var sri = site.ToItem(sr);
@@ -115,7 +127,6 @@ public sealed class YandexEngine : BaseSearchEngine
 		return sr;
 	}
 
-	
 
 	public override void Dispose() { }
 
@@ -173,7 +184,7 @@ public record YandexSite
 			Site        = Domain,
 			Source      = Url,
 			Thumbnail   = Thumb.Url.StartsWith("//") ? "https:" + Thumb.Url : Thumb.Url,
-			Metadata = this
+			Metadata    = this
 		};
 	}
 
