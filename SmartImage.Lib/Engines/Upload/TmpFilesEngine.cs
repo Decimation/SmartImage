@@ -15,6 +15,10 @@ namespace SmartImage.Lib.Engines.Upload;
 public class TmpFilesEngine : BaseUploadEngine
 {
 
+	public const long MinExpiry     = 60;
+	public const long MaxExpiry     = 86400;
+	public const long DefaultExpiry = 3600;
+
 	public const string TMPFILES_URL_BASE = "https://tmpfiles.org";
 	public const string TMPFILES_URL_API  = $"{TMPFILES_URL_BASE}/api/v1/upload";
 
@@ -30,6 +34,7 @@ public class TmpFilesEngine : BaseUploadEngine
 		{
 			//
 			act.AddFile("file", file);
+			act.AddString("expire", DefaultExpiry.ToString());
 		}, cancellationToken: ct);
 
 		var prc = await ProcessResponseAsync(req, ct);
@@ -41,14 +46,15 @@ public class TmpFilesEngine : BaseUploadEngine
 		var str    = await response.GetStringAsync();
 		var tmpRes = JsonSerializer.Deserialize<TmpFilesResponse>(str, SearchUtil.DefaultSerializerOptions);
 
-		var page = await tmpRes.Data.Url.GetStringAsync(cancellationToken: ct);
+		/*var page = await tmpRes.Data.Url.GetStringAsync(cancellationToken: ct);
 
 		var       parser = new HtmlParser();
 		using var doc    = await parser.ParseDocumentAsync(page);
 		var       tr     = doc.QuerySelectorAll("tbody > tr > th, td");
 
-		var ur = new TmpFilesUploadResult(tr);
-		return ur;
+		var ur = new TmpFilesUploadResult(tr);*/
+
+		return new TmpFilesUploadResult(tmpRes) {  };
 	}
 
 }
@@ -57,11 +63,14 @@ public class TmpFilesEngine : BaseUploadEngine
 
 public class TmpFilesUploadResult : UploadResult
 {
-	public string FileName { get; }
 
-	public DateTime Expiration { get; }
+	// public string FileName { get; }
 
-	public TmpFilesUploadResult(IHtmlCollection<IElement> elems)
+	// public DateTime Expiration { get; }
+
+	public string Status { get; }
+
+	/*public TmpFilesUploadResult(IHtmlCollection<IElement> elems)
 	{
 		FileName = elems[1].TextContent;
 		var sizeStr = elems[3].TextContent.Split(' ', StringSplitOptions.TrimEntries);
@@ -73,10 +82,16 @@ public class TmpFilesUploadResult : UploadResult
 		}
 
 		Url = elems[5].TextContent;
-		
+
 		// Final element is UTC specifier
 		var dt = elems[7].TextContent;
 		Expiration = DateTime.Parse(dt[0..dt.LastIndexOf(' ')]);
+	}*/
+
+	public TmpFilesUploadResult(TmpFilesResponse res)
+	{
+		Url    = res.Data.Url;
+		Status = res.Status;
 	}
 
 }
