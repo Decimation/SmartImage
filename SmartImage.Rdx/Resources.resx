@@ -151,4 +151,7 @@
   <data name="Chc_Expand" xml:space="preserve">
     <value>expand</value>
   </data>
+  <data name="Chc_GalleryDl" xml:space="preserve">
+    <value>gallery-dl</value>
+  </data>
 </root>

@@ -328,6 +328,10 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					}
 				}
 
+				if (cmd == R2.Chc_GalleryDl) {
+					
+				}
+
 
 				if (cmd == R2.Chc_Expand) {
 
@@ -385,7 +389,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			Expand = true,
 		};
 
-		var extGrid = Renderables.CreateExtendedGrid(sri);
+		var extGrid = sri.CreateExtendedGrid();
 
 		var extPanel = new Panel(extGrid) { Header = new PanelHeader("Result Data") };
 

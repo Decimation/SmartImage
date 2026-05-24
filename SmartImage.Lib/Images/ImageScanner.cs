@@ -14,9 +14,12 @@ using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Integration;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Channels;
 using AngleSharp.Io;
+using SmartImage.Lib.Engines.Results;
 
 // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
 
@@ -183,47 +186,50 @@ public static partial class ImageScanner
 #endregion
 
 
-	[Obsolete]
-	public static async Task<UniImage[]> RunGalleryDLAsync(Url cri, CancellationToken ct = default)
+	public static async Task RunGalleryDLAsync(Url cri, ChannelWriter<UniImage> cw, CancellationToken ct = default)
 	{
 		// TODO: TEST
-		// TODO: USE CHANNELS
 
 		if (!BaseOSIntegration.Integration.IsGalleryDLInstalled) {
-			return null;
+			goto ret;
 		}
 
-		var rg = new ConcurrentBag<UniImage>();
-
 		var sbErr = new StringBuilder();
+		var sbOut = new StringBuilder();
 
-		var cmd = Cli.Wrap(BaseOSIntegration.GALLERY_DL);
+		// ReSharper disable once AssignNullToNotNullAttribute
+		var cmd = Cli.Wrap(BaseOSIntegration.Integration.GalleryDLPath)
+		             .WithArguments([$"-G", cri])
+		             .WithValidation(CommandResultValidation.None)
+		             .WithStandardOutputPipe(PipeTarget.ToDelegate(HandleLineAsync))
+		             .WithStandardErrorPipe(PipeTarget.ToStringBuilder(sbErr));
 
-		cmd.WithArguments([$"-G", cri])
-		   .WithStandardOutputPipe(PipeTarget.Create((HandlePipeAsync)))
-		   .WithStandardErrorPipe(PipeTarget.ToStringBuilder(sbErr));
 
+		var cr = await cmd.ExecuteAsync(ct);
+		var s2 = sbErr.ToString().Split(Environment.NewLine);
 
-		async Task HandlePipeAsync(Stream arg1, CancellationToken token)
+		if (!cr.IsSuccess) {
+			Debugger.Break();
+			goto ret;
+		}
+
+	ret:
+		cw.TryComplete();
+
+		return;
+
+		async Task HandleLineAsync(string s, CancellationToken token)
 		{
-			var uni = await UniImage.TryCreateAsync(arg1, ct: token);
+			var uni = await UniImage.TryCreateAsync(s, ct: token);
+
+			// var uni = await ScannedResultItem.FromResult(s, new ScannedResultItem(cri, null), token);
+			var b = cw.TryWrite(uni);
 
 			if (uni != null) {
-				rg.Add(uni);
 			}
 
 			token.ThrowIfCancellationRequested();
 		}
-
-		var cr = await cmd.ExecuteAsync(ct);
-
-		var s2 = sbErr.ToString().Split(Environment.NewLine);
-
-		if (!cr.IsSuccess) {
-			return null;
-		}
-
-		return [.. rg];
 	}
 
 }

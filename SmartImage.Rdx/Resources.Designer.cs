@@ -106,6 +106,15 @@ namespace SmartImage.Rdx {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to gallery-dl.
+        /// </summary>
+        internal static string Chc_GalleryDl {
+            get {
+                return ResourceManager.GetString("Chc_GalleryDl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to open.
         /// </summary>
         internal static string Chc_Open {

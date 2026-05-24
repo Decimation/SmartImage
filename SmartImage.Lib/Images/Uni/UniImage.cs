@@ -176,9 +176,14 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 				}
 
 				await using var stream = GetSource();
+
 				Image = await ISImage.LoadAsync(stream, ct);
-				stream.Rewind();
-				Hash = ImageUtilities.Hasher.Hash(stream);
+
+				lock (stream) {
+					stream.Rewind();
+
+				}
+				// Hash = ImageUtilities.Hasher.Hash(stream);
 			}
 			catch (Exception exception) {
 				s_logger.LogError(exception, "{Value} failed to allocate image", Value);

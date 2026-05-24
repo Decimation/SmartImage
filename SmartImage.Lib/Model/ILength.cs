@@ -5,6 +5,7 @@ namespace SmartImage.Lib.Model;
 
 public interface ILength
 {
+	[JPN("Size")]
 	public long? Length { get; }
 
 }

@@ -1,17 +1,26 @@
 // Author: Deci | Project: SmartImage.Lib | Name: YandexEngine.cs
 // Date: 2024/06/06 @ 14:06:00
 
+using System.Net;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
+using System.Web;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
+using Flurl;
 using Flurl.Http;
 using Kantan.Net.Utilities;
+using Kantan.Net.Web;
 using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
+using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search.Base;
+using SmartImage.Lib.Model;
+using SmartImage.Lib.Utilities.Diagnostics;
 
 // ReSharper disable SuggestVarOrType_SimpleTypes
 
@@ -19,28 +28,36 @@ using SmartImage.Lib.Engines.Search.Base;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class YandexEngine : BaseSearchEngine
+public sealed class YandexEngine : BaseSearchEngine, ICookiesReceiver, ISearchConfigReceiver
 {
 
-	public const string URL_YANDEX = "https://yandex.com/";
+	public const string URL_YANDEX    = "https://yandex.com/";
+	public const string URL_YANDEX_RU = "https://yandex.ru/";
 
 	//"https://yandex.com/images/search?rpt=imageview&url="
 
-	public static readonly Url BaseSearchUrl = Url.Combine(URL_YANDEX, "images", "search");
+	public ICookiesSource CookiesSource { get; set; }
+
+	public CookieJar Jar { get; }
 
 	public override SearchEngineOptions Option => SearchEngineOptions.Yandex;
 
-	public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=")
+	public YandexEngine([CBN] ICookiesSource cookiesSource = null) : base(URL_YANDEX)
 	{
-		Timeout = TimeSpan.FromSeconds(30);
+		Timeout       = TimeSpan.FromSeconds(30);
+		Jar           = new CookieJar();
+		CookiesSource = cookiesSource ?? new ListCookiesSource();
 	}
 
 	protected override Url GetRawUrl(SearchQuery query)
 	{
-		var url = Url.Clone();
+		var url = Url.Combine(Url, "images", "search").SetQueryParams(new
+		{
+			rpt       = "imageview",
+			url       = query.Upload,
+			cbir_page = "search-by-image"
+		});
 
-		url.QueryParams.AddOrReplace("url", query.Upload);
-		url.QueryParams.AddOrReplace("cbir_page", "sites");
 		return url;
 	}
 
@@ -50,15 +67,20 @@ public sealed class YandexEngine : BaseSearchEngine
 		var url = GetRawUrl(query);
 		var sr  = new SearchResult(this, url) { };
 
-		IDocument      doc;
 		IFlurlResponse res = null;
+		IDocument      doc = null;
 
 		try {
 
 			var req = Client.Request(sr.RawUrl)
 			                .WithAutoRedirect(true)
 			                .AllowAnyHttpStatus()
+			                .WithCookies(Jar)
 			                .WithTimeout(Timeout);
+
+			req.Headers.AddOrReplace(HeaderNames.Accept, Serialization.Yandex_Hdr_Accept);
+			req.Headers.AddOrReplace(HeaderNames.AcceptEncoding, Serialization.Yandex_Hdr_AcceptEncoding);
+			req.Headers.AddOrReplace(HeaderNames.AcceptLanguage, Serialization.Yandex_Hdr_AcceptLanguage);
 
 			if (query.Source.IsFile) {
 				res = await req.PostMultipartAsync(content =>
@@ -76,11 +98,14 @@ public sealed class YandexEngine : BaseSearchEngine
 			var parser = new HtmlParser();
 			doc = await parser.ParseDocumentAsync(str).ConfigureAwait(false);
 
-			var imagesAppNode = doc.Body.SelectSingleNode(Serialization.S_Yandex_Json);
-			var json          = imagesAppNode.TryGetAttribute("data-state");
+			//id="ImagesApp-[^"]*"\s*data-state="({.*?})"\s*data-hydrate-priority=
+
+			var imagesAppNodes = doc.Body.SelectNodes(Serialization.S_Yandex_Json);
+			var imagesAppNode  = imagesAppNodes.FirstOrDefault();
+			var json           = imagesAppNode.TryGetAttribute("data-state");
 
 			if (String.IsNullOrWhiteSpace(json)) {
-				goto ret;
+				throw new SmartImageException("Could not deserialize");
 			}
 
 
@@ -100,35 +125,55 @@ public sealed class YandexEngine : BaseSearchEngine
 				sr.Results.Add(sri);
 			}
 
-			// var sitesObjDistinct=sitesObj.DistinctBy(x=>x.OriginalImage.Url);
-
-			// sr.Results.AddRange(sitesObj);
-
+		}
+		catch (SmartImageException sm) {
+			Logger.LogError(sm, "{Name} error", Name);
 
 		}
 		catch (Exception e) {
-			// Console.WriteLine(e);
-			// throw;
-			doc = null;
-			Logger.LogError(e, "{Name} error", Name);
+			Logger.LogError(e, "Unhandled {Name} error", Name);
 
 			sr.ResponseStatus = SearchResponseStatus.Unknown;
 		}
-		finally { }
+		finally {
+			sr.Update();
+			res?.Dispose();
+			doc?.Dispose();
+		}
 
-
-		sr.ResponseStatus = SearchResponseStatus.Success;
-	ret:
-		sr.Update();
-		res?.Dispose();
-
-		// str?.Dispose();
-		doc?.Dispose();
 		return sr;
 	}
 
 
 	public override void Dispose() { }
+
+	public async ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	{
+		//todo
+		CookiesSource = cfg.GetCookiesSource();
+		var cs = await CookiesSource.GetOrLoadCookiesAsync(ct);
+
+		foreach (var cookie in cs) {
+
+			if (cookie is FirefoxCookie ff) {
+				var illegal = ff.Name.StartsWith('$') || ff.Name.Contains(Environment.NewLine);
+
+				if (illegal) {
+					continue;
+				}
+			}
+
+			var asCookie = cookie.AsCookie();
+			var domain   = asCookie.Domain;
+
+			if (domain.StartsWith(".yandex")) {
+				var flCk = cookie.AsFlurlCookie(domain.EndsWith(".ru") ? URL_YANDEX_RU : URL_YANDEX);
+				Jar.AddOrReplace(flCk);
+			}
+		}
+
+		return true;
+	}
 
 }
 

@@ -18,7 +18,7 @@ public abstract class BaseOSIntegration
 	protected BaseOSIntegration()
 	{
 		PersonalPath  = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-		GalleryDLPath = FileSystem.FindInPath(GALLERY_DL);
+		GalleryDLPath = FileSystem.FindInPath(IsWindows ? GALLERY_DL_EXE : GALLERY_DL);
 	}
 
 	public virtual bool IsRoot => FileSystem.IsRoot;
@@ -109,8 +109,7 @@ public abstract class BaseOSIntegration
 		return module.FileName;
 	}
 
-	internal const string GALLERY_DL = "gallery-dl";
-
-	// internal const string GALLERY_DL_EXE = $"{GALLERY_DL}.exe";
+	public const string GALLERY_DL = "gallery-dl";
+	public const string GALLERY_DL_EXE = $"{GALLERY_DL}.exe";
 
 }

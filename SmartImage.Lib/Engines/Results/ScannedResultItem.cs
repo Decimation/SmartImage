@@ -80,5 +80,5 @@ public class ScannedResultItem : UniImageUrl, IResultItem, IFromResult<ScannedRe
 
 		return sri;
 	}
-
+	
 }

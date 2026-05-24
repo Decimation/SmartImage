@@ -41,7 +41,7 @@ public sealed class ImgOpsEngine : BaseSearchEngine, IUploadEngine
 
 	public async Task<IUploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default)
 	{
-		return new UploadResult(default, default);
+		throw new NotImplementedException();
 	}
 
 	public void Verify(IUniImage file)

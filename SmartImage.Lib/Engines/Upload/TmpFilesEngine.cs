@@ -8,27 +8,29 @@ using Flurl.Http;
 using Kantan.Numeric;
 using Microsoft.Identity.Client;
 using SmartImage.Lib.Engines.Upload.Base;
+using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
+using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Engines.Upload;
 
 public class TmpFilesEngine : BaseUploadEngine
 {
 
-	#region 
+#region
 
 	public const long MIN_EXPIRY_SEC     = 60;
 	public const long MAX_EXPIRY_SEC     = 86400;
 	public const long DEFAULT_EXPIRY_SEC = 3600;
 
-	#endregion
+#endregion
 
-	#region 
+#region
 
 	public const string TMPFILES_URL_BASE = "https://tmpfiles.org";
 	public const string TMPFILES_URL_API  = $"{TMPFILES_URL_BASE}/api/v1/upload";
 
-	#endregion
+#endregion
 
 	public TmpFilesEngine() : base(TMPFILES_URL_BASE) { }
 
@@ -54,6 +56,10 @@ public class TmpFilesEngine : BaseUploadEngine
 		var str    = await response.GetStringAsync();
 		var tmpRes = JsonSerializer.Deserialize<TmpFilesResponse>(str, SearchUtil.DefaultSerializerOptions);
 
+		var       page   = await tmpRes.Data.Url.GetStringAsync(cancellationToken: ct);
+		var       parser = new HtmlParser();
+		using var doc    = await parser.ParseDocumentAsync(page);
+
 		/*var page = await tmpRes.Data.Url.GetStringAsync(cancellationToken: ct);
 
 		var       parser = new HtmlParser();
@@ -62,49 +68,45 @@ public class TmpFilesEngine : BaseUploadEngine
 
 		var ur = new TmpFilesUploadResult(tr);*/
 
-		return new TmpFilesUploadResult(tmpRes) {  };
+		return TmpFilesUploadResult.ParseSource(tmpRes, doc);
 	}
 
 }
 
 #region
 
-public class TmpFilesUploadResult : UploadResult
+public class TmpFilesUploadResult : UploadResult, IParseableItem<TmpFilesResponse, IDocument, TmpFilesUploadResult>
 {
-
-	// public string FileName { get; }
-
-	// public DateTime Expiration { get; }
 
 	public string Status { get; }
 
-	/*public TmpFilesUploadResult(IHtmlCollection<IElement> elems)
-	{
-		FileName = elems[1].TextContent;
-		var sizeStr = elems[3].TextContent.Split(' ', StringSplitOptions.TrimEntries);
+	public Url PageUrl { get; }
 
-		if (Double.TryParse(sizeStr[0], out var cvVal)) {
-			var cvUnit  = sizeStr[1];
-			var sizeVal = MathHelper.ParseByteUnit(cvVal, cvUnit);
-			Length = (long) sizeVal;
+	private TmpFilesUploadResult(TmpFilesResponse res, Url absoluteUrl)
+	{
+		PageUrl = res.Data.Url;
+		Url     = absoluteUrl;
+		Status  = res.Status;
+	}
+
+	public static TmpFilesUploadResult ParseSource(TmpFilesResponse n, IDocument doc)
+	{
+		const string DL_ELEM_SELECTOR = ".download";
+
+		var tr = doc.QuerySelector(DL_ELEM_SELECTOR);
+
+		var dlHref = tr.GetAttribute("href");
+
+		if (String.IsNullOrWhiteSpace(dlHref)) {
+			dlHref = n.Data.Url;
 		}
 
-		Url = elems[5].TextContent;
-
-		// Final element is UTC specifier
-		var dt = elems[7].TextContent;
-		Expiration = DateTime.Parse(dt[0..dt.LastIndexOf(' ')]);
-	}*/
-
-	public TmpFilesUploadResult(TmpFilesResponse res)
-	{
-		Url    = res.Data.Url;
-		Status = res.Status;
+		return new TmpFilesUploadResult(n, dlHref);
 	}
 
 }
 
-public class TmpFilesResponse
+public sealed class TmpFilesResponse
 {
 
 	public string Status { get; set; }
@@ -113,7 +115,7 @@ public class TmpFilesResponse
 
 }
 
-public class TmpFilesResponseData
+public sealed class TmpFilesResponseData : IUrl
 {
 
 	public Url Url { get; set; }

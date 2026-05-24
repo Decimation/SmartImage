@@ -171,4 +171,13 @@
   <data name="S_Yandex_Json" xml:space="preserve">
     <value>//div[contains(@id,'ImagesApp')]</value>
   </data>
+  <data name="Yandex_Hdr_Accept" xml:space="preserve">
+    <value>text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7</value>
+  </data>
+  <data name="Yandex_Hdr_AcceptEncoding" xml:space="preserve">
+    <value>gzip, deflate, br, zstd</value>
+  </data>
+  <data name="Yandex_Hdr_AcceptLanguage" xml:space="preserve">
+    <value>zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7</value>
+  </data>
 </root>

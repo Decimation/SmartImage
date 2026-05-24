@@ -21,7 +21,8 @@ internal static class AppSupport
 
 	internal static readonly ILoggerFactory Factory = LoggerFactory.Create(static builder =>
 	{
-		builder.AddDebug().AddProvider(new DebugLoggerProvider()).SetMinimumLevel(LogLevel.Trace);
+		builder.AddDebug().AddProvider(new DebugLoggerProvider())
+		       .SetMinimumLevel(LogLevel.Trace);
 	});
 
 	public static async Task<GitHubRelease[]> GetRepoReleasesAsync()

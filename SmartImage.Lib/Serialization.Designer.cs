@@ -19,7 +19,7 @@ namespace SmartImage.Lib {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Serialization {
@@ -219,6 +219,33 @@ namespace SmartImage.Lib {
         internal static string Tag_a {
             get {
                 return ResourceManager.GetString("Tag_a", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7.
+        /// </summary>
+        internal static string Yandex_Hdr_Accept {
+            get {
+                return ResourceManager.GetString("Yandex_Hdr_Accept", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to gzip, deflate, br, zstd.
+        /// </summary>
+        internal static string Yandex_Hdr_AcceptEncoding {
+            get {
+                return ResourceManager.GetString("Yandex_Hdr_AcceptEncoding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7.
+        /// </summary>
+        internal static string Yandex_Hdr_AcceptLanguage {
+            get {
+                return ResourceManager.GetString("Yandex_Hdr_AcceptLanguage", resourceCulture);
             }
         }
     }
