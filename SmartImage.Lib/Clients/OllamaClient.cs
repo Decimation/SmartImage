@@ -9,6 +9,7 @@ using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Clients;
 // TODO
+#if EXPERIMENTAL
 
 [Experimental(AppSupport.DIAG_ID_EXPERIMENTAL)]
 public class OllamaClient
@@ -79,3 +80,4 @@ public class OllamaClient
 	}
 
 }
+#endif

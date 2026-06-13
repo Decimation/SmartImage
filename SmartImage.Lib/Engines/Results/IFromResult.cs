@@ -8,6 +8,6 @@ namespace SmartImage.Lib.Engines.Results;
 public interface IFromResult<T> where T: IUniImage, IFromResult<T>
 {
 
-	public static abstract Task<T> FromResult(Url u, IResultItem item, CancellationToken ct = default);
+	public static abstract Task<T> AllocFromResult(Url u, IResultItem item, CancellationToken ct = default);
 
 }

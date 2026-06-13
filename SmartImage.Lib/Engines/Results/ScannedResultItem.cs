@@ -64,9 +64,9 @@ public class ScannedResultItem : UniImageUrl, IResultItem, IFromResult<ScannedRe
 	}
 
 
-	public static Task<ScannedResultItem> FromResult(IResultItem item, CancellationToken ct = default) => FromResult(item.Url, item, ct);
+	public static Task<ScannedResultItem> AllocFromResult(IResultItem item, CancellationToken ct = default) => AllocFromResult(item.Url, item, ct);
 
-	public static async Task<ScannedResultItem> FromResult(Url u, IResultItem item, CancellationToken ct = default)
+	public static async Task<ScannedResultItem> AllocFromResult(Url u, IResultItem item, CancellationToken ct = default)
 	{
 		var sri = new ScannedResultItem(u, item);
 		var (allocOk, allocImgOk) = await sri.AllocAllAsync(ct);

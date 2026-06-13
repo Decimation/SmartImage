@@ -28,7 +28,7 @@ public class UniImageUrl : UniImage, IUrl
 	// public override string Name => Url?.GetFileName();
 
 
-	public override async ValueTask<bool> AllocSourceAsync(CancellationToken ct = default)
+	public override async Task<bool> AllocSourceAsync(CancellationToken ct = default)
 	{
 		IFlurlResponse response = null;
 
@@ -70,6 +70,7 @@ public class UniImageUrl : UniImage, IUrl
 		return ImageScanner.LegalSchemeWhitelist.Contains(scheme);
 	}
 
+	// todo: create IImageScanner type
 
 	public virtual async ValueTask<bool> ScanAsync(ChannelWriter<IUniImage> cw, Func<Url, IUniImage> f, CancellationToken ct = default)
 	{

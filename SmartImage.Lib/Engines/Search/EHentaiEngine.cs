@@ -3,12 +3,14 @@
 
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Net;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
 using Flurl.Http;
 using Flurl.Http.Content;
 using Kantan.Net.Utilities;
+using Kantan.Net.Web;
 using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Cookies;
@@ -25,11 +27,36 @@ namespace SmartImage.Lib.Engines.Search;
 public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, ICookiesReceiver, ISearchConfigReceiver
 {
 
+	public ICookiesSource CookiesSource { get; set; }
+
+	public CookieJar Jar { get; }
+
 	public override SearchEngineOptions Option => SearchEngineOptions.EHentai;
 
-	static EHentaiEngine() { }
+#region
 
-	public ICookiesSource CookiesSource { get; set; }
+	public override Url Url => UseExHentai ? (IsLoggedIn ? ExHentaiBase : EHentaiBase) : EHentaiBase;
+
+	private Url LookupUrl => UseExHentai ? (IsLoggedIn ? ExHentaiLookup : EHentaiLookup) : EHentaiLookup;
+
+	public bool IsLoggedIn { get; private set; }
+
+	public bool UseExHentai { get; set; }
+
+#endregion
+
+#region
+
+	public static readonly Url EHentaiIndex   = "https://forums.e-hentai.org/index.php";
+	public static readonly Url EHentaiBase    = "https://e-hentai.org/";
+	public static readonly Url ExHentaiBase   = "https://exhentai.org/";
+	public static readonly Url EHentaiLookup  = "https://upld.e-hentai.org/image_lookup.php";
+	public static readonly Url ExHentaiLookup = "https://upld.exhentai.org/upld/image_lookup.php";
+
+	private const string HOST_EH = ".e-hentai.org";
+	private const string HOST_EX = ".exhentai.org";
+
+#endregion
 
 	public EHentaiEngine(bool useExHentai = true, [CBN] ICookiesSource cookiesSrc = null) : base(EHentaiBase)
 	{
@@ -40,47 +67,6 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, ICo
 	}
 
 	// NOTE: a separate HttpClient is used for EHentai because of special network requests and other unique requirements...
-
-#region
-
-	public static readonly Url EHentaiIndex   = "https://forums.e-hentai.org/index.php";
-	public static readonly Url EHentaiBase    = "https://e-hentai.org/";
-	public static readonly Url ExHentaiBase   = "https://exhentai.org/";
-	public static readonly Url EHentaiLookup  = "https://upld.e-hentai.org/image_lookup.php";
-	public static readonly Url ExHentaiLookup = "https://upld.exhentai.org/upld/image_lookup.php";
-
-#region
-
-	public override Url Url => IsLoggedIn ? ExHentaiBase : EHentaiBase;
-
-	private Url Url2 => UseExHentai ? ExHentaiBase : EHentaiBase;
-
-	/// <summary>
-	/// todo: handle UseExHentai
-	/// </summary>
-	private Url LookupUrl => IsLoggedIn ? ExHentaiLookup : EHentaiLookup;
-
-	private const string HOST_EH = ".e-hentai.org";
-	private const string HOST_EX = ".exhentai.org";
-
-#endregion
-
-#endregion
-
-	public bool IsLoggedIn { get; private set; }
-
-	public bool UseExHentai { get; set; }
-
-	public CookieJar Jar { get; }
-
-	private Task<IFlurlResponse> GetSessionAsync()
-	{
-		return Client.Request(Url2)
-		             .WithCookies(Jar)
-		             .WithTimeout(Timeout)
-		             .WithAutoRedirect(true)
-		             .GetAsync();
-	}
 
 	protected override async Task<IDocument> GetSourceAsync(SearchResult sr, SearchQuery query, CancellationToken token = default)
 	{
@@ -181,6 +167,18 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, ICo
 	 */
 
 
+	public Task<IFlurlResponse> GetSessionAsync()
+	{
+
+		var res = Client.Request(Url)
+		                .WithCookies(Jar)
+		                .WithTimeout(Timeout)
+		                .WithAutoRedirect(true)
+		                .GetAsync();
+
+		return res;
+	}
+
 	public async Task<bool> LoginAsync(string username, string password)
 	{
 
@@ -209,6 +207,13 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, ICo
 			Jar.AddOrReplace(fc);
 		}
 
+		
+		return await LoginAsync().ConfigureAwait(false);
+	}
+
+	public async Task<bool> LoginAsync()
+	{
+
 		var res2 = await GetSessionAsync().ConfigureAwait(false);
 
 		return IsLoggedIn = res2.ResponseMessage.IsSuccessStatusCode;
@@ -227,16 +232,35 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, ICo
 	 * https://github.com/Ehviewer-Overhauled/Ehviewer/issues/873
 	 */
 
-	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	public override async ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
-		/*if (this is { IsLoggedIn: true }/* && !(Username != cfg.EhUsername && Password != cfg.EhPassword)#1#) {
-			Debug.WriteLine($"{Name} is already logged in", nameof(ApplyConfigAsync));
+		var ok = await base.ApplyConfigAsync(cfg, ct);
 
-			return;
-		}*/
-		//
+		var cs = await CookiesSource.GetOrLoadCookiesAsync(ct);
 
-		return ValueTask.FromResult(true);
+		foreach (ICookie cookie in cs) {
+			string originUrl = null;
+
+			if (cookie is FirefoxCookie ff) {
+
+				if (ff.Host.Contains(HOST_EX)) {
+					originUrl = ExHentaiBase;
+				}
+				else if (ff.Host.Contains(HOST_EH)) {
+					originUrl = EHentaiBase;
+
+				}
+
+			}
+
+			if (!String.IsNullOrWhiteSpace(originUrl)) {
+				var asCookie = cookie.AsFlurlCookie(originUrl);
+				Jar.AddOrReplace(asCookie);
+
+			}
+		}
+
+		return ok;
 	}
 
 

@@ -159,11 +159,11 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 		return res;
 	}
 
-	public async ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	public override async ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
-		bool b = true;
+		var b = await base.ApplyConfigAsync(cfg, ct);
 
-		b = await m_fsClient.ApplyConfigAsync(cfg, ct);
+		b |= await m_fsClient.ApplyConfigAsync(cfg, ct);
 
 		return b;
 	}

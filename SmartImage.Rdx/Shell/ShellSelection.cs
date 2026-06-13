@@ -10,6 +10,7 @@ using Spectre.Console;
 
 namespace SmartImage.Rdx.Shell;
 
+// todo: deprecate
 internal record ShellSelection
 {
 

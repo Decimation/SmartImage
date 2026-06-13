@@ -5,16 +5,12 @@ using Novus.Streams;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Model;
 using System.Threading.Channels;
+using JetBrains.Annotations;
 
 namespace SmartImage.Lib.Images.Uni;
 
-public interface IUniImage : IImage, IDisposable, ILength
+public interface IUniImage : IImage, IDisposable, ILength, IAllocSource
 {
-
-	byte[] Bytes { get; }
-
-	[MNNW(true, nameof(Bytes), nameof(Length))]
-	bool HasBytes => Bytes != null;
 
 	long? ILength.Length => Bytes?.Length;
 
@@ -33,23 +29,12 @@ public interface IUniImage : IImage, IDisposable, ILength
 	public string Value { get;  }
 
 
-	[MURV]
-	Stream GetSource();
-
-	/// <summary>
-	/// Allocates <see cref="Bytes"/> (<see cref="GetSource"/>)
-	/// </summary>
-	[MNNW(true, nameof(Bytes))]
-	ValueTask<bool> AllocSourceAsync(CancellationToken ct = default);
-
 	/// <summary>
 	/// Allocates <see cref="IImage.Image"/> from <see cref="Bytes"/>
 	/// </summary>
-	[MNNW(true, nameof(Image))]
-	ValueTask<bool> AllocImageAsync(CancellationToken ct = default);
+	Task<bool> AllocImageAsync(CancellationToken ct = default);
 
-
-	/// <returns><see cref="AllocSourceAsync"/>, <see cref="AllocImageAsync"/></returns>
-	ValueTask<(bool AllocSourceOk, bool AllocImageOk)> AllocAllAsync(CancellationToken ct);
+	/// <returns><see cref="IAllocSource.AllocSourceAsync"/>, <see cref="IUniImage.AllocImageAsync"/></returns>
+	Task<(bool AllocSourceOk, bool AllocImageOk)> AllocAllAsync(CancellationToken ct);
 
 }

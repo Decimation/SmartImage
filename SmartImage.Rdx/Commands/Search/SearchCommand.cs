@@ -24,11 +24,16 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.Caching;
 using System.Runtime.CompilerServices;
+using System.Threading.Channels;
+using Flurl;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Images;
+using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Diagnostics;
+using SmartImage.Lib.Utilities.Integration;
 using SmartImage.Rdx.Commands.Common;
 using SmartImage.Rdx.Shell;
 using SmartImage.Shared;
@@ -64,7 +69,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	private SpcTable m_mainTable;
 
 	// private Dictionary<SearchResult, Dictionary<IResultItem, int>>
-	public  SearchClient Client { get; private set; }
+	public SearchClient Client { get; private set; }
 
 	public SearchQuery Query { get; private set; }
 
@@ -115,6 +120,11 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		m_mainTable        = CommandSettings.Interactive ? Renderables.CreateOverviewTable() : Renderables.CreateResultTable();
 		m_mainTable.Expand = true;
+
+		// todo
+		if (BaseOSIntegration.Integration.IsGalleryDLInstalled) {
+			Elements.Prm_Command.Choices.Add(R2.Chc_GalleryDl);
+		}
 	}
 
 	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings, CancellationToken cancellationToken)
@@ -178,7 +188,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		var fullRows = result.GetFullRows();
 
-		foreach (IRenderable[] row in fullRows) {
+		foreach (var list in fullRows) {
+			var row = (IRenderable[]) list;
 			m_mainTable.AddRow(row);
 		}
 	}
@@ -246,7 +257,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				var itemIdx = sr.Results.IndexOf(sri);
 				var selIdx2 = ShellSelection.GetIndex2(sri);*/
 
-				var sel     = ShellSelection.GetSelectionChoice(sr); 
+				var sel     = ShellSelection.GetSelectionChoice(sr);
 				var item    = sel.Item;
 				var sri     = item as SearchResultItem;
 				var selIdx  = sel.Index();
@@ -328,10 +339,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					}
 				}
 
-				if (cmd == R2.Chc_GalleryDl) {
-					
-				}
-
 
 				if (cmd == R2.Chc_Expand) {
 
@@ -341,6 +348,26 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 						AC.Write(gr);
 						AC.Console.Input.ReadKey(true);
 					});
+				}
+
+				// todo: wip
+				if (cmd == R2.Chc_GalleryDl && !item.IsChild && sri is not { HasScannedItems: true }) {
+					var ch      = Channel.CreateUnbounded<Url>();
+					var gdlTask = ImageScanner.RunGalleryDLAsync(item.Url, ch.Writer, ct);
+
+					while (await ch.Reader.WaitToReadAsync(ct)) {
+						var res = await ch.Reader.ReadAsync(ct);
+
+						if (res is not null) {
+							var scn = await ScannedResultItem.AllocFromResult(res, sri, ct);
+							if (scn != null) {
+								sri.ScannedItems.Add(scn);
+
+							}
+						}
+					}
+
+					await gdlTask;
 				}
 
 			} while (cmd != R2.Chc_Back && !ct.IsCancellationRequested);

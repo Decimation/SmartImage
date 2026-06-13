@@ -31,8 +31,13 @@ namespace SmartImage.Lib.Engines.Search;
 public sealed class YandexEngine : BaseSearchEngine, ICookiesReceiver, ISearchConfigReceiver
 {
 
+	#region 
+
 	public const string URL_YANDEX    = "https://yandex.com/";
 	public const string URL_YANDEX_RU = "https://yandex.ru/";
+	public const string HOST_YANDEX   = ".yandex";
+
+	#endregion
 
 	//"https://yandex.com/images/search?rpt=imageview&url="
 
@@ -147,37 +152,30 @@ public sealed class YandexEngine : BaseSearchEngine, ICookiesReceiver, ISearchCo
 
 	public override void Dispose() { }
 
-	public async ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	public override async ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
 		//todo
-		CookiesSource = cfg.GetCookiesSource();
+		var ok = await base.ApplyConfigAsync(cfg, ct);
+
 		var cs = await CookiesSource.GetOrLoadCookiesAsync(ct);
 
 		foreach (var cookie in cs) {
 
-			if (cookie is FirefoxCookie ff) {
-				var illegal = ff.Name.StartsWith('$') || ff.Name.Contains(Environment.NewLine);
-
-				if (illegal) {
-					continue;
-				}
-			}
-
 			var asCookie = cookie.AsCookie();
 			var domain   = asCookie.Domain;
 
-			if (domain.StartsWith(".yandex")) {
+			if (domain.StartsWith(HOST_YANDEX)) {
 				var flCk = cookie.AsFlurlCookie(domain.EndsWith(".ru") ? URL_YANDEX_RU : URL_YANDEX);
 				Jar.AddOrReplace(flCk);
 			}
 		}
 
-		return true;
+		return ok;
 	}
 
 }
 
-[JsonSourceGenerationOptions()]
+[JsonSourceGenerationOptions]
 [JsonSerializable(typeof(YandexSite))]
 [JsonSerializable(typeof(YandexSite[]))]
 internal partial class YandexSiteContext : JsonSerializerContext { }

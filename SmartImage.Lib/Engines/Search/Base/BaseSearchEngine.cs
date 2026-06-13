@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using Flurl.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
+using SmartImage.Lib.Cookies;
 using SmartImage.Shared;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search;
@@ -22,7 +23,7 @@ namespace SmartImage.Lib.Engines.Search.Base;
 #pragma warning disable CA1822
 #nullable disable
 
-public abstract class BaseSearchEngine : INamedEnumOption<SearchEngineOptions>, IDisposable, IEquatable<BaseSearchEngine>, IUrl, IMaxLength, ITimeout
+public abstract class BaseSearchEngine : INamedEnumOption<SearchEngineOptions>, IDisposable, IEquatable<BaseSearchEngine>, IUrl, IMaxLength, ITimeout, ISearchConfigReceiver
 {
 
 	protected static readonly ILogger Logger = AppSupport.Factory.CreateLogger(nameof(BaseSearchEngine));
@@ -187,6 +188,20 @@ public abstract class BaseSearchEngine : INamedEnumOption<SearchEngineOptions>, 
 		return $"{Name}: {Url} {Timeout}";
 	}
 
+	public virtual ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	{
+		try {
+			if (this is ICookiesReceiver receiver) {
+				receiver.CookiesSource ??= cfg.GetCookiesSource();
+			}
+
+			return ValueTask.FromResult(true);
+		}
+		catch (Exception exception) {
+			return ValueTask.FromException<bool>(exception);
+		}
+	}
+
 
 	public override bool Equals([CBN] object obj)
 	{
@@ -205,19 +220,17 @@ public abstract class BaseSearchEngine : INamedEnumOption<SearchEngineOptions>, 
 		return Equals((BaseSearchEngine) obj);
 	}
 
-	public abstract void Dispose();
-
 	public bool Equals([CBN] BaseSearchEngine other)
 	{
-		if (other is null) {
-			return false;
-		}
-
 		if (ReferenceEquals(this, other)) {
 			return true;
 		}
 
-		return other.Equals(this);
+		if (other is null) {
+			return false;
+		}
+
+		return Option == other.Option;
 	}
 
 	/// <inheritdoc />
@@ -225,6 +238,8 @@ public abstract class BaseSearchEngine : INamedEnumOption<SearchEngineOptions>, 
 	{
 		return (Name != null ? Name.GetHashCode() : 0);
 	}
+
+	public abstract void Dispose();
 
 	public static bool operator ==([CBN] BaseSearchEngine left, [CBN] BaseSearchEngine right)
 		=> Equals(left, right);

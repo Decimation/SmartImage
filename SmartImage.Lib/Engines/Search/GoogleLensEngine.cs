@@ -5,38 +5,38 @@ using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using Flurl.Http;
+using Kantan.Net.Web;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Model;
 
 // ReSharper disable UnusedMember.Local
 #pragma warning disable IDE0051
 namespace SmartImage.Lib.Engines.Search;
 
-public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, ICookiesReceiver
+public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, ICookiesReceiver, ISearchConfigReceiver
 {
 
 	// TODO: WIP
 
-	public const string URL_BASE  = "https://lens.google.com/";
-	public const string URL_BASE2 = "https://www.google.com/";
+	public CookieJar Jar { get; private set; }
 
 	public override string Name => "Google Lens";
 
 	public override SearchEngineOptions Option => SearchEngineOptions.GoogleLens;
 
 
-	public override Url Url => URL_BASE;
+	#region
 
-	public Url Endpoint => URL_BASE;
+	public const string URL_BASE = "https://www.google.com/";
+	public const string URL_LENS = "https://lens.google.com/";
 
-	public GoogleLensEngine(ICookiesSource cookiesSrc = null) : base(URL_BASE)
-	{
-		Jar           = new CookieJar();
-		CookiesSource = cookiesSrc ?? new ListCookiesSource();
-	}
+	public override Url Url => URL_LENS;
+
+	#endregion
 
 	public ICookiesSource CookiesSource { get; set; }
 
@@ -53,6 +53,12 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 		Accept_Encoding = "gzip, deflate, br",
 		Accept          = "*/*"
 	};
+
+	public GoogleLensEngine(ICookiesSource cookiesSrc = null) : base(URL_LENS)
+	{
+		Jar           = new CookieJar();
+		CookiesSource = cookiesSrc ?? new ListCookiesSource();
+	}
 
 	// public FlurlCookie Nid { get; set; }
 
@@ -93,7 +99,7 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 		// filename = (query.Source is UniImageFile uif) ? uif.FileInfo.Name : "image.jpg";
 		filename = uif.LocalFileInfo.Name;
 
-		req = Client.Request(Endpoint, endpoint)
+		req = Client.Request(Url, endpoint)
 		            .SetQueryParam("hl", HlParam)
 		            .WithTimeout(Timeout)
 		            .WithCookies(Jar)
@@ -172,7 +178,7 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 		Task<IFlurlResponse> req;
 		endpoint = "uploadbyurl";
 
-		var req1 = Client.Request(Endpoint, endpoint)
+		var req1 = Client.Request(Url, endpoint)
 		                 .SetQueryParam("hl", HlParam)
 		                 .SetQueryParam("url", url)
 		                 .WithCookies(Jar)
@@ -195,7 +201,21 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 
 	public override void Dispose() { }
 
-	public CookieJar Jar { get; private set; }
+	public override async ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	{
+		var ok = await base.ApplyConfigAsync(cfg, ct);
+
+		var cs = await CookiesSource.GetOrLoadCookiesAsync(ct);
+
+		foreach (ICookie cookie in cs) {
+			if (cookie.OriginalName == "NID") {
+				var fc = cookie.AsFlurlCookie(URL_BASE);
+				Jar.AddOrReplace(fc);
+			}
+		}
+
+		return ok;
+	}
 
 }
 

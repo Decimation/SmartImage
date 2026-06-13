@@ -20,6 +20,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.Net.WebSockets;
+using AngleSharp.Css.Dom;
 
 namespace SmartImage.Lib.Images.Uni;
 
@@ -148,23 +149,22 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 
 #region
 
-	[MURV]
+	[MNNW(true, nameof(HasBytes))]
 	public Stream GetSource()
 	{
 		if (!HasBytes) {
+			Debugger.Break();
 			// throw new InvalidOperationException($"{nameof(Bytes)} not loaded");
 			return Stream.Null;
 		}
 
-		return UniImage.MemMgr.GetStream(Name, Bytes);
+		return MemMgr.GetStream(Name, Bytes);
 	}
 
 
-	[MNNW(true, nameof(Bytes))]
-	public abstract ValueTask<bool> AllocSourceAsync(CancellationToken ct = default);
+	public abstract Task<bool> AllocSourceAsync(CancellationToken ct = default);
 
-	[MNNW(true, nameof(Image))]
-	public virtual async ValueTask<bool> AllocImageAsync(CancellationToken ct = default)
+	public virtual async Task<bool> AllocImageAsync(CancellationToken ct = default)
 	{
 		if (!HasImage) {
 
@@ -179,11 +179,8 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 
 				Image = await ISImage.LoadAsync(stream, ct);
 
-				lock (stream) {
-					stream.Rewind();
-
-				}
-				// Hash = ImageUtilities.Hasher.Hash(stream);
+				await using var hashStream = GetSource();
+				Hash = ImageUtilities.Hasher.Hash(hashStream);
 			}
 			catch (Exception exception) {
 				s_logger.LogError(exception, "{Value} failed to allocate image", Value);
@@ -198,14 +195,23 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 	// TODO: Dispose failed
 
 	/// <returns><see cref="AllocSourceAsync"/>, <see cref="AllocImageAsync"/></returns>
-	public async ValueTask<(bool AllocSourceOk, bool AllocImageOk)> AllocAllAsync(CancellationToken ct)
+	public async Task<(bool AllocSourceOk, bool AllocImageOk)> AllocAllAsync(CancellationToken ct)
 	{
-		bool allocOk    = await AllocSourceAsync(ct);
+
+		const TaskContinuationOptions CONT_OPTIONS = TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.NotOnCanceled;
+
+		bool allocOk = false;
+
 		bool allocImgOk = false;
 
-		if (allocOk) {
-			allocImgOk = await AllocImageAsync(ct);
-		}
+		allocImgOk = await AllocSourceAsync(ct).ContinueWith((task) =>
+		{
+			allocOk = task.Result;
+
+			return allocOk ? AllocImageAsync(ct) : Task.FromResult(false);
+
+		}, cancellationToken: ct, CONT_OPTIONS, TaskScheduler.Default).Unwrap();
+
 
 		return (allocOk, allocImgOk);
 	}
@@ -411,13 +417,3 @@ public enum UniImageType
 
 }
 
-[Flags]
-public enum AllocFlags
-{
-
-	//todo
-	None   = 0,
-	Stream = 1 << 0,
-	Image  = 1 << 1,
-
-}

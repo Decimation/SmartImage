@@ -20,6 +20,7 @@ global using ISImage = SixLabors.ImageSharp.Image;
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using INN = JetBrains.Annotations.ItemNotNullAttribute;
 global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
+global using MDR = JetBrains.Annotations.MustDisposeResourceAttribute;
 global using R1 = SmartImage.Lib.Resources;
 global using CA = JetBrains.Annotations.ContractAnnotationAttribute;
 

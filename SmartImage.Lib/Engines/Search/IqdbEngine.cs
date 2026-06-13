@@ -12,6 +12,7 @@ using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using System.Text;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search.Base;
 
@@ -112,8 +113,11 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 	protected override ValueTask<IEnumerable<IHtmlCollection<IElement>>> ParseDataAsync(IDocument src)
 	{
 		var pages  = src.Body.SelectSingleNode(Serialization.S_Iqdb_Pages);
-		var tables = ((IHtmlElement) pages).SelectNodes(Serialization.S_Iqdb_DivTable);
+		var tables = ((IHtmlElement) pages)?.SelectNodes(Serialization.S_Iqdb_DivTable);
 
+		if (tables is null) {
+			return ValueTask.FromResult(Enumerable.Empty<IHtmlCollection<IElement>>());
+		}
 		var select = tables.Select(static table => ((IHtmlElement) table)
 			                           .QuerySelectorAll(Serialization.S_Iqdb_Table)).Skip(1);
 

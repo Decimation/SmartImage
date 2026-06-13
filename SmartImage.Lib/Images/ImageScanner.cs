@@ -122,7 +122,7 @@ public static partial class ImageScanner
 			}
 		}
 
-		imgUrls = imgUrls.Distinct().Where(e =>
+		imgUrls = imgUrls.Distinct().Where(static e =>
 		{
 			if (e.StartsWith("url(")) {
 				return false;
@@ -185,8 +185,7 @@ public static partial class ImageScanner
 
 #endregion
 
-
-	public static async Task RunGalleryDLAsync(Url cri, ChannelWriter<UniImage> cw, CancellationToken ct = default)
+	public static async Task RunGalleryDLAsync(Url cri, ChannelWriter<Url> cw, CancellationToken ct = default)
 	{
 		// TODO: TEST
 
@@ -201,7 +200,7 @@ public static partial class ImageScanner
 		var cmd = Cli.Wrap(BaseOSIntegration.Integration.GalleryDLPath)
 		             .WithArguments([$"-G", cri])
 		             .WithValidation(CommandResultValidation.None)
-		             .WithStandardOutputPipe(PipeTarget.ToDelegate(HandleLineAsync))
+		             .WithStandardOutputPipe(PipeTarget.ToDelegate(HandleLine))
 		             .WithStandardErrorPipe(PipeTarget.ToStringBuilder(sbErr));
 
 
@@ -218,7 +217,12 @@ public static partial class ImageScanner
 
 		return;
 
-		async Task HandleLineAsync(string s, CancellationToken token)
+		void HandleLine(string s)
+		{
+			var b = cw.TryWrite(s);
+		}
+
+		/*async Task HandleLineAsync(string s, CancellationToken token)
 		{
 			var uni = await UniImage.TryCreateAsync(s, ct: token);
 
@@ -229,7 +233,7 @@ public static partial class ImageScanner
 			}
 
 			token.ThrowIfCancellationRequested();
-		}
+		}*/
 	}
 
 }

@@ -18,7 +18,7 @@ public class UniImageFile : UniImage
 
 	public override string Name => LocalFileInfo.Name;
 
-	public override async ValueTask<bool> AllocSourceAsync(CancellationToken ct = default)
+	public override async Task<bool> AllocSourceAsync(CancellationToken ct = default)
 	{
 		if (HasBytes) {
 			goto ret;

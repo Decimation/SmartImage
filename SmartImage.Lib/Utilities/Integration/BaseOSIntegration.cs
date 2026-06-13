@@ -36,12 +36,11 @@ public abstract class BaseOSIntegration
 	[CBN]
 	public abstract string ChromePath { get; }
 
-	[CBN]
-	public abstract string FirefoxPath { get; }
-
-
 	[MNNW(true, nameof(ChromePath))]
 	public bool IsChromeInstalled => Path.Exists(ChromePath);
+
+	[CBN]
+	public abstract string FirefoxPath { get; }
 
 	[MNNW(true, nameof(FirefoxPath))]
 	public bool IsFirefoxInstalled => Path.Exists(FirefoxPath);
@@ -58,6 +57,7 @@ public abstract class BaseOSIntegration
 	{
 		Executable          = GetProcessMainModuleFileName();
 		ExecutableDirectory = Path.GetDirectoryName(Executable);
+		IsExecutableInPath  = FileSystem.IsFolderInPath(ExecutableDirectory);
 
 		if (IsWindows) {
 			Integration = new WindowsOSIntegration();
@@ -67,7 +67,6 @@ public abstract class BaseOSIntegration
 		}
 		else {
 			Integration = null;
-			throw new NotSupportedException("OS not supported");
 		}
 	}
 
@@ -79,14 +78,13 @@ public abstract class BaseOSIntegration
 	[SupportedOSPlatformGuard(Common.OS_WIN)]
 	public static readonly bool IsWindows = OperatingSystem.IsWindows();
 
+	public static readonly string ExecutableDirectory;
+
+	public static readonly bool IsExecutableInPath;
+
+	public static readonly string Executable;
+
 	public static BaseOSIntegration Integration { get; }
-
-	public static string ExecutableDirectory { get; }
-
-	public static bool IsExecutableInPath
-		=> FileSystem.IsFolderInPath(ExecutableDirectory);
-
-	public static string Executable { get; }
 
 #endregion
 
@@ -106,10 +104,11 @@ public abstract class BaseOSIntegration
 
 		// Require.NotNull(module);
 		Trace.Assert(module != null);
+
 		return module.FileName;
 	}
 
-	public const string GALLERY_DL = "gallery-dl";
+	public const string GALLERY_DL     = "gallery-dl";
 	public const string GALLERY_DL_EXE = $"{GALLERY_DL}.exe";
 
 }

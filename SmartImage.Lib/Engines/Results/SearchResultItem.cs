@@ -220,7 +220,7 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 
 		var cw = Channel.CreateUnbounded<IUniImage>();
 
-		var scr = await ScannedResultItem.FromResult(this, ct);
+		var scr = await ScannedResultItem.AllocFromResult(this, ct);
 
 		if (scr is { HasImage: true }) {
 			ScannedItems.Add(scr);

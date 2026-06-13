@@ -60,14 +60,6 @@ public class TmpFilesEngine : BaseUploadEngine
 		var       parser = new HtmlParser();
 		using var doc    = await parser.ParseDocumentAsync(page);
 
-		/*var page = await tmpRes.Data.Url.GetStringAsync(cancellationToken: ct);
-
-		var       parser = new HtmlParser();
-		using var doc    = await parser.ParseDocumentAsync(page);
-		var       tr     = doc.QuerySelectorAll("tbody > tr > th, td");
-
-		var ur = new TmpFilesUploadResult(tr);*/
-
 		return TmpFilesUploadResult.ParseSource(tmpRes, doc);
 	}
 
