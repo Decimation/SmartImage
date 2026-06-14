@@ -21,6 +21,7 @@ using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.Net.WebSockets;
 using AngleSharp.Css.Dom;
+using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Images.Uni;
 
@@ -28,17 +29,12 @@ namespace SmartImage.Lib.Images.Uni;
 /// Represents an image dynamically loaded from a described source
 /// <seealso cref="UniSource"/>
 /// </summary>	
-public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<UniImage>
+public abstract class UniImage : IUniImage, IEquatable<UniImage>, IFromSource<UniImage>
 {
 
-	protected static readonly ILogger s_logger;
+	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(UniImage));
 
 	internal static readonly RecyclableMemoryStreamManager MemMgr = new(new RecyclableMemoryStreamManager.Options { });
-
-	static UniImage()
-	{
-		s_logger = AppSupport.Factory.CreateLogger(nameof(UniImage));
-	}
 
 	/// <summary>
 	/// Name of <see cref="Value"/>
@@ -108,13 +104,7 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 	public double? Similarity
 	{
 		get;
-		protected set => SetField(ref field, value);
-	}
-
-	public virtual bool CalculateSimilarity(IHashable hashable)
-	{
-		Similarity = ISimilarity.CalculateHashSimilarity(this, hashable);
-		return Similarity.HasValue;
+		set => SetField(ref field, value);
 	}
 
 #endregion
@@ -127,7 +117,7 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 		protected set
 		{
 			if (SetField(ref field, value)) {
-				OnPropertyChanged(nameof(IUniImage.HasBytes));
+				OnPropertyChanged(nameof(HasBytes));
 			}
 		}
 	}
@@ -139,8 +129,7 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 
 #endregion
 
-
-	private protected UniImage(string value, UniImageType type)
+	protected UniImage(string value, UniImageType type)
 	{
 		Value = value;
 		Type  = type;
@@ -154,6 +143,7 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 	{
 		if (!HasBytes) {
 			Debugger.Break();
+
 			// throw new InvalidOperationException($"{nameof(Bytes)} not loaded");
 			return Stream.Null;
 		}
@@ -217,18 +207,19 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 	}
 
 	/// <summary>
-	/// Attempts to create the appropriate <see cref="UniImage" /> for <paramref name="o" />.
+	/// Attempts to create the appropriate <see cref="UniImage" /> for <paramref name="src" />.
 	/// </summary>
-	public static async Task<UniImage> TryCreateAsync(object o, bool autoInit = true, bool autoDisposeOnError = true, CancellationToken ct = default)
+	public static async Task<UniImage> FromSourceAsync(object            src, bool autoInit = true, bool autoDisposeOnError = true,
+	                                                  CancellationToken ct = default)
 	{
 		UniImage ui = null;
 
 		try {
 
-			if (UniImageFile.IsFileType(o, out var fi)) {
+			if (UniImageFile.IsFileType(src, out var fi)) {
 				ui = new UniImageFile(fi);
 			}
-			else if (UniImageUrl.IsUrlType(o, out var url2)) {
+			else if (UniImageUrl.IsUrlType(src, out var url2)) {
 				ui = new UniImageUrl(url2);
 			}
 			else {
@@ -241,7 +232,7 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 
 				(allocOk, allocImgOk) = await ui.AllocAllAsync(ct);
 
-				s_logger.LogTrace("{Value} :: {AllocSrcOk} {AllocImgOk}", o, allocOk, allocImgOk);
+				s_logger.LogTrace("{Value} :: {AllocSrcOk} {AllocImgOk}", src, allocOk, allocImgOk);
 
 				if (autoDisposeOnError && (!allocOk || !allocImgOk)) {
 					ui?.Dispose();
@@ -252,7 +243,7 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 		}
 		catch (Exception e) {
 			// str?.Dispose();
-			s_logger.LogError(e, "{Value}", o);
+			s_logger.LogError(e, "{Value}", src);
 		}
 
 	ret:
@@ -355,6 +346,33 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 		return $"{Type} : {Value} {Length} bytes of type {(HasImageFormat ? ImageFormat.Name : "?")}";
 	}
 
+	/*public virtual object Clone()
+	{
+		object clone = this;
+
+		if (IsFile && this is UniImageFile uif) {
+			var ui = new UniImageFile(uif.LocalFileInfo);
+			clone = ui;
+		}
+		else if (IsUri && this is UniImageUrl uiu) {
+			var ui = new UniImageUrl(uiu.Url)
+			{
+				Bytes = Bytes
+			};
+			clone = ui;
+		}
+
+		if (clone is UniImage ui2 && ui2 != this) {
+			ui2.Bytes = Bytes;
+			ui2.LocalFilePath = LocalFilePath;
+			Similarity = Similarity;
+			Hash = Hash;
+			Image = Image;
+		}
+
+		return clone;
+	}*/
+
 #region Equality members
 
 	public bool Equals(UniImage other)
@@ -416,4 +434,3 @@ public enum UniImageType
 	Uri
 
 }
-

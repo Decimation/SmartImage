@@ -1,6 +1,7 @@
-﻿// Deci SmartImage.Rdx TypeRegistrar.cs
-// $File.CreatedYear-$File.CreatedMonth-26 @ 1:46
+﻿// Author: Deci | Project: SmartImage.Rdx | Name: TypeRegistrar.cs
+// Date: 2026/06/13 @ 17:06:16
 
+#nullable disable
 using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console.Cli;
 
@@ -9,36 +10,19 @@ namespace SmartImage.Rdx.Utilities;
 public sealed class TypeRegistrar : ITypeRegistrar
 {
 
-	private readonly IServiceCollection _builder;
+	private readonly IServiceCollection m_services;
 
-	public TypeRegistrar(IServiceCollection builder)
+	public TypeRegistrar(IServiceCollection services)
 	{
-		_builder = builder;
+		m_services = services;
 	}
 
-	public ITypeResolver Build()
-	{
-		return new TypeResolver(_builder.BuildServiceProvider());
-	}
+	public ITypeResolver Build() => new TypeResolver(m_services.BuildServiceProvider());
 
-	public void Register(Type service, Type implementation)
-	{
-		_builder.AddSingleton(service, implementation);
-	}
+	public void Register(Type service, Type implementation) => m_services.AddSingleton(service, implementation);
 
-	public void RegisterInstance(Type service, object implementation)
-	{
-		_builder.AddSingleton(service, implementation);
-	}
+	public void RegisterInstance(Type service, object implementation) => m_services.AddSingleton(service, implementation);
 
-	public void RegisterLazy(Type service, Func<object> func)
-	{
-		if (func is null) {
-			throw new ArgumentNullException(nameof(func));
-		}
-
-		_builder.AddSingleton(service, (provider) => func());
-	}
+	public void RegisterLazy(Type service, Func<object> factory) => m_services.AddSingleton(service, _ => factory());
 
 }
-

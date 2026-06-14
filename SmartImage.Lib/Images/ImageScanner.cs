@@ -99,7 +99,10 @@ public static partial class ImageScanner
 	internal const char URL_DELIM = '/';
 
 
-	public static IEnumerable<string> ParseImageUrlsByRegex(string html, Url url, bool heuristicFilter = true)
+	/// <summary>
+	/// Parses image URLs using adapted <em><c>gallery-dl</c></em> regex 
+	/// </summary>
+	public static IEnumerable<string> ParseImageUrls(string html, Url url, bool heuristicFilter = true)
 	{
 		var imgUrlsSrc = r_imgSrc().Matches(html).Select(static m => m.Groups["URL"].Value);
 		var imgUrlsExt = r_imgExt().Matches(html).Select(static m => m.Value);
@@ -153,18 +156,16 @@ public static partial class ImageScanner
 		return abs;
 	}
 
-	public static IEnumerable<string> ParseImageUrlsByDoc(IHtmlDocument doc)
-	{
-		// var a = doc.QueryAllAttribute("a", "href");
-		// var b = doc.QueryAllAttribute("img", "src");
+	/// <summary>
+	/// Parses image URLS using <see cref="IHtmlDocument.Links"/> and <see cref="IHtmlDocument.Images"/>
+	/// </summary>
+	public static IEnumerable<string> ParseImageUrls(IHtmlDocument doc)
+	{	
+		var links = doc.Links.Select(static x => x.GetAttribute(Serialization.Atr_href));
+		var images = doc.Images.Select(static x => x.Source);
+		var union = links.Union(images).Distinct();
 
-		var a = doc.Links.Select(static x => x.GetAttribute("href"));
-		var b = doc.Images.Select(static x => x.Source);
-		var c = a.Union(b);
-
-		c = c.Distinct();
-
-		return c;
+		return union;
 	}
 
 	public static async ValueTask<IFlurlResponse> GetResponseAsync(Url value, CancellationToken ct)
@@ -224,7 +225,7 @@ public static partial class ImageScanner
 
 		/*async Task HandleLineAsync(string s, CancellationToken token)
 		{
-			var uni = await UniImage.TryCreateAsync(s, ct: token);
+			var uni = await UniImage.FromSourceAsync(s, ct: token);
 
 			// var uni = await ScannedResultItem.FromResult(s, new ScannedResultItem(cri, null), token);
 			var b = cw.TryWrite(uni);

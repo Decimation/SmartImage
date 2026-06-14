@@ -4,6 +4,7 @@
 using SixLabors.ImageSharp.Formats;
 using SmartImage.Lib.Engines.Results;
 
+
 // ReSharper disable UnusedMemberInSuper.Global
 
 namespace SmartImage.Lib.Model;

@@ -16,7 +16,6 @@ using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search.Base;
-using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Search;
 

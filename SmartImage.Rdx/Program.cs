@@ -57,6 +57,10 @@ public static class Program
 
 		Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
+		var services = new ServiceCollection();
+  
+		var registrar = new TypeRegistrar(services);
+
 #if DEBUG
 
 		// Debugger.Launch();
@@ -69,7 +73,7 @@ public static class Program
 		var infoGrid = Renderables.CreateEnvironmentGrid();
 		AnsiConsole.Write(infoGrid);
 
-		var app = new CommandApp<SearchCommand>();
+		var app = new CommandApp<SearchCommand>(registrar);
 
 		app.Configure(static c =>
 		{

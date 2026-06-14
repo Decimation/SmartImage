@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Novus;
 using Novus.OS;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;

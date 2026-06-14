@@ -478,3 +478,4 @@ SmartImage.UI/Properties/*
 *.jpeg
 *.png
 *.gif
+/SmartImage.Lib.UnitTest/TestResponses/GoogleLensResponse1.html

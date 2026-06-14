@@ -1,30 +1,48 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: ISimilarity.cs
 // Date: 2024/11/13 @ 16:11:26
 
+using System.Diagnostics.CodeAnalysis;
 using CoenM.ImageHash;
 
 namespace SmartImage.Lib.Model;
 
-#pragma warning disable CS0168
-
 public interface ISimilarity
 {
 
-	public double? Similarity { get; }
+	public double? Similarity { get; set; }
 
 	[MNNW(true, nameof(Similarity))]
-	public bool HasSimilarity => Similarity.HasValue;
+	public bool HasSimilarity => Similarity is not null;
 
-	[MNN(nameof(IHashable.Hash.Value))]
-	public static double CalculateHashSimilarity<THashable>(THashable a, THashable b) where THashable : IHashable
+	public bool TryCalculateSimilarity(IHashable hashable)
 	{
-		if (a.HasHash && b.HasHash) {
-			return CompareHash.Similarity(a.Hash.Value, b.Hash.Value);
+		if (this is IHashable h) {
+			Similarity = CompareHash.Calculate(h, hashable);
 		}
 
-		throw new InvalidOperationException();
+		return HasSimilarity;
 	}
 
-	public bool CalculateSimilarity(IHashable hashable);
+}
+
+
+public static class SimilarityExtensions
+{
+
+	extension(CompareHash)
+	{
+
+
+		public static double? Calculate(IHashable a, IHashable b)
+		{
+			if (a.Hash is { } ah && b.Hash is { } bh) {
+
+				return CompareHash.Similarity(ah, bh);
+			}
+
+			return null;
+		}
+	}
+	
 
 }

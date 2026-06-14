@@ -11,7 +11,6 @@ using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Images.Uni;
-using SmartImage.Lib.Model;
 
 // ReSharper disable UnusedMember.Local
 #pragma warning disable IDE0051

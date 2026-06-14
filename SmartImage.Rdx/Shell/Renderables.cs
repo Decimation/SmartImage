@@ -240,7 +240,7 @@ internal static class Renderables
 		var dt = new Grid();
 		dt.AddColumns(2);
 
-		dt.AddRow(new Text("Query", Elements.Sty_Grid1), new Text(query.Source.Value, new Style(link: query.Source.Value)));
+		dt.AddRow(new Text("Query", Elements.Sty_Grid1), new Text(Markup.Escape(query.Source.Value),new Style(link: query.Source.Value)));
 		dt.AddRow(new Text("Query Format", Elements.Sty_Grid1), new Text($"({query.Source.Type}) {query.Source.ImageFormat.Name}"));
 		dt.AddRow(new Text("Upload", Elements.Sty_Grid1), new Text($"{query.Upload}", new Style(link: query.Upload.Url)));
 

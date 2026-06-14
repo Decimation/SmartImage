@@ -14,7 +14,6 @@ using SmartImage.Lib.Clients;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search.Base;
-using SmartImage.Lib.Model;
 
 // ReSharper disable CognitiveComplexity
 // ReSharper disable IdentifierTypo

@@ -4,6 +4,7 @@
 using System.ComponentModel;
 using System.Text;
 using System.Threading.Channels;
+using CoenM.ImageHash;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
@@ -100,7 +101,7 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 	[JI]
 	public object Metadata { get; internal set; }
 
-	public double? Similarity { get; internal set; }
+	public double? Similarity { get; set; }
 
 	[MNNW(true, nameof(Similarity))]
 	public bool HasSimilarity => Similarity.HasValue;
@@ -220,10 +221,11 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 
 		var cw = Channel.CreateUnbounded<IUniImage>();
 
-		var scr = await ScannedResultItem.AllocFromResult(this, ct);
+		var scr = await ScannedResultItem.FromSourceAsync(this, ct: ct);
 
 		if (scr is { HasImage: true }) {
 			ScannedItems.Add(scr);
+
 			// scr.Index = ScannedItems.IndexOf(scr);
 
 			await cw.Writer.WriteAsync(scr, ct);
@@ -263,11 +265,12 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 
 #endregion
 
-
-	public virtual bool CalculateSimilarity(IHashable hashable)
+	
+	public virtual bool TryCalculateSimilarity(IHashable hashable)
 	{
-		Similarity = ISimilarity.CalculateHashSimilarity(this, hashable);
-		return Similarity.HasValue;
+		Similarity = CompareHash.Calculate(this, hashable);
+
+		return HasSimilarity;
 	}
 
 	public void Dispose()
@@ -276,7 +279,7 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 
 		s_logger.LogDebug("Disposing {Item} of {Name}", Url, Root.Engine.Name);
 		ThumbnailImage?.Dispose();
-		
+
 		foreach (var item in ScannedItems) {
 			item.Dispose();
 		}

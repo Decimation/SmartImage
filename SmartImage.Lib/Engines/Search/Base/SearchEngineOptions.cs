@@ -111,7 +111,7 @@ public enum SearchEngineOptions
 	All = SauceNao | ImgOps       | GoogleImages | TinEye     | Iqdb   | TraceMoe | KarmaDecay | Yandex | Bing |
 	      Ascii2D  | RepostSleuth | EHentai      | ArchiveMoe | Iqdb3D | Fluffle | GoogleLens,
 
-	Artwork = SauceNao | Iqdb | Ascii2D | EHentai,
+	Artwork = SauceNao | Iqdb | Ascii2D | EHentai | Fluffle,
 
 	Advanced = All & ~ (Bing | GoogleImages | ImgOps | KarmaDecay)
 

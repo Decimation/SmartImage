@@ -3,16 +3,16 @@
 
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Images.Uni;
-using SmartImage.Lib.Model;
 using System.Threading.Channels;
 using SmartImage.Lib.Images;
+
 // ReSharper disable UnusedVariable
 
 // ReSharper disable UnassignedGetOnlyAutoProperty
 
 namespace SmartImage.Lib.Engines.Results;
 
-public class ScannedResultItem : UniImageUrl, IResultItem, IFromResult<ScannedResultItem>
+public class ScannedResultItem : UniImageUrl, IResultItem, IFromSourceItem<ScannedResultItem>, IFromSource<ScannedResultItem>
 {
 
 	public SearchResult Root { get; }
@@ -64,11 +64,11 @@ public class ScannedResultItem : UniImageUrl, IResultItem, IFromResult<ScannedRe
 	}
 
 
-	public static Task<ScannedResultItem> AllocFromResult(IResultItem item, CancellationToken ct = default) => AllocFromResult(item.Url, item, ct);
-
-	public static async Task<ScannedResultItem> AllocFromResult(Url u, IResultItem item, CancellationToken ct = default)
+	public static async Task<ScannedResultItem> FromSourceAsync(object            src, IResultItem item, bool autoInit = true, bool autoDisposeOnError = true,
+	                                                           CancellationToken ct = default)
 	{
-		var sri = new ScannedResultItem(u, item);
+		var url = src as Url;
+		var sri = new ScannedResultItem(url, item);
 		var (allocOk, allocImgOk) = await sri.AllocAllAsync(ct);
 
 		if (allocImgOk) {
@@ -80,5 +80,17 @@ public class ScannedResultItem : UniImageUrl, IResultItem, IFromResult<ScannedRe
 
 		return sri;
 	}
-	
+
+	public static Task<ScannedResultItem> FromSourceAsync(IResultItem item, bool autoInit = true, bool autoDisposeOnError = true, CancellationToken ct = default)
+		=> FromSourceAsync(item.Url, item, autoInit, autoDisposeOnError, ct);
+
+	public new static Task<ScannedResultItem> FromSourceAsync(object src, bool autoInit = true, bool autoDisposeOnError = true, CancellationToken ct = default)
+	{
+		if (src is IResultItem ri) {
+			return FromSourceAsync(ri, autoInit, autoDisposeOnError, ct);
+		}
+
+		throw new ArgumentException(null, nameof(src));
+	}
+
 }

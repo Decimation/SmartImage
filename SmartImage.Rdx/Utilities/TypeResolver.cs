@@ -1,34 +1,22 @@
-﻿// Deci SmartImage.Rdx TypeResolver.cs
-// $File.CreatedYear-$File.CreatedMonth-26 @ 1:46
+﻿// Author: Deci | Project: SmartImage.Rdx | Name: TypeResolver.cs
+// Date: 2026/06/13 @ 17:06:11
 
+#nullable disable
+using SmartImage;
 using Spectre.Console.Cli;
 
 namespace SmartImage.Rdx.Utilities;
 
-public sealed class TypeResolver : ITypeResolver, IDisposable
+public sealed class TypeResolver : ITypeResolver
 {
 
-	private readonly IServiceProvider _provider;
+	private readonly IServiceProvider m_provider;
 
 	public TypeResolver(IServiceProvider provider)
 	{
-		_provider = provider ?? throw new ArgumentNullException(nameof(provider));
+		m_provider = provider;
 	}
 
-	public object? Resolve(Type? type)
-	{
-		if (type == null) {
-			return null;
-		}
-
-		return _provider.GetService(type);
-	}
-
-	public void Dispose()
-	{
-		if (_provider is IDisposable disposable) {
-			disposable.Dispose();
-		}
-	}
-
+	[CBN]
+	public object Resolve([CBN] Type type) => type == null ? null : m_provider.GetService(type);
 }

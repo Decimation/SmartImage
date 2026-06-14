@@ -43,9 +43,8 @@ using Spectre.Console.Rendering;
 
 // ReSharper disable UseSymbolAlias
 
-// TODO: Create separate SearchCommands for interactive/non-interactive?
-// TODO: Create types representing shell UI state
-// TODO: Create types ...
+// TODO: Create derived SearchCommand components for interactive/non-interactive; types representing shell UI state
+// todo: use DI
 
 [assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_LIB_UNITTEST)]
 
@@ -62,12 +61,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	private readonly CancellationTokenSource m_ctsRun;
 	private readonly CancellationTokenSource m_ctsRunSearch;
 
-	private readonly ConcurrentDictionary<SearchResult, ResultViewState> m_dialogs;
-
-	private Layout m_layout;
-
-	private SpcTable m_mainTable;
-
 	// private Dictionary<SearchResult, Dictionary<IResultItem, int>>
 	public SearchClient Client { get; private set; }
 
@@ -80,7 +73,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		m_ctsRunSearch = new CancellationTokenSource();
 
 		m_previewCanvasCache = new MemoryCache("PreviewCache");
-		m_dialogs            = new ConcurrentDictionary<SearchResult, ResultViewState>();
+		m_dialogs            = [];
 		Query                = SearchQuery.Null;
 	}
 
@@ -123,7 +116,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		// todo
 		if (BaseOSIntegration.Integration.IsGalleryDLInstalled) {
-			Elements.Prm_Command.Choices.Add(R2.Chc_GalleryDl);
+			Elements.Prm_Command.Choices.Insert(2,R2.Chc_GalleryDl);
 		}
 	}
 
@@ -170,49 +163,39 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		return Shared.Common.EC_OK;
 	}
 
-#region
-
-	private async Task ContinueInteractive(Task<SearchResult> task)
-	{
-		var result = await task;
-
-		m_dialogs.TryAdd(result, ResultViewState.Create(result));
-
-		m_mainTable.AddRow(result.GetMainRows());
-		Elements.Prm_SearchResult.AddChoice(result);
-	}
-
-	private async Task ContinueNonInteractive(Task<SearchResult> task)
-	{
-		var result = await task;
-
-		var fullRows = result.GetFullRows();
-
-		foreach (var list in fullRows) {
-			var row = (IRenderable[]) list;
-			m_mainTable.AddRow(row);
-		}
-	}
-
 	private async Task RunSearchLiveAsync(LiveDisplayContext c, CancellationToken ct = default)
 	{
-		var search = Client.RunSearchAsync(Query, token: ct);
+		var searchTask = Client.RunSearchAsync(Query, token: ct);
 
 		while (!ct.IsCancellationRequested && await Client.ResultChannel.Reader.WaitToReadAsync(ct)) {
-			var task = Client.ResultChannel.Reader.ReadAsync(ct).AsTask();
+			var result = await Client.ResultChannel.Reader.ReadAsync(ct);
 
-			var task2 = CommandSettings.Interactive ? task.ContinueWith(ContinueInteractive, ct) : task.ContinueWith(ContinueNonInteractive, ct);
 
-			await task2;
+			if (CommandSettings.Interactive) {
+
+				m_dialogs.TryAdd(result, ResultViewState.Create(result));
+
+				m_mainTable.AddRow(result.GetMainRows());
+				Elements.Prm_SearchResult.AddChoice(result);
+
+			}
+			else {
+
+				var fullRows = result.GetFullRows();
+
+				foreach (var list in fullRows) {
+					var row = (IRenderable[]) list;
+					m_mainTable.AddRow(row);
+				}
+			}
+
 
 			c.Refresh();
 
 		}
 
-		await search;
+		await searchTask;
 	}
-
-#endregion
 
 	private async Task RunInteractiveAsync(CancellationToken ct = default)
 	{
@@ -258,6 +241,11 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				var selIdx2 = ShellSelection.GetIndex2(sri);*/
 
 				var sel     = ShellSelection.GetSelectionChoice(sr);
+
+				if (sel == null) {
+					continue;
+				}
+
 				var item    = sel.Item;
 				var sri     = item as SearchResultItem;
 				var selIdx  = sel.Index();
@@ -284,7 +272,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 						for (int i = 0; i < sri.ScannedItems.Count; i++) {
 							IResultItem scnItm = sri.ScannedItems[i];
-							scnItm.CalculateSimilarity(Query.Source);
+							scnItm.TryCalculateSimilarity(Query.Source);
 
 							var scnRow = scnItm.GetItemRow(sel.ItemIdx, i);
 							srTable.InsertRow(selIdx + i + 1, scnRow);
@@ -302,7 +290,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 					AnsiConsole.Live(srTable).Start(f =>
 					{
-						item.CalculateSimilarity(Query.Source);
+						item.TryCalculateSimilarity(Query.Source);
 
 						srTable.Rows.Update(selIdx2, (int) ResultRowIndex.ROW_SIMILARITY, (sri ?? item).GetSimilarity());
 						f.Refresh();
@@ -359,7 +347,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 						var res = await ch.Reader.ReadAsync(ct);
 
 						if (res is not null) {
-							var scn = await ScannedResultItem.AllocFromResult(res, sri, ct);
+							var scn = await ScannedResultItem.FromSourceAsync(res, sri, ct: ct);
+
 							if (scn != null) {
 								sri.ScannedItems.Add(scn);
 
@@ -376,57 +365,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	}
 
 #endregion
-
-	private Layout CreateLayout()
-	{
-		var queryCi = new CanvasImage(Query.Source.GetSource());
-
-		var ciPanel = new Panel(queryCi)
-		{
-			Header = new PanelHeader($"{Query.Source.Value}"),
-			Expand = true,
-		};
-
-		var cfgGrid = Renderables.CreateConfigGrid(Config, Query);
-
-		var cfgPanel = new Panel(cfgGrid) { Header = new PanelHeader("Search Options") };
-
-		return new Layout("Root")
-			.SplitColumns(
-				new Layout("L").SplitRows(
-					new("LC", cfgPanel),
-					new("LT", m_mainTable)),
-				new Layout("R", ciPanel));
-	}
-
-	private Layout GetExpandedLayout(IResultItem sri)
-	{
-		CanvasImage prev;
-
-		if (sri is ScannedResultItem scnItem) {
-			prev = GetPreviewCanvasImage(scnItem);
-		}
-		else {
-			prev = new CanvasImage(Query.Source.GetSource());
-		}
-
-		var ciPanel = new Panel(prev)
-		{
-			Header = new PanelHeader($"{sri}"),
-			Expand = true,
-		};
-
-		var extGrid = sri.CreateExtendedGrid();
-
-		var extPanel = new Panel(extGrid) { Header = new PanelHeader("Result Data") };
-
-		var exLayout = new Layout("Root")
-			.SplitColumns(
-				new Layout("L", extPanel),
-				new Layout("R", ciPanel));
-
-		return exLayout;
-	}
 
 	private static void HandleDownload(ScannedResultItem sri)
 	{

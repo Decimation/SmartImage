@@ -97,6 +97,9 @@ internal record ShellSelection
 				}
 			}
 		}
+		else {
+			return null;
+		}
 
 		return new ShellSelection(sri, resIdx, scnIdx, isScanned);
 	}

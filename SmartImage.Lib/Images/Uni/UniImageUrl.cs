@@ -21,7 +21,6 @@ public class UniImageUrl : UniImage, IUrl
 		Url = url;
 	}
 
-
 	public override string Name => Url.GetFileName();
 
 
@@ -87,7 +86,7 @@ public class UniImageUrl : UniImage, IUrl
 		using var sr  = new StreamReader(stream);
 		var       str = await sr.ReadToEndAsync(ct);
 
-		var urls = ImageScanner.ParseImageUrlsByRegex(str, Url);
+		var urls = ImageScanner.ParseImageUrls(str, Url);
 
 		await cw.WaitToWriteAsync(ct);
 

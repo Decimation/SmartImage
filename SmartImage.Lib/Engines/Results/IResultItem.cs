@@ -19,6 +19,7 @@ public interface IResultItem : IDisposable, ISimilarity, IHashable, IUrl, IResul
 
 	bool IsRaw { get; }
 
+
 	// public int Index { get; }
 
 	/*

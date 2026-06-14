@@ -130,7 +130,7 @@ public record ChanPost : SearchResultItem, IParseableResult<INode, ChanPost>
 
 		var wh = pfm[1].Split('x');
 
-		var file = Url.Parse(pff.GetAttribute("href"));
+		var file = Url.Parse(pff.GetAttribute(Serialization.Atr_href));
 
 		var p = new ChanPost(r)
 		{
