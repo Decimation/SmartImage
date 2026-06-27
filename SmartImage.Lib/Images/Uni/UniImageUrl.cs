@@ -5,6 +5,7 @@ using Flurl.Http;
 using Kantan.Net.Utilities;
 using SmartImage.Lib.Model;
 using System.Threading.Channels;
+using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Images.Uni;
@@ -37,7 +38,7 @@ public class UniImageUrl : UniImage, IUrl
 
 		response = await ImageScanner.GetResponseAsync(Url, ct);
 
-		if (response == null) {
+		if (response is null or {StatusCode: 403}) {
 			goto ret;
 		}
 
@@ -86,7 +87,9 @@ public class UniImageUrl : UniImage, IUrl
 		using var sr  = new StreamReader(stream);
 		var       str = await sr.ReadToEndAsync(ct);
 
-		var urls = ImageScanner.ParseImageUrls(str, Url);
+		var urls = ImageScanner.ParseImageUrls(str, Url).ToArray();
+		s_logger.LogInformation("Parsed {Cnt} urls from {Url}", urls.Length, Url);
+
 
 		await cw.WaitToWriteAsync(ct);
 

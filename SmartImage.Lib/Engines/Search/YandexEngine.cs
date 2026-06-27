@@ -86,16 +86,7 @@ public sealed class YandexEngine : BaseSearchEngine, ICookiesReceiver, ISearchCo
 			req.Headers.AddOrReplace(HeaderNames.AcceptEncoding, Serialization.Yandex_Hdr_AcceptEncoding);
 			req.Headers.AddOrReplace(HeaderNames.AcceptLanguage, Serialization.Yandex_Hdr_AcceptLanguage);
 
-			if (query.Source.IsFile) {
-				res = await req.PostMultipartAsync(content =>
-				{
-					//
-					content.AddFile("file", query.Source.GetSource(), query.Source.Name);
-				}, cancellationToken: ct);
-			}
-			else {
-				res = await req.GetAsync(cancellationToken: ct);
-			}
+			res = await req.GetAsync(cancellationToken: ct);
 
 			string str = await res.GetStringAsync().ConfigureAwait(false);
 

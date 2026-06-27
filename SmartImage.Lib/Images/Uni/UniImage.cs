@@ -32,7 +32,7 @@ namespace SmartImage.Lib.Images.Uni;
 public abstract class UniImage : IUniImage, IEquatable<UniImage>, IFromSource<UniImage>
 {
 
-	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(UniImage));
+	private protected static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(UniImage));
 
 	internal static readonly RecyclableMemoryStreamManager MemMgr = new(new RecyclableMemoryStreamManager.Options { });
 

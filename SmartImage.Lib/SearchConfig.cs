@@ -58,7 +58,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// <summary>
 	/// Default value for <see cref="UploadEngine"/>
 	/// </summary>
-	public const UploadEngineOptions UE_DEFAULT = UploadEngineOptions.TmpFiles;
+	public const UploadEngineOptions UE_DEFAULT = UploadEngineOptions.Catbox;
 
 #endregion
 

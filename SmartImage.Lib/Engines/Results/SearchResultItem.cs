@@ -223,7 +223,7 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 
 		var scr = await ScannedResultItem.FromSourceAsync(this, ct: ct);
 
-		if (scr is { HasImage: true }) {
+		/*if (scr is { HasImage: true }) {
 			ScannedItems.Add(scr);
 
 			// scr.Index = ScannedItems.IndexOf(scr);
@@ -231,7 +231,7 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 			await cw.Writer.WriteAsync(scr, ct);
 			cw.Writer.TryComplete();
 			return true;
-		}
+		}*/
 
 		var task = scr.ScanAsync(cw, url => new ScannedResultItem(url, this), ct);
 
