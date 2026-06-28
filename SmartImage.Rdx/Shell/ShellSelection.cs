@@ -50,10 +50,12 @@ internal record ShellSelection
 
 		for (int k = 0; k < root; k++) {
 
-			var result = Item.Root.Results[k];
+			var kItem = Item is ISubResultItem {} subItem ? subItem.Parent : Item;
 
-			var scnItm  = Item is ISubResultItem sub2 ? sub2.Root.ScannedItems : [];
-			var scnIdx2 = scnItm.IndexOf(Item);
+			var result  = kItem.Root.Results[k] as IScannableItem;
+
+			var scnItm  = result.ScannedItems;
+			var scnIdx2 = scnItm.IndexOf(kItem);
 
 			if (scnIdx2 == -1) {
 				t += scnItm.Count;
@@ -61,7 +63,6 @@ internal record ShellSelection
 			else {
 				t += scnIdx2;
 			}
-
 		}
 
 		return root + scnIdx + t;
@@ -70,11 +71,7 @@ internal record ShellSelection
 	public int Index2()
 	{
 
-		var rg = ItemIdx + Item.Root.Results[..ItemIdx].OfType<SearchResultItem>().Sum(x =>
-		{
-
-			return x.Root.ScannedItems.Count;
-		});
+		var rg = ItemIdx + Item.Root.Results[..ItemIdx].OfType<SearchResultItem>().Sum(x => x.ScannedItems.Count);
 
 		var sumIdx  = rg + ScanIdx + (IsScannedItem ? ((ScanIdx == 0) ? 1 : 0) : 0);
 		var sumIdx2 = rg + ScanIdx + (IsScannedItem ? ((ScanIdx == 0) ? 1 : 0) : 1);
@@ -86,14 +83,16 @@ internal record ShellSelection
 	public int Index3()
 	{
 		var t = 0;
+		
+		var itemIdx = Item.Root.Results.IndexOf(Item);
 
 		for (int i = 0; i < Item.Root.Results.Count; i++) {
 			var itemResult = Item.Root.Results[i];
 
 			t += i;
 
-			if (itemResult is ISubResultItem { } sub) {
-				var subIdx = Item.Root.ScannedItems.IndexOf(sub);
+			if (itemResult is ISubResultItem { } sub && Item is IScannableItem {} scannableItem) {
+				var subIdx = scannableItem.ScannedItems.IndexOf(sub);
 				t += subIdx;
 			}
 		}
@@ -114,7 +113,7 @@ internal record ShellSelection
 
 		if (sr.Results.TryParseIndex(spl[0], out resIdx, out sri)) {
 			if (spl.Length == 2) {
-				if (sri is SearchResultItem { } sriOrig && sr.ScannedItems.TryParseIndex(spl[1], out scnIdx, out sri2)) {
+				if (sri is SearchResultItem { } sriOrig && sriOrig.ScannedItems.TryParseIndex(spl[1], out scnIdx, out sri2)) {
 					sri       = sri2;
 					isScanned = true;
 				}

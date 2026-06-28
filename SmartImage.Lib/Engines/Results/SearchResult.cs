@@ -52,13 +52,11 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	[NN]
 	public List<IResultItem> Results { get; }
 
-	public List<IResultItem> ScannedItems { get; }
+	
 
 	[JI]
 	public SearchResultItem RawResultItem { get; }
 
-	[MNNW(true, nameof(ScannedItems))]
-	public bool HasScannedItems => ScannedItems is { Count: > 0 };
 
 	internal SearchResult(BaseSearchEngine bse, Url rawUrl)
 	{
@@ -70,33 +68,7 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 		};
 
 		Results      = [RawResultItem];
-		ScannedItems = [];
 	}
-
-	public virtual async ValueTask<bool> ScanAsync(IResultItem item, CancellationToken ct = default)
-	{
-		//todo
-		if (ScannedItems.Contains(item)) {
-			return true;
-		}
-
-		var cw = Channel.CreateUnbounded<IUniImage>();
-
-		var scr = await ScannedResultItem.FromSourceAsync(item, ct: ct);
-
-		var task = scr.ScanAsync(cw, url => new ScannedResultItem(url, item), ct);
-
-		while (await cw.Reader.WaitToReadAsync(ct)) {
-			var val = await cw.Reader.ReadAsync(ct);
-
-			ScannedItems.Add((ScannedResultItem) val);
-		}
-
-		var ok = await task;
-
-		return ok;
-	}
-
 
 #region
 

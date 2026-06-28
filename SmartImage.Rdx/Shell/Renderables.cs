@@ -262,7 +262,7 @@ internal static class Renderables
 
 	private static readonly string[] s_extGridNameBlacklist =
 	[
-		nameof(SearchResult.ScannedItems),
+		nameof(SearchResultItem.ScannedItems),
 		nameof(IResultItem.IsRaw),
 		nameof(IImage.Width),
 		nameof(IImage.Height),

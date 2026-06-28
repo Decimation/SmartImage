@@ -110,9 +110,9 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 
 		if (Config.PriorityEngines == SearchEngineOptions.Auto) {
 			var best = GetBest(results);
-			s_logger.LogInformation("Best: {Sr}", best.Url);
 
 			if (best != null) {
+				s_logger.LogInformation("Best: {Sr}", best.Url);
 				OpenResult(best.Url);
 			}
 		}
@@ -146,8 +146,6 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 	private void CompleteSearchAsync()
 	{
 		ResultChannel?.Writer.Complete();
-
-
 		IsRunning  = false;
 		IsComplete = true;
 	}
@@ -164,6 +162,7 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 #pragma warning restore CA1822
 #endif
 
+		// ReSharper disable once HeuristicUnreachableCode
 		if (url1 == null) {
 			return;
 		}

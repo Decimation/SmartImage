@@ -81,6 +81,12 @@ public abstract class BaseSearchEngine : INamedEnumOption<SearchEngineOptions>, 
 	}
 
 
+	/*
+	 * IDEA: DI ideas
+	 * ← Engine instances ← static BaseSearchEngine fn ← SearchConfig
+	 */
+
+
 	public virtual Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken ct = default)
 	{
 		var b = VerifyQuery(query);
