@@ -162,7 +162,6 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 			 * <IP>, your IP has exceeded the unregistered user's daily limit of 100 searches.
 			 */
 
-			Logger.LogWarning("[{Name}] Parsing HTML", Name);
 
 			sr.ResponseFlags = SearchResponseFlags.Cooldown;
 			sr.ErrorMessage   = "On cooldown!";

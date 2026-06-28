@@ -17,7 +17,7 @@ public abstract class BaseOSIntegration
 	protected BaseOSIntegration()
 	{
 		PersonalPath  = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-		GalleryDLPath = FileSystem.FindInPath(IsWindows ? GALLERY_DL_EXE : GALLERY_DL);
+		GalleryDLPath = FileSystem.SearchInEnvironmentPath(GALLERY_DL);
 	}
 
 	public virtual bool IsRoot => FileSystem.IsRoot;

@@ -3,7 +3,7 @@
 
 namespace SmartImage.Lib.Engines.Results;
 
-public interface IScannableItem<TItem> where TItem : IResultItem
+public interface IScannableItem
 {
 
 	List<IResultItem> ScannedItems { get; }

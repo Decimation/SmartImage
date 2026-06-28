@@ -160,10 +160,10 @@ public static partial class ImageScanner
 	/// Parses image URLS using <see cref="IHtmlDocument.Links"/> and <see cref="IHtmlDocument.Images"/>
 	/// </summary>
 	public static IEnumerable<string> ParseImageUrls(IHtmlDocument doc)
-	{	
-		var links = doc.Links.Select(static x => x.GetAttribute(Serialization.Atr_href));
+	{
+		var links  = doc.Links.Select(static x => x.GetAttribute(Serialization.Atr_href));
 		var images = doc.Images.Select(static x => x.Source);
-		var union = links.Union(images).Distinct();
+		var union  = links.Union(images).Distinct();
 
 		return union;
 	}
@@ -201,7 +201,7 @@ public static partial class ImageScanner
 		var cmd = Cli.Wrap(BaseOSIntegration.Integration.GalleryDLPath)
 		             .WithArguments([$"-G", cri])
 		             .WithValidation(CommandResultValidation.None)
-		             .WithStandardOutputPipe(PipeTarget.ToDelegate(HandleLine))
+		             .WithStandardOutputPipe(PipeTarget.ToDelegate(HandleLineAsync))
 		             .WithStandardErrorPipe(PipeTarget.ToStringBuilder(sbErr));
 
 
@@ -218,9 +218,9 @@ public static partial class ImageScanner
 
 		return;
 
-		void HandleLine(string s)
+		async Task HandleLineAsync(string s)
 		{
-			var b = cw.TryWrite(s);
+			await cw.WriteAsync(s);
 		}
 
 		/*async Task HandleLineAsync(string s, CancellationToken token)

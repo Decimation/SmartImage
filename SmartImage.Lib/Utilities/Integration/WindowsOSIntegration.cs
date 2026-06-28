@@ -31,6 +31,8 @@ public sealed class WindowsOSIntegration : BaseOSIntegration
 
 	public override string AppDataPath { get; } = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
+	public override string GalleryDLPath { get => FileSystem.SearchInEnvironmentPath(GALLERY_DL_EXE); }
+
 	public override bool IsContextMenuAdded
 	{
 		get
