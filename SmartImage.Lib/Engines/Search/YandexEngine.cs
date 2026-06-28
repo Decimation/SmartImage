@@ -131,7 +131,6 @@ public sealed class YandexEngine : BaseSearchEngine, ICookiesReceiver, ISearchCo
 			sr.ResponseStatus = SearchResponseStatus.Unknown;
 		}
 		finally {
-			sr.Update();
 			res?.Dispose();
 			doc?.Dispose();
 		}

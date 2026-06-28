@@ -85,7 +85,6 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 		var sr = await base.GetResultAsync(query, ct);
 		var ok = await GetLegacyResponseAsync(sr, query, ct);
 
-		sr.Update();
 		return sr;
 	}
 

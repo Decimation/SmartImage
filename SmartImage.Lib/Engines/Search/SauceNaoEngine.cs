@@ -70,51 +70,67 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 		if (UsingAPI) {
 			Logger.LogInformation("[{Name}] API key: {Auth}", Name, Authentication);
 
-			await GetAPIResultsAsync(query, result).ConfigureAwait(false);
+			var results = await GetAPIResultsAsync(result, query.Upload.Url);
+			result.Results.AddRange(results);
 		}
 		else {
 
 			var src = await GetSourceAsync(result, query, ct).ConfigureAwait(false);
 
-			if (src is null || result is { ResponseStatus: SearchResponseStatus.Cooldown }) {
-				goto ret1;
+			if (src is not null && result is not { ResponseStatus: SearchResponseStatus.Cooldown }) {
+				var source = await ParseDataAsync(src);
+				var items  = await ParseItemsAsync(source, result);
+				result.Results.AddRange(items);
 			}
-
-			var source = await ParseDataAsync(src);
-			var items  = await ParseItemsAsync(source, result);
-			result.Results.AddRange(items);
 		}
 
-
-	ret1:
 
 		if (!result.HasResults) {
-			result.ErrorMessage = "Daily search limit (50) exceeded";
-			result.ResponseStatus       = SearchResponseStatus.Cooldown;
+			result.ErrorMessage   = "Daily search limit (50) exceeded";
+			result.ResponseStatus = SearchResponseStatus.Cooldown;
 
-			//return sresult;
-			goto ret;
 		}
+		else {
+			result.ResponseStatus = SearchResponseStatus.Success;
 
-		result.ResponseStatus = SearchResponseStatus.Success;
-
-	ret:
-
-		result.Update();
+		}
 
 		return result;
 	}
 
-	protected override async Task<IDocument> GetSourceAsync(SearchResult sr, SearchQuery query, CancellationToken token = default)
+	protected override Task<IDocument> GetSourceAsync(SearchResult sr, SearchQuery query, CancellationToken token = default)
+	{
+		return GetHtmlResultsAsync(sr, query, token);
+	}
+
+	protected override ValueTask<IList<INode>> ParseDataAsync(IDocument src)
+	{
+		var results = src.Body.SelectNodes(Serialization.Sel_SauceNao_Result);
+
+		return ValueTask.FromResult<IList<INode>>(results);
+	}
+
+	protected override ValueTask<IEnumerable<SauceNaoResultItem>> ParseItemsAsync(IList<INode> source, SearchResult r)
+	{
+		var buf = new List<SauceNaoResultItem>(source.Count);
+
+		foreach (INode node in source) {
+			var sndr = SauceNaoResultItem.ParseSource(node, r);
+
+			buf.AddRange(sndr);
+		}
+
+		return ValueTask.FromResult<IEnumerable<SauceNaoResultItem>>(buf);
+	}
+
+
+	private async Task<IDocument> GetHtmlResultsAsync(SearchResult sr, SearchQuery query, CancellationToken token)
 	{
 		Logger.LogTrace("[{Name}] Parsing HTML", Name);
 
 		var docp = new HtmlParser();
 
-		string         html     = null;
-		IFlurlResponse response = null;
-
-		response = await Client.Request(Endpoint).WithTimeout(Timeout).PostMultipartAsync(m =>
+		IFlurlResponse response = await Client.Request(Endpoint).WithTimeout(Timeout).PostMultipartAsync(m =>
 		{
 			m.AddString("url", query.Source.IsUri ? query.Source.Value : String.Empty);
 			string s;
@@ -133,21 +149,23 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 
 		}, cancellationToken: token).ConfigureAwait(false);
 
-		html = await response.GetStringAsync().ConfigureAwait(false);
+		string html = await response.GetStringAsync().ConfigureAwait(false);
 
-		/*
-		 * Daily Search Limit Exceeded.
-		 * <IP>, your IP has exceeded the unregistered user's daily limit of 100 searches.
-		 */
 
 		IHtmlDocument doc = null;
 
 		if (response.StatusCode == (int) HttpStatusCode.TooManyRequests) {
+
+			/*
+			 * Daily Search Limit Exceeded.
+			 * <IP>, your IP has exceeded the unregistered user's daily limit of 100 searches.
+			 */
+
 			Logger.LogWarning("[{Name}] Parsing HTML", Name);
 
-			sr.ResponseStatus       = SearchResponseStatus.Cooldown;
-			sr.ErrorMessage = "On cooldown!";
-			sr.ResultsFlags        = SearchResultsFlags.NoResults;
+			sr.ResponseStatus = SearchResponseStatus.Cooldown;
+			sr.ErrorMessage   = "On cooldown!";
+			sr.ResultsFlags   = SearchResultsFlags.NoResults;
 			goto ret;
 		}
 
@@ -159,42 +177,21 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 		return doc;
 	}
 
-	protected override ValueTask<IList<INode>> ParseDataAsync(IDocument src)
+	private async ValueTask<IEnumerable<IResultItem>> GetAPIResultsAsync(SearchResult sr, Url url)
 	{
-		var results = src.Body.SelectNodes("//div[@class='result']");
+		// Excerpts of code adapted from https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs
+		// TODO: This deserialization code is bad -- copied from aforementioned source, outdated, and inconsistent with common procedures
 
-		return ValueTask.FromResult<IList<INode>>(results);
-	}
-
-	protected override ValueTask<IEnumerable<SauceNaoResultItem>> ParseItemsAsync(IList<INode> source, SearchResult r)
-	{
-		var buf = new List<SauceNaoResultItem>(source.Count);
-
-		foreach (INode node in source) {
-			var sndr = SauceNaoResultItem.ParseSource(node, r);
-
-			buf.AddRange(sndr);
-		}
-
-		Logger.LogDebug("Disposing {Name} doc", Name);
-		return ValueTask.FromResult<IEnumerable<SauceNaoResultItem>>(buf);
-	}
-
-
-	private async ValueTask GetAPIResultsAsync(SearchQuery url, SearchResult sr)
-	{
 		Logger.LogTrace("[{Name}] Using API", Name);
 
-		const string dbIndex = "999";
-
-		// const string numRes  = "6";
+		const string DB_INDEX = "999";
 
 		var values = new Dictionary<string, string>
 		{
-			{ "db", dbIndex },
+			{ "db", DB_INDEX },
 			{ "output_type", "2" },
 			{ "api_key", Authentication },
-			{ "url", url.Upload.Url },
+			{ "url", url },
 
 			// { "numres", numRes }
 		};
@@ -203,16 +200,14 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 
 		var res = await Client.Request(URL_API)
 		                      .WithTimeout(Timeout)
-		                      .PostAsync(content).ConfigureAwait(false);
+		                      .PostAsync(content)
+		                      .ConfigureAwait(false);
 
-		var c = await res.GetStringAsync().ConfigureAwait(false);
 
 		if (res.ResponseMessage.StatusCode == HttpStatusCode.Forbidden) {
-			// return;
-			goto ret;
+			return [];
 		}
 
-		// Excerpts of code adapted from https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs
 
 		const string KeySimilarity = "similarity";
 		const string KeyUrls       = "ext_urls";
@@ -224,9 +219,13 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 		const string KeyHeader     = "header";
 		const string KeyData       = "data";
 
-		var jsonString = JsonNode.Parse(c);
+		var json = await res.GetStringAsync().ConfigureAwait(false);
 
-		if (jsonString is JsonObject jsonObject) {
+		var node = JsonNode.Parse(json);
+
+		var resultItems = new List<IResultItem>();
+
+		if (node is JsonObject jsonObject) {
 			var jsonArray = jsonObject[KeyResults].AsArray();
 
 			for (int i = 0; i < jsonArray.Count; i++) {
@@ -238,14 +237,14 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 				jsonArray[i] =  JsonNode.Parse(obj);
 			}
 
-			string json = jsonArray.ToString();
+			string arrayStr = jsonArray.ToString();
 
 			// var buffer      = new List<SearchResultItem>();
-			var resultArray = JsonNode.Parse(json).AsArray();
+			var resultArray = JsonNode.Parse(arrayStr).AsArray();
 
 			foreach (JsonNode t in resultArray) {
 				var   result     = t.AsObject();
-				float similarity = Single.Parse(result[KeySimilarity].AsValue().ToString());
+				float similarity = result[KeySimilarity].GetValue<float>();
 
 				string[] strings = result.ContainsKey(KeyUrls)
 					                   ? [.. (result[KeyUrls] as JsonArray).Select(static j => j.ToString().CleanString())]
@@ -263,21 +262,18 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 						Character  = result.TryGetKeyValue(KeyCharacters)?.ToString().CleanString(),
 						Source     = result.TryGetKeyValue(KeyMaterial)?.ToString().CleanString()
 					};
-					sr.Results.Add(item);
+					resultItems.Add(item);
 				}
 			}
-
-			goto ret;
 
 			// return;
 		}
 
-	ret:
 		res.Dispose();
-		return;
+		return resultItems;
 	}
 
-	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
 		Authentication = cfg.SauceNaoKey;
 		return ValueTask.FromResult(UsingAPI);

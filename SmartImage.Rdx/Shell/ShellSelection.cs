@@ -36,9 +36,9 @@ internal record ShellSelection
 		int root   = 0;
 		int t      = 0;
 
-		if (Item.IsChild) {
+		if (Item is ISubResultItem { IsChild: true } sub) {
 			// scnIdx = Item.Parent.ScannedItems.IndexOf(Item);
-			root = Item.Parent.Root.Results.IndexOf(Item.Parent);
+			root = sub.Parent.Root.Results.IndexOf(sub.Parent);
 
 			scnIdx++;
 
@@ -50,9 +50,9 @@ internal record ShellSelection
 
 		for (int k = 0; k < root; k++) {
 
-			var result  = Item.Parent.Root.Results[k] as SearchResultItem;
+			var result = Item.Root.Results[k];
 
-			var scnItm  = result.ScannedItems;
+			var scnItm  = Item is ISubResultItem sub2 ? sub2.Root.ScannedItems : [];
 			var scnIdx2 = scnItm.IndexOf(Item);
 
 			if (scnIdx2 == -1) {
@@ -70,12 +70,31 @@ internal record ShellSelection
 	public int Index2()
 	{
 
-		var rg = ItemIdx + Item.Root.Results[..ItemIdx].OfType<SearchResultItem>().Sum(x => x.ScannedItems.Count);
+		var rg = ItemIdx + Item.Root.Results[..ItemIdx].OfType<SearchResultItem>().Sum(x => x.Root.ScannedItems.Count);
 
 		var sumIdx  = rg + ScanIdx + (IsScannedItem ? ((ScanIdx == 0) ? 1 : 0) : 0);
 		var sumIdx2 = rg + ScanIdx + (IsScannedItem ? ((ScanIdx == 0) ? 1 : 0) : 1);
 
 		return sumIdx2;
+	}
+
+
+	public int Index3()
+	{
+		var t = 0;
+
+		for (int i = 0; i < Item.Root.Results.Count; i++) {
+			var itemResult = Item.Root.Results[i];
+
+			t += i;
+
+			if (itemResult is ISubResultItem { } sub) {
+				var subIdx = Item.Root.ScannedItems.IndexOf(sub);
+				t += subIdx;
+			}
+		}
+
+		return t;
 	}
 
 	[CBN]
@@ -91,7 +110,7 @@ internal record ShellSelection
 
 		if (sr.Results.TryParseIndex(spl[0], out resIdx, out sri)) {
 			if (spl.Length == 2) {
-				if (sri is SearchResultItem { } sriOrig && sriOrig.ScannedItems.TryParseIndex(spl[1], out scnIdx, out sri2)) {
+				if (sri is SearchResultItem { } sriOrig && sr.ScannedItems.TryParseIndex(spl[1], out scnIdx, out sri2)) {
 					sri       = sri2;
 					isScanned = true;
 				}

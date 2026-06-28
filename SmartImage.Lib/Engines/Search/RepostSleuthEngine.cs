@@ -86,7 +86,6 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 		}
 
 	ret:
-		sr.Update();
 		return sr;
 
 	}

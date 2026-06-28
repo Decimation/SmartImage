@@ -20,10 +20,7 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 	{
 		Root     = r;
 		Metadata = null;
-		Parent   = this;
 		IsRaw    = isRaw;
-
-		ScannedItems = [];
 	}
 
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchResultItem));
@@ -120,12 +117,6 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 	[JI]
 	public SearchResult Root { get; }
 
-	[CBN]
-	[JI]
-	public IResultItem Parent { get; set; }
-
-	public bool IsChild => false;
-
 	public virtual double Score
 	{
 		get
@@ -208,44 +199,6 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 
 #region
 
-	public List<IResultItem> ScannedItems { get; }
-
-	[MNNW(true, nameof(ScannedItems))]
-	public bool HasScannedItems => ScannedItems is { Count: > 0 };
-
-	public async ValueTask<bool> ScanAsync(CancellationToken ct = default)
-	{
-		if (HasScannedItems) {
-			return true;
-		}
-
-		var cw = Channel.CreateUnbounded<IUniImage>();
-
-		var scr = await ScannedResultItem.FromSourceAsync(this, ct: ct);
-
-		/*if (scr is { HasImage: true }) {
-			ScannedItems.Add(scr);
-
-			// scr.Index = ScannedItems.IndexOf(scr);
-
-			await cw.Writer.WriteAsync(scr, ct);
-			cw.Writer.TryComplete();
-			return true;
-		}*/
-
-		var task = scr.ScanAsync(cw, url => new ScannedResultItem(url, this), ct);
-
-		while (await cw.Reader.WaitToReadAsync(ct)) {
-			var val = await cw.Reader.ReadAsync(ct);
-
-			ScannedItems.Add((ScannedResultItem) val);
-		}
-
-		var ok = await task;
-
-		return ok;
-	}
-
 	[MNNW(true, nameof(Thumbnail))]
 	public async ValueTask<bool> LoadThumbnailAsync(CancellationToken ct = default)
 	{
@@ -265,7 +218,7 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 
 #endregion
 
-	
+
 	public virtual bool TryCalculateSimilarity(IHashable hashable)
 	{
 		Similarity = CompareHash.Calculate(this, hashable);
@@ -280,11 +233,6 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 		s_logger.LogDebug("Disposing {Item} of {Name}", Url, Root.Engine.Name);
 		ThumbnailImage?.Dispose();
 
-		foreach (var item in ScannedItems) {
-			item.Dispose();
-		}
-
-		ScannedItems.Clear();
 	}
 
 	protected virtual bool PrintMembers(StringBuilder builder)

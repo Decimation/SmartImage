@@ -180,4 +180,7 @@
   <data name="Yandex_Hdr_AcceptLanguage" xml:space="preserve">
     <value>zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7</value>
   </data>
+  <data name="Sel_SauceNao_Result" xml:space="preserve">
+    <value>//div[@class='result']</value>
+  </data>
 </root>

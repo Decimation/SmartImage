@@ -47,7 +47,6 @@ public abstract class ParsedSearchEngine<TItem, TData, TSource> : BaseSearchEngi
 		res.ResponseStatus = SearchResponseStatus.Success;
 
 	ret:
-		res.Update();
 
 		if (src is IDisposable di) {
 			di.Dispose();

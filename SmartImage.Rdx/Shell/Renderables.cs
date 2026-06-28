@@ -42,7 +42,6 @@ internal static class Renderables
 
 	}
 
-
 	extension(IResultItem sri)
 	{
 
@@ -69,19 +68,7 @@ internal static class Renderables
 
 			var elems = sri.GetMainRows(false).ToList();
 
-			var elemNames = new[]
-			{
-				nameof(sri.Character),
-				nameof(sri.Source),
-				nameof(sri.Description),
-				nameof(sri.Site),
-				nameof(sri.Title)
-			};
-
-			/*var fields = sri.GetType().GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public)
-			.Where(x => x.GetValue(sri) != null);*/
-
-			elems.AddRange(sri.GetElementProperties(elemNames));
+			elems.AddRange(sri.GetElementProperties(s_itemInfoGridNames));
 
 			if (elems.Count % 2 != 0) {
 				elems.Add(ElementUtility.Txt_NA);
@@ -135,22 +122,14 @@ internal static class Renderables
 			var grid = new Grid();
 			grid.AddColumns(2);
 
-			var inteer    = new[] { typeof(IResultItem), typeof(ISimilarity), typeof(IHashable), typeof(IResultMetadata), typeof(IUniImage) };
-			var interProp = inteer.Select(x => x.GetProperties()).Distinct();
-
 			var properties = sri.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
 			                    .Where(static p => !p.IsCalculated())
-			                    .Where(static x =>
-			                    {
-				                    return x.Name is not (nameof(SearchResultItem.ScannedItems) or nameof(SearchResultItem.IsRaw)
-					                           or nameof(ScannedResultItem.Width) or nameof(ScannedResultItem.Height)
-					                           or nameof(SearchResultItem.Metadata) or nameof(SearchResultItem.Parent));
-			                    });
+			                    .Where(static x => Array.IndexOf(s_extGridNameBlacklist, x.Name) == -1);
 
 			foreach (var property in properties) {
 				var propVal = property.GetValue(sri);
 
-				if (propVal is string s && String.IsNullOrWhiteSpace(s) || (ObjectUtility.IsNullable(propVal) && propVal == null)) {
+				if (propVal == null || (propVal is string s && String.IsNullOrWhiteSpace(s))) {
 					continue;
 				}
 
@@ -170,11 +149,13 @@ internal static class Renderables
 			foreach (string name in propNames) {
 				var prop = sri.GetType().GetProperty(name, OPTIONS);
 
-				if (prop is { }) {
-					var val = prop.GetValue(sri);
+				var propVal = prop?.GetValue(sri);
 
-					yield return RU.AsRenderable(val);
+				if (propVal == null || (propVal is string s && String.IsNullOrWhiteSpace(s))) {
+					continue;
 				}
+
+				yield return RU.AsRenderable(propVal);
 			}
 		}
 
@@ -190,15 +171,9 @@ internal static class Renderables
 
 	public static SpcTable CreateOverviewTable()
 	{
-		var col = new TableColumn[]
-		{
-			new(new Text("Engine", Elements.Sty_ResultHeader)),
-			new(new Text("Results", Elements.Sty_ResultHeader)),
-		};
-
 		SpcTable tb = CreateEmptyResultTable();
 
-		tb.AddColumns(col);
+		tb = tb.AddColumns(s_overviewTableColumns);
 		tb = tb.Centered();
 
 		return tb;
@@ -217,19 +192,9 @@ internal static class Renderables
 
 	public static SpcTable CreateResultTable()
 	{
-		var col = new TableColumn[]
-		{
-			new(new Text("Result", Elements.Sty_ResultHeader)),
-			new(new Text("URL", Elements.Sty_ResultHeader)),
-			new(new Text("Similarity", Elements.Sty_ResultHeader)),
-			new(new Text("Artist", Elements.Sty_ResultHeader)),
-			new(new Text("Resolution", Elements.Sty_ResultHeader)),
-
-		};
-
 		var tb = CreateEmptyResultTable();
 
-		tb.AddColumns(col);
+		tb = tb.AddColumns(s_resultTableColumns);
 
 		return tb;
 	}
@@ -240,7 +205,7 @@ internal static class Renderables
 		var dt = new Grid();
 		dt.AddColumns(2);
 
-		dt.AddRow(new Text("Query", Elements.Sty_Grid1), new Text(Markup.Escape(query.Source.Value),new Style(link: query.Source.Value)));
+		dt.AddRow(new Text("Query", Elements.Sty_Grid1), new Text(Markup.Escape(query.Source.Value), new Style(link: query.Source.Value)));
 		dt.AddRow(new Text("Query Format", Elements.Sty_Grid1), new Text($"({query.Source.Type}) {query.Source.ImageFormat.Name}"));
 		dt.AddRow(new Text("Upload", Elements.Sty_Grid1), new Text($"{query.Upload}", new Style(link: query.Upload.Url)));
 
@@ -267,11 +232,6 @@ internal static class Renderables
 			dt.AddRow(kR, RU.AsRenderable(o));
 		}
 
-
-		// Render the layout
-		// AnsiConsole.Write(layout);
-
-
 		return dt;
 	}
 
@@ -279,26 +239,73 @@ internal static class Renderables
 	{
 		var gr = new Grid();
 		gr.AddColumns(2);
-
-		var rows = new IRenderable[]
-		{
-			new Text("User", Elements.Sty_Grid1), new Text($"{Environment.UserName} / {FileSystem.IsRoot}"),
-			new Text("Version", Elements.Sty_Grid1), new Text($"{Program.Version}"),
-			new Text("Runtime", Elements.Sty_Grid1), new Text($"{Environment.OSVersion} / {Environment.Version}"),
-			new Text("Location", Elements.Sty_Grid1), new TextPath(BaseOSIntegration.Executable)
-		};
-
-		gr.AddRowsByChunk(2, rows);
+		gr.AddRowsByChunk(2, s_envGridRows);
 
 		return gr;
 	}
 
 #endregion
 
+#region Renderable Elements
+
+	private static readonly string[] s_extGridNameBlacklist =
+	[
+		nameof(SearchResult.ScannedItems),
+		nameof(IResultItem.IsRaw),
+		nameof(IImage.Width),
+		nameof(IImage.Height),
+		nameof(SearchResultItem.Metadata),
+		nameof(ISubResultItem.Parent)
+
+	];
+
+	private static readonly Type[] s_extGridTypes =
+	[
+		typeof(IResultItem),
+		typeof(ISimilarity),
+		typeof(IHashable),
+		typeof(IResultMetadata),
+		typeof(IUniImage)
+	];
+
+	private static readonly string[] s_itemInfoGridNames =
+	[
+		nameof(IResultMetadata.Character),
+		nameof(IResultMetadata.Source),
+		nameof(IResultMetadata.Description),
+		nameof(IResultMetadata.Site),
+		nameof(IResultMetadata.Title)
+	];
+
+	private static readonly TableColumn[] s_resultTableColumns = new TableColumn[]
+	{
+		new(new Text("Result", Elements.Sty_ResultHeader)),
+		new(new Text("URL", Elements.Sty_ResultHeader)),
+		new(new Text("Similarity", Elements.Sty_ResultHeader)),
+		new(new Text("Artist", Elements.Sty_ResultHeader)),
+		new(new Text("Resolution", Elements.Sty_ResultHeader)),
+
+	};
+
+	private static readonly IRenderable[] s_envGridRows = new IRenderable[]
+	{
+		new Text("User", Elements.Sty_Grid1), new Text($"{Environment.UserName} / {FileSystem.IsRoot}"),
+		new Text("Version", Elements.Sty_Grid1), new Text($"{Program.Version}"),
+		new Text("Runtime", Elements.Sty_Grid1), new Text($"{Environment.OSVersion} / {Environment.Version}"),
+		new Text("Location", Elements.Sty_Grid1), new TextPath(BaseOSIntegration.Executable)
+	};
+
+	private static readonly TableColumn[] s_overviewTableColumns = new TableColumn[]
+	{
+		new(new Text("Engine", Elements.Sty_ResultHeader)),
+		new(new Text("Results", Elements.Sty_ResultHeader)),
+	};
+
+#endregion
+
 }
 
 /// <summary>
-/// <see cref="Renderables.GetResultRow"/>
 /// <see cref="Renderables.GetItemRow"/>
 /// </summary>
 internal enum ResultRowIndex

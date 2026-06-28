@@ -3,8 +3,11 @@ using Kantan.Diagnostics;
 using SmartImage.Lib.Utilities;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading.Channels;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Engines.Search.Base;
+using SmartImage.Lib.Images.Uni;
 
 namespace SmartImage.Lib.Engines.Results;
 
@@ -34,13 +37,6 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	[JI]
 	public bool HasResults => !ResultsFlags.HasFlagFast(SearchResultsFlags.NoResults);
 
-	/// <summary>
-	/// Results; first element should be <see cref="RawResultItem"/>
-	/// </summary>
-	[NN]
-	public List<IResultItem> Results { get; }
-
-
 	[CBN]
 	public string ErrorMessage { get; internal set; }
 
@@ -51,8 +47,20 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	[CBN]
 	public string Overview { get; internal set; }
 
+	/// <summary>
+	/// Results
+	/// </summary>
+	/// <remarks>First element should be <see cref="RawResultItem"/></remarks>
+	[NN]
+	public List<IResultItem> Results { get; }
+
+	public List<IResultItem> ScannedItems { get; }
+
 	[JI]
 	public SearchResultItem RawResultItem { get; }
+
+	[MNNW(true, nameof(ScannedItems))]
+	public bool HasScannedItems => ScannedItems is { Count: > 0 };
 
 	internal SearchResult(BaseSearchEngine bse, Url rawUrl)
 	{
@@ -63,16 +71,32 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 			Url = rawUrl
 		};
 
-		Results = [RawResultItem];
+		Results      = [RawResultItem];
+		ScannedItems = [];
 	}
 
-	public virtual void Update()
+	public virtual async ValueTask<bool> ScanAsync(IResultItem item, CancellationToken ct = default)
 	{
-		if (ResponseStatus == SearchResponseStatus.None) { }
-
-		if (ResponseStatus.IsError()) {
-			return;
+		//todo
+		if (ScannedItems.Contains(item)) {
+			return true;
 		}
+
+		var cw = Channel.CreateUnbounded<IUniImage>();
+
+		var scr = await ScannedResultItem.FromSourceAsync(item, ct: ct);
+
+		var task = scr.ScanAsync(cw, url => new ScannedResultItem(url, item), ct);
+
+		while (await cw.Reader.WaitToReadAsync(ct)) {
+			var val = await cw.Reader.ReadAsync(ct);
+
+			ScannedItems.Add((ScannedResultItem) val);
+		}
+
+		var ok = await task;
+
+		return ok;
 	}
 
 
@@ -130,4 +154,3 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	}
 
 }
-

@@ -89,8 +89,6 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 			}
 		}
 
-		sr.Update();
-
 		return sr;
 	}
 

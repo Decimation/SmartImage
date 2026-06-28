@@ -259,19 +259,19 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					continue;
 				}
 
-				if (cmd == R2.Chc_Scan && !item.IsChild && sri is not { HasScannedItems: true }) {
+				if (cmd == R2.Chc_Scan && item is not ISubResultItem { IsChild: true }) {
 					await AnsiConsole.Live(srTable).StartAsync(async f =>
 					{
 						s_logger.LogTrace("Scanning {Item}", sri);
 						bool scannedOk = false;
-						scannedOk = await sri.ScanAsync(m_ctsRun.Token);
+						scannedOk = await sri.Root.ScanAsync(sri, m_ctsRun.Token);
 
 						if (!scannedOk) {
 							return;
 						}
 
-						for (int i = 0; i < sri.ScannedItems.Count; i++) {
-							IResultItem scnItm = sri.ScannedItems[i];
+						for (int i = 0; i < sr.ScannedItems.Count; i++) {
+							IResultItem scnItm = sr.ScannedItems[i];
 							scnItm.TryCalculateSimilarity(Query.Source);
 
 							var scnRow = scnItm.GetItemRow(sel.ItemIdx, i);
@@ -339,7 +339,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				}
 
 				// todo: wip
-				if (cmd == R2.Chc_GalleryDl && !item.IsChild && sri is not { HasScannedItems: true }) {
+				if (cmd == R2.Chc_GalleryDl && item is not ISubResultItem { IsChild: true }) {
 					var ch      = Channel.CreateUnbounded<Url>();
 					var gdlTask = ImageScanner.RunGalleryDLAsync(item.Url, ch.Writer, ct);
 
@@ -350,8 +350,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 							var scn = await ScannedResultItem.FromSourceAsync(res, sri, ct: ct);
 
 							if (scn != null) {
-								sri.ScannedItems.Add(scn);
-
+								sr.ScannedItems.Add(scn);
 							}
 						}
 					}

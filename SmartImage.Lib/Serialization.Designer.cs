@@ -214,6 +214,15 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to //div[@class=&apos;result&apos;].
+        /// </summary>
+        internal static string Sel_SauceNao_Result {
+            get {
+                return ResourceManager.GetString("Sel_SauceNao_Result", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to a.
         /// </summary>
         internal static string Tag_a {
