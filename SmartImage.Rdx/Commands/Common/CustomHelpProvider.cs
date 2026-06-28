@@ -32,15 +32,15 @@ internal class CustomHelpProvider : HelpProvider
 
 	public override IEnumerable<IRenderable> GetDescription(ICommandModel model, ICommandInfo? command)
 	{
-		return new[]
-		{
+		return
+		[
 			Text.NewLine,
 			new Text("DESCRIPTION:", new Style(SpcColor.Yellow, decoration: Decoration.Bold)), Text.NewLine,
-			new Text($"    Homepage: {R1.Url_Repo}", new Style(link: R1.Url_Repo)), Text.NewLine,
-			new Text($"    Wiki: {R1.Url_Wiki}", new Style(link: R1.Url_Wiki)), Text.NewLine,
+			new Text($"\tHomepage: [link]{R1.Url_Repo}[/]"), Text.NewLine,
+			new Text($"\tWiki: [link]{R1.Url_Wiki}[/]"), Text.NewLine,
 			Text.NewLine,
-			Text.NewLine,
-		};
+			Text.NewLine
+		];
 	}
 
 	public override IEnumerable<IRenderable> GetFooter(ICommandModel model, ICommandInfo? command)

@@ -4,7 +4,6 @@
 global using SysColor = System.Drawing.Color;
 global using SpcColor = Spectre.Console.Color;
 global using ImsColor = SixLabors.ImageSharp.Color;
-global using AngColor = AngleSharp.Css.Values.Color;
 using SmartImage.Lib.Engines;
 using Spectre.Console;
 

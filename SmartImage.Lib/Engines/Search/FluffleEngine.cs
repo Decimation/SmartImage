@@ -1,6 +1,5 @@
 ﻿using System.Net.Http.Headers;
 using System.Net.Mime;
-using AngleSharp.Css.Values;
 using Argon;
 using Flurl.Http;
 using Microsoft.Net.Http.Headers;

@@ -1,7 +1,14 @@
 ﻿// Author: Deci | Project: SmartImage.Rdx | Name: Renderables.cs
 // Date: 2025/12/27 @ 22:12:49
 
+#region 
+
 global using SizeIS = SixLabors.ImageSharp.Size;
+using RU = Kantan.Console.RenderableUtility;
+using EU = Kantan.Console.ElementUtility;
+
+#endregion
+
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
@@ -22,7 +29,7 @@ using SmartImage.Lib.Utilities.Integration;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 using Kantan.Console;
-using RU = Kantan.Console.RenderableUtility;
+
 
 namespace SmartImage.Rdx.Shell;
 
@@ -44,13 +51,13 @@ internal static class Renderables
 
 	}
 
-	extension(IImage img)
+	extension(IDimensions dim)
 	{
 
-		public IRenderable GetResolution()
+		public IRenderable GetDimensions()
 		{
 			// ReSharper disable PossibleInvalidOperationException
-			return img.HasDimensions ? new Text($"{img.Width}{Strings.Constants.MUL_SIGN}{img.Height}") : ElementUtility.Txt_NA;
+			return dim.HasDimensions ? new Text($"{dim.Width}{Strings.Constants.MUL_SIGN}{dim.Height}") : ElementUtility.Txt_NA;
 		}
 
 	}
@@ -60,14 +67,14 @@ internal static class Renderables
 	extension(IResultItem sri)
 	{
 
-		public IRenderable GetResolution()
-			=> ((IImage) sri).GetResolution();
+		/*public IRenderable GetDimensions()
+			=> ((IImage) sri).GetDimensions();*/
 
 		public IRenderable GetSimilarity()
 			=> RU.AsRenderable(sri.Similarity);
 
 		public IRenderable GetUrl()
-			=> Url.IsValid(sri.Url) ? new Text(Markup.Escape(sri.Url), new Style(link: sri.Url)) : ElementUtility.Txt_NA;
+			=> Url.IsValid(sri.Url) ? new Markup($"[link]{sri.Url}[/]") : ElementUtility.Txt_NA;
 
 		public Grid GetItemInfoGrid()
 		{
@@ -108,7 +115,7 @@ internal static class Renderables
 
 			var sim    = sri.GetSimilarity();
 			var artist = RU.AsRenderable(sri.Artist);
-			var wh     = sri.GetResolution();
+			var wh     = sri.GetDimensions();
 			var url    = sri.GetUrl();
 
 			return [name, url, sim, artist, wh];
@@ -118,9 +125,9 @@ internal static class Renderables
 		public IList<IRenderable> GetItemRow(int idx, int subIdx)
 		{
 			var result = sri.Root;
-			var style  = new Style(link: sri.Url, foreground: result.Engine.Option.GetColor());
-			var name   = new Text($"#{idx}.{subIdx}", style);
-
+			var style  = new Style(foreground: result.Engine.Option.GetColor());
+			var name   = new Markup($"[link={sri.Url}]#{idx}.{subIdx}[/]", style);
+			
 			var rows = sri.GetMainRows(false);
 			rows[0] = name;
 			return rows;
@@ -147,7 +154,7 @@ internal static class Renderables
 				grid.AddRow(new Text($"{property.Name}", Elements.Sty_ResultHeader), render);
 			}
 
-			grid.AddRow(new Text("Resolution", Elements.Sty_ResultHeader), sri.GetResolution());
+			grid.AddRow(new Text("Resolution", Elements.Sty_ResultHeader), sri.GetDimensions());
 
 			return grid;
 		}
@@ -178,7 +185,6 @@ internal static class Renderables
 		SpcTable tb = CreateEmptyResultTable();
 
 		tb = tb.AddColumns(Elements.s_overviewTableColumns);
-		tb = tb.Centered();
 
 		return tb;
 	}
@@ -209,10 +215,11 @@ internal static class Renderables
 		var dt = new Grid();
 		dt.AddColumns(2);
 
-		dt.AddRow(new Text("Query", Elements.Sty_Grid1), new Text(Markup.Escape(query.Source.Value), new Style(link: query.Source.Value)));
+		dt.AddRow(new Text("Query", Elements.Sty_Grid1), new Markup($"[link]{query.Source.Value}[/]"));
 		dt.AddRow(new Text("Query Format", Elements.Sty_Grid1), new Text($"({query.Source.Type}) {query.Source.ImageFormat.Name}"));
-		dt.AddRow(new Text("Upload", Elements.Sty_Grid1), new Text($"{query.Upload}", new Style(link: query.Upload.Url)));
-
+		dt.AddRow(new Text("Upload", Elements.Sty_Grid1), new Markup($"[link={query.Upload.Url}]{query.Upload}[/]"));
+		
+		
 		var kv = new Dictionary<object, object>
 		{
 			[R1.S_SearchEngines]   = cfg.SearchEngines,
@@ -230,7 +237,8 @@ internal static class Renderables
 				kR = txt;
 			}
 			else {
-				kR = new Text(s?.ToString(), Elements.Sty_Grid1);
+
+				kR = String.IsNullOrWhiteSpace(s?.ToString()) ? ElementUtility.Txt_NA : new Text(s.ToString() ?? String.Empty);
 			}
 
 			dt.AddRow(kR, RU.AsRenderable(o));

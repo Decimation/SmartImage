@@ -1,6 +1,5 @@
 ﻿using Flurl.Http;
 using Flurl.Http.Content;
-using Microsoft.Identity.Client;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Images.Uni;

@@ -14,7 +14,6 @@ using SmartImage.Lib.Utilities.Integration;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Rendering;
-using AnsiConsoleExtensions = Spectre.Console.Advanced.AnsiConsoleExtensions;
 using Kantan.Console;
 using SmartImage.Lib.Engines.Search.Base;
 

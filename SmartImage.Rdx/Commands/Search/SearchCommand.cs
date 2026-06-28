@@ -119,7 +119,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		}
 	}
 
-	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings, CancellationToken cancellationToken)
+	protected override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings, CancellationToken cancellationToken)
 	{
 		InitConfig(settings);
 
@@ -408,7 +408,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		args.Cancel = true;
 	}
 
-	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
+	protected override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
 	{
 		var r = base.Validate(context, settings);
 		return r;

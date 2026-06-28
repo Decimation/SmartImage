@@ -6,7 +6,6 @@
 #nullable disable
 #pragma warning disable CS0168 // Variable is declared but never used
 
-using AngleSharp.Css.Values;
 using CoenM.ImageHash;
 using Microsoft.Extensions.Logging;
 using Microsoft.IO;
