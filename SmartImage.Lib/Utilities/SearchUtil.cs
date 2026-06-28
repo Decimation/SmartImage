@@ -3,20 +3,11 @@ using System.Text.Json;
 using Flurl.Http.Content;
 using Kantan.Net.Utilities;
 using Microsoft.Net.Http.Headers;
-using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Utilities;
 
 public static class SearchUtil
 {
-
-	extension(SearchResponseFlags s)
-	{
-
-		public bool IsError() => s is SearchResponseFlags.Unknown or SearchResponseFlags.IllegalInput
-			                         or SearchResponseFlags.Unavailable or SearchResponseFlags.Cooldown;
-
-	}
 
 	internal static bool TryParseIndex<T>(this IList<T> col, string s, out int i, out T val)
 	{
@@ -30,19 +21,24 @@ public static class SearchUtil
 		return false;
 	}
 
-	public static CapturedMultipartContent TrimQuotesFromContentTypeBoundary(this CapturedMultipartContent content)
+	extension(CapturedMultipartContent content)
 	{
-		var contentType = content.Headers.ContentType?.ToString();
 
-		if (contentType == null) {
+		public CapturedMultipartContent TrimQuotesFromContentTypeBoundary()
+		{
+			var contentType = content.Headers.ContentType?.ToString();
+
+			if (contentType == null) {
+				return content;
+			}
+
+			content.Headers.Remove(HeaderNames.ContentType);
+			var fixedContentType = new string(contentType.Where(static x => x != '\"').Select(static x => x).ToArray());
+			content.Headers.TryAddWithoutValidation(HeaderNames.ContentType, fixedContentType);
+
 			return content;
 		}
 
-		content.Headers.Remove(HeaderNames.ContentType);
-		var fixedContentType = new string(contentType.Where(static x => x != '\"').Select(static x => x).ToArray());
-		content.Headers.TryAddWithoutValidation(HeaderNames.ContentType, fixedContentType);
-
-		return content;
 	}
 
 	internal static readonly JsonSerializerOptions DefaultSerializerOptions = new()

@@ -21,9 +21,6 @@ internal static class AppSupport
 
 	internal static readonly ILoggerFactory Factory = LoggerFactory.Create(static builder =>
 	{
-/*
- * AddDebug()
- */
 		builder.AddProvider(new DebugLoggerProvider())
 		       .SetMinimumLevel(LogLevel.Trace);
 	});

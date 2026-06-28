@@ -37,6 +37,7 @@ public enum SearchResponseFlags
 
 	NoResults = 1 << 4,
 
-	Unknown = 1 << 5
+	Unknown = 1 << 5,
 
+	Error =  IllegalInput | Unavailable | Unknown
 }

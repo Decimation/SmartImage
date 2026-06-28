@@ -276,17 +276,17 @@ internal static class Renderables
 		typeof(IResultItem),
 		typeof(ISimilarity),
 		typeof(IHashable),
-		typeof(IResultMetadata),
+		typeof(IMetadata),
 		typeof(IUniImage)
 	];
 
 	private static readonly string[] s_itemInfoGridNames =
 	[
-		nameof(IResultMetadata.Character),
-		nameof(IResultMetadata.Source),
-		nameof(IResultMetadata.Description),
-		nameof(IResultMetadata.Site),
-		nameof(IResultMetadata.Title)
+		nameof(IMetadata.Character),
+		nameof(IMetadata.Source),
+		nameof(IMetadata.Description),
+		nameof(IMetadata.Site),
+		nameof(IMetadata.Title)
 	];
 
 	private static readonly IRenderable[] s_envGridRows =

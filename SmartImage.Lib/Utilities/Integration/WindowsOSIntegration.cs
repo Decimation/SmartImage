@@ -158,7 +158,7 @@ public sealed class WindowsOSIntegration : BaseOSIntegration
 
 		string data = null;
 
-		foreach ((ClipboardFormat fmt, Func<string> fn) in _clipboardFormatFunctions) {
+		foreach ((ClipboardFormat fmt, Func<string> fn) in s_cbFormatFunctions) {
 			if (Clipboard.IsFormatAvailable((uint) fmt)) {
 				var dataClip = fn();
 
@@ -174,7 +174,7 @@ public sealed class WindowsOSIntegration : BaseOSIntegration
 		return data;
 	}
 
-	private static readonly Dictionary<ClipboardFormat, Func<string>> _clipboardFormatFunctions = new()
+	private static readonly Dictionary<ClipboardFormat, Func<string>> s_cbFormatFunctions = new()
 	{
 		{ ClipboardFormat.FileNameW, Clipboard.GetFileName },
 		{ ClipboardFormat.CF_TEXT, static () => Clipboard.GetData((uint) ClipboardFormat.CF_TEXT).ToString() },

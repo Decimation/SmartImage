@@ -38,8 +38,7 @@ public sealed class LinuxOSIntegration : BaseOSIntegration
 	public override bool? HandleContextMenu(bool option, string args)
 	{
 		if (!FileSystem.IsRoot) {
-			throw new SmartImageException("Root permissions required");
-
+			return null;
 		}
 
 		args ??= R1.Linux_Launch_Args;
@@ -55,7 +54,6 @@ public sealed class LinuxOSIntegration : BaseOSIntegration
 			              Exec={Environment.ProcessPath} {args}
 			              """;
 			File.WriteAllText(DesktopFile, dsk);
-
 		}
 		else {
 			if (IsContextMenuAdded) {
