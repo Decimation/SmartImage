@@ -5,7 +5,7 @@ using FlareSolverrSharp;
 using FlareSolverrSharp.Solvers;
 using FlareSolverrSharp.Types;
 using Microsoft.Extensions.Logging;
-using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Clients;

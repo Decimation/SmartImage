@@ -479,3 +479,4 @@ SmartImage.UI/Properties/*
 *.png
 *.gif
 /SmartImage.Lib.UnitTest/TestResponses/GoogleLensResponse1.html
+/SmartImage.Rdx/GlobalSuppressions.cs

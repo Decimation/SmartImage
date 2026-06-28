@@ -80,7 +80,7 @@ public partial class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 
 }
 
-public record ChanPost : SearchResultItem, IParseableResult<INode, ChanPost>
+public record ChanPost : SearchResultItem, IParseableResultItem<INode, ChanPost>
 {
 
 	public string Board { get; private set; }

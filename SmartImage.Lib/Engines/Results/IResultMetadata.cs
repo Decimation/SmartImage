@@ -5,37 +5,43 @@ using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Results;
 
-public interface IResultMetadata : ISize
+public interface IResultMetadata : IDimensions
 {
 
 	/// <summary>
 	/// Title/caption of this result
 	/// </summary>
+	[MN]
 	string Title { get; }
 
 	/// <summary>
 	/// Media source of this result (e.g., anime, movie, game, etc.)
 	/// </summary>
+	[MN]
 	string Source { get; }
 
 	/// <summary>
 	/// Artist or author
 	/// </summary>
+	[MN]
 	string Artist { get; }
 
 	/// <summary>
 	///     Image description
 	/// </summary>
+	[MN]
 	string Description { get; }
 
 	/// <summary>
 	/// Character(s) depicted in the image
 	/// </summary>
+	[MN]
 	string Character { get; }
 
 	/// <summary>
 	/// Site which returned this result
 	/// </summary>
+	[MN]
 	string Site { get; }
 
 	/// <summary>

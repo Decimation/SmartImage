@@ -13,6 +13,7 @@ using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search.Base;
+using SmartImage.Lib.Model;
 
 // ReSharper disable PossibleNullReferenceException
 // ReSharper disable PropertyCanBeMadeInitOnly.Local
@@ -58,13 +59,13 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 		// var result = await base.GetResultAsync(query, token);
 		var b = VerifyQuery(query);
 
-		var srs = b ? SearchResponseStatus.None : SearchResponseStatus.IllegalInput;
+		var srs = b ? SearchResponseFlags.None : SearchResponseFlags.IllegalInput;
 
 		var rawUrl = GetRawUrl(query);
 
 		var result = new SearchResult(this, rawUrl)
 		{
-			ResponseStatus = srs,
+			ResponseFlags = srs,
 		};
 
 		if (UsingAPI) {
@@ -77,7 +78,7 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 
 			var src = await GetSourceAsync(result, query, ct).ConfigureAwait(false);
 
-			if (src is not null && result is not { ResponseStatus: SearchResponseStatus.Cooldown }) {
+			if (src is not null && result is not { ResponseFlags: SearchResponseFlags.Cooldown }) {
 				var source = await ParseDataAsync(src);
 				var items  = await ParseItemsAsync(source, result);
 				result.Results.AddRange(items);
@@ -87,11 +88,11 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 
 		if (!result.HasResults) {
 			result.ErrorMessage   = "Daily search limit (50) exceeded";
-			result.ResponseStatus = SearchResponseStatus.Cooldown;
+			result.ResponseFlags = SearchResponseFlags.Cooldown;
 
 		}
 		else {
-			result.ResponseStatus = SearchResponseStatus.Success;
+			result.ResponseFlags = SearchResponseFlags.Success;
 
 		}
 
@@ -163,9 +164,8 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 
 			Logger.LogWarning("[{Name}] Parsing HTML", Name);
 
-			sr.ResponseStatus = SearchResponseStatus.Cooldown;
+			sr.ResponseFlags = SearchResponseFlags.Cooldown;
 			sr.ErrorMessage   = "On cooldown!";
-			sr.ResultsFlags   = SearchResultsFlags.NoResults;
 			goto ret;
 		}
 

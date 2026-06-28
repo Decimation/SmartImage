@@ -3,9 +3,11 @@
 
 global using SizeIS = SixLabors.ImageSharp.Size;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Flurl;
 using Novus.Runtime;
+using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Model;
 #nullable disable
@@ -42,22 +44,30 @@ internal static class Renderables
 
 	}
 
+	extension(IImage img)
+	{
+
+		public IRenderable GetResolution()
+		{
+			// ReSharper disable PossibleInvalidOperationException
+			return img.HasDimensions ? new Text($"{img.Width}{Strings.Constants.MUL_SIGN}{img.Height}") : ElementUtility.Txt_NA;
+		}
+
+	}
+
+	// todo: select IRenderable objects with an additional layer after selecting object properties
+
 	extension(IResultItem sri)
 	{
 
 		public IRenderable GetResolution()
-			=> sri.HasDimensions ? GetResolution(new SizeIS(sri.Width.Value, sri.Height.Value)) : ElementUtility.Txt_NA;
+			=> ((IImage) sri).GetResolution();
 
-		public IRenderable GetSimilarity() => RU.AsRenderable(sri.Similarity);
+		public IRenderable GetSimilarity()
+			=> RU.AsRenderable(sri.Similarity);
 
 		public IRenderable GetUrl()
-		{
-			if (Url.IsValid(sri.Url)) {
-				return new Text(Markup.Escape(sri.Url), new Style(link: sri.Url));
-			}
-
-			return ElementUtility.Txt_NA;
-		}
+			=> Url.IsValid(sri.Url) ? new Text(Markup.Escape(sri.Url), new Style(link: sri.Url)) : ElementUtility.Txt_NA;
 
 		public Grid GetItemInfoGrid()
 		{
@@ -163,17 +173,11 @@ internal static class Renderables
 
 #region
 
-	public static IRenderable GetResolution(SizeIS sz) => new Text($"{sz.Width}{Strings.Constants.MUL_SIGN}{sz.Height}");
-
-#endregion
-
-#region
-
 	public static SpcTable CreateOverviewTable()
 	{
 		SpcTable tb = CreateEmptyResultTable();
 
-		tb = tb.AddColumns(s_overviewTableColumns);
+		tb = tb.AddColumns(Elements.s_overviewTableColumns);
 		tb = tb.Centered();
 
 		return tb;
@@ -194,7 +198,7 @@ internal static class Renderables
 	{
 		var tb = CreateEmptyResultTable();
 
-		tb = tb.AddColumns(s_resultTableColumns);
+		tb = tb.AddColumns(Elements.s_resultTableColumns);
 
 		return tb;
 	}
@@ -277,29 +281,13 @@ internal static class Renderables
 		nameof(IResultMetadata.Title)
 	];
 
-	private static readonly TableColumn[] s_resultTableColumns = new TableColumn[]
-	{
-		new(new Text("Result", Elements.Sty_ResultHeader)),
-		new(new Text("URL", Elements.Sty_ResultHeader)),
-		new(new Text("Similarity", Elements.Sty_ResultHeader)),
-		new(new Text("Artist", Elements.Sty_ResultHeader)),
-		new(new Text("Resolution", Elements.Sty_ResultHeader)),
-
-	};
-
-	private static readonly IRenderable[] s_envGridRows = new IRenderable[]
-	{
+	private static readonly IRenderable[] s_envGridRows =
+	[
 		new Text("User", Elements.Sty_Grid1), new Text($"{Environment.UserName} / {FileSystem.IsRoot}"),
 		new Text("Version", Elements.Sty_Grid1), new Text($"{Program.Version}"),
 		new Text("Runtime", Elements.Sty_Grid1), new Text($"{Environment.OSVersion} / {Environment.Version}"),
 		new Text("Location", Elements.Sty_Grid1), new TextPath(BaseOSIntegration.Executable)
-	};
-
-	private static readonly TableColumn[] s_overviewTableColumns = new TableColumn[]
-	{
-		new(new Text("Engine", Elements.Sty_ResultHeader)),
-		new(new Text("Results", Elements.Sty_ResultHeader)),
-	};
+	];
 
 #endregion
 

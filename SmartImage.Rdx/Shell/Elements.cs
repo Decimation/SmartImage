@@ -139,7 +139,7 @@ internal static class Elements
 		var table = new SpcTable();
 
 		var columns = GetColumns("Thread", nameof(BaseSearchEngine.Name), nameof(SearchResult.Results),
-		                         nameof(SearchResult.ResponseStatus), nameof(BaseSearchEngine.Timeout));
+		                         nameof(SearchResult.ResponseFlags), nameof(BaseSearchEngine.Timeout));
 
 		table.AddColumns(columns.ToArray());
 		return table;
@@ -157,5 +157,21 @@ internal static class Elements
 
 #endregion
 #endif
+
+	public static readonly TableColumn[] s_resultTableColumns =
+	[
+		new(new Text("Result", Elements.Sty_ResultHeader)),
+		new(new Text("URL", Elements.Sty_ResultHeader)),
+		new(new Text("Similarity", Elements.Sty_ResultHeader)),
+		new(new Text("Artist", Elements.Sty_ResultHeader)),
+		new(new Text("Resolution", Elements.Sty_ResultHeader))
+
+	];
+
+	public static readonly TableColumn[] s_overviewTableColumns =
+	[
+		new(new Text("Engine", Elements.Sty_ResultHeader)),
+		new(new Text("Results", Elements.Sty_ResultHeader))
+	];
 
 }

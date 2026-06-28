@@ -35,7 +35,7 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 	{
 		IFlurlResponse response = null;
 
-		if (sr.ResponseStatus == SearchResponseStatus.IllegalInput) {
+		if (sr.ResponseFlags == SearchResponseFlags.IllegalInput) {
 			// return sr;
 			goto ret;
 		}
@@ -58,21 +58,21 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 			var er = await response.GetJsonAsync<FluffleErrorCode>().ConfigureAwait(false);
 
 			sr.ErrorMessage   = $"{er.Message}: {er.Code}";
-			sr.ResponseStatus = SearchResponseStatus.Unknown;
+			sr.ResponseFlags = SearchResponseFlags.Unknown;
 
 			// return sr;
 			goto ret;
 		}
 
 		if (response == null) {
-			sr.ResponseStatus = SearchResponseStatus.Unknown;
+			sr.ResponseFlags = SearchResponseFlags.Unknown;
 			goto ret;
 		}
 
 		var fr = await response.GetJsonAsync<FluffleResponse>().ConfigureAwait(false);
 		sr.Results.EnsureCapacity(sr.Results.Count + fr.Results.Count);
 		sr.Results.AddRange(fr.Results.Select(result => result.ToItem(sr)));
-		sr.ResponseStatus = SearchResponseStatus.Success;
+		sr.ResponseFlags = SearchResponseFlags.Success;
 
 	ret:
 		response?.Dispose();

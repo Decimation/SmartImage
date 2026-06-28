@@ -4,7 +4,6 @@
 using System.Runtime.Versioning;
 using Novus.OS;
 using SmartImage.Lib.Utilities.Diagnostics;
-using SmartImage.Shared;
 
 // ReSharper disable InconsistentNaming
 

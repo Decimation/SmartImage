@@ -68,7 +68,7 @@ public class TmpFilesEngine : BaseUploadEngine
 
 #region
 
-public class TmpFilesUploadResult : UploadResult, IParseableItem<TmpFilesResponse, IDocument, TmpFilesUploadResult>
+public class TmpFilesUploadResult : UploadResult, IParseableSource<TmpFilesResponse, IDocument, TmpFilesUploadResult>
 {
 
 	public string Status { get; }

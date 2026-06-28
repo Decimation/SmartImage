@@ -6,8 +6,8 @@ using System.Runtime.CompilerServices;
 using Flurl.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
+using SmartImage.Lib;
 using SmartImage.Lib.Cookies;
-using SmartImage.Shared;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search;
 using SmartImage.Lib.Engines.Search.Other;
@@ -85,12 +85,12 @@ public abstract class BaseSearchEngine : INamedEnumOption<SearchEngineOptions>, 
 	{
 		var b = VerifyQuery(query);
 
-		var srs = b ? SearchResponseStatus.None : SearchResponseStatus.IllegalInput;
+		var srs = b ? SearchResponseFlags.None : SearchResponseFlags.IllegalInput;
 
 		var res = GetRawResult(query);
-		res.ResponseStatus = srs;
+		res.ResponseFlags = srs;
 
-		Logger.LogInformation("{Engine} with {Query} returned {Status}", Name, query, res.ResponseStatus);
+		Logger.LogInformation("{Engine} with {Query} returned {Status}", Name, query, res.ResponseFlags);
 
 		return Task.FromResult(res);
 	}

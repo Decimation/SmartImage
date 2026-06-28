@@ -23,7 +23,7 @@ public abstract class ParsedSearchEngine<TItem, TData, TSource> : BaseSearchEngi
 
 		TSource src = default;
 
-		if (res.ResponseStatus == SearchResponseStatus.IllegalInput) {
+		if (res.ResponseFlags == SearchResponseFlags.IllegalInput) {
 			goto ret;
 		}
 
@@ -44,7 +44,7 @@ public abstract class ParsedSearchEngine<TItem, TData, TSource> : BaseSearchEngi
 		}
 
 
-		res.ResponseStatus = SearchResponseStatus.Success;
+		res.ResponseFlags = SearchResponseFlags.Success;
 
 	ret:
 

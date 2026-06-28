@@ -2,12 +2,12 @@
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Cookies;
-using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Engines.Search.Other;
 using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Engines.Upload.Base;
+using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 using System.ComponentModel;
 using System.Configuration;

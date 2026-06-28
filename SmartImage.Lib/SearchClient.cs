@@ -10,6 +10,7 @@ using Flurl;
 using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Engines.Upload.Base;
+using SmartImage.Lib.Model;
 
 #pragma warning disable CS0162, CS2255
 namespace SmartImage.Lib;

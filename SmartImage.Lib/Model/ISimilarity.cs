@@ -3,6 +3,7 @@
 
 using System.Diagnostics.CodeAnalysis;
 using CoenM.ImageHash;
+using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Model;
 
@@ -22,6 +23,11 @@ public interface ISimilarity
 
 		return HasSimilarity;
 	}
+
+	/// <summary>
+	/// Scalar for <see cref="ISimilarity.Similarity"/> when implementing <see cref="IMetadataScore"/>
+	/// </summary>
+	public const double SIMILARITY_SCORE_SCALAR = 0.66D;
 
 }
 

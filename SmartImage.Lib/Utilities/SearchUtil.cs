@@ -10,16 +10,13 @@ namespace SmartImage.Lib.Utilities;
 public static class SearchUtil
 {
 
-	extension(SearchResponseStatus s)
+	extension(SearchResponseFlags s)
 	{
 
-		public bool IsError() => s is SearchResponseStatus.Unknown or SearchResponseStatus.IllegalInput
-			                         or SearchResponseStatus.Unavailable or SearchResponseStatus.Cooldown;
+		public bool IsError() => s is SearchResponseFlags.Unknown or SearchResponseFlags.IllegalInput
+			                         or SearchResponseFlags.Unavailable or SearchResponseFlags.Cooldown;
 
 	}
-
-	public static bool HasFlagFast(this SearchResultsFlags value, SearchResultsFlags status)
-		=> (value & status) != 0;
 
 	internal static bool TryParseIndex<T>(this IList<T> col, string s, out int i, out T val)
 	{

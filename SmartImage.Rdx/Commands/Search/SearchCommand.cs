@@ -36,7 +36,6 @@ using SmartImage.Lib.Utilities.Diagnostics;
 using SmartImage.Lib.Utilities.Integration;
 using SmartImage.Rdx.Commands.Common;
 using SmartImage.Rdx.Shell;
-using SmartImage.Shared;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Rendering;
@@ -160,7 +159,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			await AnsiConsole.ConfirmAsync("Exit", cancellationToken: m_cts.Token);
 		}
 
-		return Shared.Common.EC_OK;
+		return Lib.Common.EC_OK;
 	}
 
 	private async Task RunSearchLiveAsync(LiveDisplayContext c, CancellationToken ct = default)
@@ -262,9 +261,9 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				if (cmd == R2.Chc_Scan && item is not ISubResultItem { IsChild: true }) {
 					await AnsiConsole.Live(srTable).StartAsync(async f =>
 					{
-						s_logger.LogTrace("Scanning {Item}", sri);
+						s_logger.LogTrace("Scanning {Item}", item);
 						bool scannedOk = false;
-						scannedOk = await sri.Root.ScanAsync(sri, m_ctsRun.Token);
+						scannedOk = await item.Root.ScanAsync(item, ct);
 
 						if (!scannedOk) {
 							return;

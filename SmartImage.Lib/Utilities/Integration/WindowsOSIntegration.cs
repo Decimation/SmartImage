@@ -9,7 +9,6 @@ using Novus.OS;
 using Novus.Win32;
 using Novus.Win32.Structures.User32;
 using SmartImage.Lib.Images.Uni;
-using SmartImage.Shared;
 
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming

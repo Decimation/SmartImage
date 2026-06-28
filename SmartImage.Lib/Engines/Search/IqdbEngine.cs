@@ -170,7 +170,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 
 }
 
-public record IqdbItem : SearchResultItem, IParseableResult<IHtmlCollection<IElement>, IqdbItem>
+public record IqdbItem : SearchResultItem, IParseableResultItem<IHtmlCollection<IElement>, IqdbItem>
 {
 
 	private IqdbItem(SearchResult r) : base(r) { }

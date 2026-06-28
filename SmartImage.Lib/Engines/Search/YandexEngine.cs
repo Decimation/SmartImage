@@ -19,6 +19,7 @@ using Microsoft.Net.Http.Headers;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search.Base;
+using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities.Diagnostics;
 
 // ReSharper disable SuggestVarOrType_SimpleTypes
@@ -128,7 +129,7 @@ public sealed class YandexEngine : BaseSearchEngine, ICookiesReceiver, ISearchCo
 		catch (Exception e) {
 			Logger.LogError(e, "Unhandled {Name} error", Name);
 
-			sr.ResponseStatus = SearchResponseStatus.Unknown;
+			sr.ResponseFlags = SearchResponseFlags.Unknown;
 		}
 		finally {
 			res?.Dispose();

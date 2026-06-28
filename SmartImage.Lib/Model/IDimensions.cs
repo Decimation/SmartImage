@@ -1,9 +1,9 @@
-﻿// Author: Deci | Project: SmartImage.Lib | Name: ISize.cs
+﻿// Author: Deci | Project: SmartImage.Lib | Name: IDimensions.cs
 // Date: 2026/02/21 @ 18:02:14
 
 namespace SmartImage.Lib.Model;
 
-public interface ISize
+public interface IDimensions
 {
 
 	/// <summary>
@@ -16,7 +16,7 @@ public interface ISize
 	/// </summary>
 	int? Height { get; set; }
 
-	[MNNW(true, nameof(Width), nameof(Height))]
-	bool HasDimensions => Width.HasValue && Height.HasValue;
+	[MNNW(true, nameof(Width.Value), nameof(Height.Value))]
+	bool HasDimensions => Width is not null && Height is not null;
 
 }

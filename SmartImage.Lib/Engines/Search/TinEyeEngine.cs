@@ -44,7 +44,7 @@ public sealed class TinEyeEngine : BaseSearchEngine
 
 		IFlurlResponse response = null;
 
-		if (sr.ResponseStatus == SearchResponseStatus.IllegalInput) {
+		if (sr.ResponseFlags == SearchResponseFlags.IllegalInput) {
 			goto ret;
 		}
 
@@ -66,12 +66,12 @@ public sealed class TinEyeEngine : BaseSearchEngine
 		catch (Exception e) {
 			// Debugger.Break();
 			Logger.LogError(e, "{Name}", Name);
-			sr.ResponseStatus = SearchResponseStatus.Unknown;
+			sr.ResponseFlags |= SearchResponseFlags.Unknown;
 			goto ret;
 		}
 
 		if (tinEyeRoot?.Matches == null) {
-			sr.ResultsFlags |= SearchResultsFlags.NoResults;
+			sr.ResponseFlags |= SearchResponseFlags.NoResults;
 
 			goto ret;
 		}
@@ -120,7 +120,7 @@ public sealed class TinEyeEngine : BaseSearchEngine
 			sr.Results.Add(resultItem);
 		}
 
-		sr.ResponseStatus = SearchResponseStatus.Success;
+		sr.ResponseFlags = SearchResponseFlags.Success;
 
 	ret:
 		response?.Dispose();

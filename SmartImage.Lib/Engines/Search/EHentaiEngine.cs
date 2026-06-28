@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search.Base;
+using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Search;
 
@@ -135,7 +136,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, ICo
 
 		if (content.Contains("Please wait a bit longer between each file search.")) {
 			// Debug.WriteLine("cooldown", Name);
-			sr.ResponseStatus = SearchResponseStatus.Cooldown;
+			sr.ResponseFlags = SearchResponseFlags.Cooldown;
 
 			return null;
 		}
@@ -274,7 +275,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, ICo
 
 }
 
-public sealed record EhResult : SearchResultItem, IParseableResult<INode, EhResult>
+public sealed record EhResult : SearchResultItem, IParseableResultItem<INode, EhResult>
 {
 
 	public string TypeString { get; private set; }

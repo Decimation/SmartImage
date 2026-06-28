@@ -35,14 +35,12 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	}
 
 	[JI]
-	public bool HasResults => !ResultsFlags.HasFlagFast(SearchResultsFlags.NoResults);
+	public bool HasResults => Results.Any();
 
 	[CBN]
 	public string ErrorMessage { get; internal set; }
 
-	public SearchResponseStatus ResponseStatus { get; internal set; }
-
-	public SearchResultsFlags ResultsFlags { get; internal set; }
+	public SearchResponseFlags ResponseFlags { get; internal set; }
 
 	[CBN]
 	public string Overview { get; internal set; }
@@ -134,7 +132,7 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 
 	public override string ToString()
 	{
-		return $"[{Engine.Name}] {RawUrl} | {Results.Count} | {ResponseStatus} {ErrorMessage}";
+		return $"[{Engine.Name}] {RawUrl} | {Results.Count} | {ResponseFlags} {ErrorMessage}";
 	}
 
 	public void Dispose()

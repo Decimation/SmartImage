@@ -14,13 +14,13 @@ public interface IUniImage : IImage, IDisposable, ILength, IAllocSource
 
 	long? ILength.Length => Bytes?.Length;
 
-	int? ISize.Width
+	int? IDimensions.Width
 	{
 		get => Image?.Width;
 		set { }
 	}
 
-	int? ISize.Height
+	int? IDimensions.Height
 	{
 		get => Image?.Width;
 		set { }

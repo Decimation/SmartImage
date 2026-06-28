@@ -2,6 +2,7 @@
 // Date: 2026/02/28 @ 19:02:49
 
 using System.ComponentModel;
+using System.Numerics;
 using System.Text;
 using System.Threading.Channels;
 using CoenM.ImageHash;
@@ -13,7 +14,8 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Results;
 
-public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, IComparable
+public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, IComparable, IComparisonOperators<SearchResultItem, SearchResultItem, bool>,
+                                 IMetadataScore
 {
 
 	internal SearchResultItem(SearchResult r, bool isRaw = false)
@@ -38,13 +40,11 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 	/// <summary>
 	///     Title/caption of this result
 	/// </summary>
-	[CBN]
 	public string Title { get; internal set; }
 
 	/// <summary>
 	///     Media source of this result (e.g., anime, movie, game, etc.)
 	/// </summary>
-	[CBN]
 	public string Source { get; internal set; }
 
 	/// <summary>
@@ -58,31 +58,27 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 	public int? Height { get; set; }
 
 	[MNNW(true, nameof(Width), nameof(Height))]
-	public bool HasDimensions => Width.HasValue && Height.HasValue;
+	public bool HasDimensions => Width is not null && Height is not null;
 
 	/// <summary>
 	///     Artist or author
 	/// </summary>
-	[CBN]
 	public string Artist { get; internal set; }
 
 	/// <summary>
 	///     Image description
 	/// </summary>
-	[CBN]
 	[JPN("description")]
 	public string Description { get; internal set; }
 
 	/// <summary>
 	///     Character(s) depicted in the image
 	/// </summary>
-	[CBN]
 	public string Character { get; internal set; }
 
 	/// <summary>
 	///     Site which returned this result
 	/// </summary>
-	[CBN]
 	public string Site { get; internal set; }
 
 
@@ -101,12 +97,12 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 	public double? Similarity { get; set; }
 
 	[MNNW(true, nameof(Similarity))]
-	public bool HasSimilarity => Similarity.HasValue;
+	public bool HasSimilarity => Similarity is not null;
 
 	public ulong? Hash { get; internal set; }
 
 	[MNNW(true, nameof(Hash))]
-	public bool HasHash => Hash.HasValue;
+	public bool HasHash => Hash is not null;
 
 	// public int Index => Root.Results.IndexOf(this);
 
@@ -121,21 +117,22 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 	{
 		get
 		{
-			if (IsRaw)
-				return 0;
+			// todo: revise
 
-			var s = 0d;
+			if (IsRaw)
+				return -1;
+
+			double s = 0;
 
 			/*if (this is IImage {HasImage: true}) {
 				s++;
 			}*/
 
-			if (HasHash) {
+			if (HasHash)
 				s++;
-			}
 
-			if (Similarity.HasValue)
-				s += Similarity.Value * 0.66d;
+			if (HasSimilarity)
+				s += (double) Similarity * ISimilarity.SIMILARITY_SCORE_SCALAR;
 
 			if (Url.IsValid(Url))
 				s++;
@@ -143,13 +140,13 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 			if (HasThumbnail)
 				s += 2;
 
-			int?[] ir = [Width, Height];
-			s += ir.Count(static c => c.HasValue);
+			if (HasDimensions)
+				s += 2;
 
 			string[] p = [Title, Source, Artist, Description, Character, Site, ThumbnailTitle];
 			s += p.Count(static c => !String.IsNullOrWhiteSpace(c));
 
-			if (Time.HasValue)
+			if (Time is not null)
 				s++;
 
 			if (Metadata is not null)
@@ -194,10 +191,6 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 
 	[MNNW(true, nameof(Thumbnail), nameof(ThumbnailImage))]
 	public bool HasThumbnail => Url.IsValid(Thumbnail) && ThumbnailImage != null;
-
-#endregion
-
-#region
 
 	[MNNW(true, nameof(Thumbnail))]
 	public async ValueTask<bool> LoadThumbnailAsync(CancellationToken ct = default)

@@ -8,7 +8,7 @@ using SixLabors.ImageSharp.Formats;
 
 namespace SmartImage.Lib.Engines.Results;
 
-public interface IResultItem : IDisposable, ISimilarity, IHashable, IUrl, IResultMetadata, INotifyPropertyChanged
+public interface IResultItem : IResultMetadata, IDisposable, ISimilarity, IHashable, IUrl, INotifyPropertyChanged
 {
 
 	SearchResult Root { get; }

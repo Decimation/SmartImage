@@ -29,7 +29,6 @@ using SmartImage.Rdx.Commands.Common;
 using SmartImage.Rdx.Commands.Integration;
 using SmartImage.Rdx.Commands.Search;
 using SmartImage.Rdx.Commands.Server;
-using SmartImage.Shared;
 
 #pragma warning disable CS8601 // Possible null reference assignment.
 

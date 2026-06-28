@@ -14,6 +14,7 @@ using SmartImage.Lib.Clients;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search.Base;
+using SmartImage.Lib.Model;
 
 // ReSharper disable CognitiveComplexity
 // ReSharper disable IdentifierTypo
@@ -174,7 +175,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 
 }
 
-public record Ascii2DItem : SearchResultItem, IParseableResult<INode, Ascii2DItem>
+public record Ascii2DItem : SearchResultItem, IParseableResultItem<INode, Ascii2DItem>
 {
 
 	public string HashString { get; private set; }

@@ -2,14 +2,14 @@
 // Date: 2026/01/09 @ 17:01:13
 
 using SixLabors.ImageSharp.Formats;
-using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Model;
 
 
 // ReSharper disable UnusedMemberInSuper.Global
 
-namespace SmartImage.Lib.Model;
+namespace SmartImage.Lib.Images;
 
-public interface IImage : ISize, ISimilarity, IHashable
+public interface IImage : IDimensions, ISimilarity, IHashable
 {
 	[MN]
 	IImageFormat ImageFormat => Image?.Metadata.DecodedImageFormat;
