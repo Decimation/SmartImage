@@ -79,6 +79,33 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7.
+        /// </summary>
+        internal static string Hdr_Yandex_Accept {
+            get {
+                return ResourceManager.GetString("Hdr_Yandex_Accept", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to gzip, deflate, br, zstd.
+        /// </summary>
+        internal static string Hdr_Yandex_AcceptEncoding {
+            get {
+                return ResourceManager.GetString("Hdr_Yandex_AcceptEncoding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7.
+        /// </summary>
+        internal static string Hdr_Yandex_AcceptLanguage {
+            get {
+                return ResourceManager.GetString("Hdr_Yandex_AcceptLanguage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to //*[contains(@class, &apos;info-box&apos;)].
         /// </summary>
         internal static string S_Ascii2D_Images {
@@ -138,6 +165,15 @@ namespace SmartImage.Lib {
         internal static string S_Iqdb_Table {
             get {
                 return ResourceManager.GetString("S_Iqdb_Table", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to //div[@class=&apos;result&apos;].
+        /// </summary>
+        internal static string S_SauceNao_Result {
+            get {
+                return ResourceManager.GetString("S_SauceNao_Result", resourceCulture);
             }
         }
         
@@ -214,47 +250,11 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to //div[@class=&apos;result&apos;].
-        /// </summary>
-        internal static string Sel_SauceNao_Result {
-            get {
-                return ResourceManager.GetString("Sel_SauceNao_Result", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to a.
         /// </summary>
         internal static string Tag_a {
             get {
                 return ResourceManager.GetString("Tag_a", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7.
-        /// </summary>
-        internal static string Yandex_Hdr_Accept {
-            get {
-                return ResourceManager.GetString("Yandex_Hdr_Accept", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to gzip, deflate, br, zstd.
-        /// </summary>
-        internal static string Yandex_Hdr_AcceptEncoding {
-            get {
-                return ResourceManager.GetString("Yandex_Hdr_AcceptEncoding", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7.
-        /// </summary>
-        internal static string Yandex_Hdr_AcceptLanguage {
-            get {
-                return ResourceManager.GetString("Yandex_Hdr_AcceptLanguage", resourceCulture);
             }
         }
     }

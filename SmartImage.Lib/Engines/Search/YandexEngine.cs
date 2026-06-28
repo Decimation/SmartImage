@@ -83,9 +83,9 @@ public sealed class YandexEngine : BaseSearchEngine, ICookiesReceiver, ISearchCo
 			                .WithCookies(Jar)
 			                .WithTimeout(Timeout);
 
-			req.Headers.AddOrReplace(HeaderNames.Accept, Serialization.Yandex_Hdr_Accept);
-			req.Headers.AddOrReplace(HeaderNames.AcceptEncoding, Serialization.Yandex_Hdr_AcceptEncoding);
-			req.Headers.AddOrReplace(HeaderNames.AcceptLanguage, Serialization.Yandex_Hdr_AcceptLanguage);
+			req.Headers.AddOrReplace(HeaderNames.Accept, Serialization.Hdr_Yandex_Accept);
+			req.Headers.AddOrReplace(HeaderNames.AcceptEncoding, Serialization.Hdr_Yandex_AcceptEncoding);
+			req.Headers.AddOrReplace(HeaderNames.AcceptLanguage, Serialization.Hdr_Yandex_AcceptLanguage);
 
 			res = await req.GetAsync(cancellationToken: ct);
 

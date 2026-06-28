@@ -106,7 +106,7 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 
 	protected override ValueTask<IList<INode>> ParseDataAsync(IDocument src)
 	{
-		var results = src.Body.SelectNodes(Serialization.Sel_SauceNao_Result);
+		var results = src.Body.SelectNodes(Serialization.S_SauceNao_Result);
 
 		return ValueTask.FromResult<IList<INode>>(results);
 	}

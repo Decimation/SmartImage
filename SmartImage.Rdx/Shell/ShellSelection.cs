@@ -70,7 +70,11 @@ internal record ShellSelection
 	public int Index2()
 	{
 
-		var rg = ItemIdx + Item.Root.Results[..ItemIdx].OfType<SearchResultItem>().Sum(x => x.Root.ScannedItems.Count);
+		var rg = ItemIdx + Item.Root.Results[..ItemIdx].OfType<SearchResultItem>().Sum(x =>
+		{
+
+			return x.Root.ScannedItems.Count;
+		});
 
 		var sumIdx  = rg + ScanIdx + (IsScannedItem ? ((ScanIdx == 0) ? 1 : 0) : 0);
 		var sumIdx2 = rg + ScanIdx + (IsScannedItem ? ((ScanIdx == 0) ? 1 : 0) : 1);

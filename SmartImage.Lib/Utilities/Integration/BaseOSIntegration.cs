@@ -32,11 +32,17 @@ public abstract class BaseOSIntegration
 
 	public abstract string LaunchArgs { get; }
 
+	#region 
+
 	[CBN]
 	public abstract string ChromePath { get; }
 
 	[MNNW(true, nameof(ChromePath))]
 	public bool IsChromeInstalled => Path.Exists(ChromePath);
+
+	#endregion
+
+#region 
 
 	[CBN]
 	public abstract string FirefoxPath { get; }
@@ -44,20 +50,33 @@ public abstract class BaseOSIntegration
 	[MNNW(true, nameof(FirefoxPath))]
 	public bool IsFirefoxInstalled => Path.Exists(FirefoxPath);
 
+#endregion
+
+#region 
+
 	[CBN]
 	public virtual string GalleryDLPath { get; }
 
 	[MNNW(true, nameof(GalleryDLPath))]
 	public bool IsGalleryDLInstalled => Path.Exists(GalleryDLPath);
 
+	public const string GALLERY_DL     = "gallery-dl";
+	public const string GALLERY_DL_EXE = $"{GALLERY_DL}.exe";
+
+#endregion
+
+	#region 
+
+	public virtual string ExecutableDirectory => Path.GetDirectoryName((string) Environment.ProcessPath);
+
+	public virtual bool IsExecutableInPath => FileSystem.IsFolderInPath(ExecutableDirectory);
+
+#endregion
+
 #endregion
 
 	static BaseOSIntegration()
 	{
-		Executable          = GetProcessMainModuleFileName();
-		ExecutableDirectory = Path.GetDirectoryName(Executable);
-		IsExecutableInPath  = FileSystem.IsFolderInPath(ExecutableDirectory);
-
 		if (IsWindows) {
 			Integration = new WindowsOSIntegration();
 		}
@@ -77,12 +96,6 @@ public abstract class BaseOSIntegration
 	[SupportedOSPlatformGuard(Common.OS_WIN)]
 	public static readonly bool IsWindows = OperatingSystem.IsWindows();
 
-	public static readonly string ExecutableDirectory;
-
-	public static readonly bool IsExecutableInPath;
-
-	public static readonly string Executable;
-
 	public static BaseOSIntegration Integration { get; }
 
 #endregion
@@ -94,20 +107,5 @@ public abstract class BaseOSIntegration
 	public abstract bool? HandleContextMenu(bool option, string args);
 
 	public abstract void FlashNotify(nint fd);
-
-	public static string GetProcessMainModuleFileName()
-	{
-		// TODO: vs Directory.GetCurrentDirectory?
-
-		ProcessModule module = Process.GetCurrentProcess().MainModule;
-
-		// Require.NotNull(module);
-		Trace.Assert(module != null);
-
-		return module.FileName;
-	}
-
-	public const string GALLERY_DL     = "gallery-dl";
-	public const string GALLERY_DL_EXE = $"{GALLERY_DL}.exe";
 
 }

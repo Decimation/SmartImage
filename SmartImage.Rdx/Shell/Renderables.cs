@@ -294,7 +294,7 @@ internal static class Renderables
 		new Text("User", Elements.Sty_Grid1), new Text($"{Environment.UserName} / {FileSystem.IsRoot}"),
 		new Text("Version", Elements.Sty_Grid1), new Text($"{Program.Version}"),
 		new Text("Runtime", Elements.Sty_Grid1), new Text($"{Environment.OSVersion} / {Environment.Version}"),
-		new Text("Location", Elements.Sty_Grid1), new TextPath(BaseOSIntegration.Executable)
+		new Text("Location", Elements.Sty_Grid1), new TextPath(Environment.ProcessPath)
 	];
 
 #endregion

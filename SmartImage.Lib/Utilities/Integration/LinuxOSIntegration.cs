@@ -1,8 +1,10 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: LinuxOSIntegration.cs
 // Date: 2024/12/04 @ 22:12:30
 
+using System.Reflection;
 using System.Runtime.Versioning;
 using Novus.OS;
+using Novus.Utilities;
 using SmartImage.Lib.Utilities.Diagnostics;
 
 // ReSharper disable InconsistentNaming
@@ -50,7 +52,7 @@ public sealed class LinuxOSIntegration : BaseOSIntegration
 			              Version=1.0
 			              Name=SmartImage
 			              Terminal=true
-			              Exec={Executable} {args}
+			              Exec={Environment.ProcessPath} {args}
 			              """;
 			File.WriteAllText(DesktopFile, dsk);
 

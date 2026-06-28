@@ -31,7 +31,6 @@ public sealed class WindowsOSIntegration : BaseOSIntegration
 
 	public override string AppDataPath { get; } = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-
 	public override bool IsContextMenuAdded
 	{
 		get
@@ -76,7 +75,7 @@ public sealed class WindowsOSIntegration : BaseOSIntegration
 				RegistryKey regMenu = null;
 				RegistryKey regCmd  = null;
 
-				string fullPath = Executable;
+				string fullPath = Environment.ProcessPath;
 
 				try {
 					regMenu = Registry.CurrentUser.CreateSubKey(R1.Reg_Shell);
