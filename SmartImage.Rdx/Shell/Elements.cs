@@ -78,6 +78,13 @@ internal static class Elements
 
 #endregion
 
+	public static Markup MarkupLink(string u, string s = null)
+	{
+		u = u is not null ? Markup.Escape(u) : null;
+		s = s is not null ? Markup.Escape(s) : null;
+
+		return !String.IsNullOrWhiteSpace(s) ? new Markup($"[link={u}]{s}[/]") : new Markup($"[link]{u}[/]");
+	}
 
 	internal const double COMPLETE = 100.0d;
 
@@ -104,13 +111,13 @@ internal static class Elements
 
 	public static readonly SelectionPrompt<SearchResult> Prm_SearchResult = new()
 	{
-		Mode            = SelectionMode.Independent,
-		SearchEnabled   = true,
-		PageSize        = 1,
-		MoreChoicesText = "...",
-		Title           = null,
+		Mode                  = SelectionMode.Independent,
+		SearchEnabled         = true,
+		PageSize              = 1,
+		MoreChoicesText       = "...",
+		Title                 = null,
 		SearchPlaceholderText = null,
-		WrapAround      = true,
+		WrapAround            = true,
 		Converter = static sr =>
 		{
 			//
@@ -121,15 +128,14 @@ internal static class Elements
 #endregion
 
 #if SERVER
-	
 #region Engine map table
 
 	//  TODO: FOR SERVER ONLY, DEPRECATE
 
-	internal const int ROW_EMT2_THR     = 0;
-	internal const int ROW_EMT2_NAME    = 1;
+	internal const int ROW_EMT2_THR = 0;
+	internal const int ROW_EMT2_NAME = 1;
 	internal const int ROW_EMT2_RESULTS = 2;
-	internal const int ROW_EMT2_STATUS  = 3;
+	internal const int ROW_EMT2_STATUS = 3;
 	internal const int ROW_EMT2_TIMEOUT = 4;
 
 

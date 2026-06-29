@@ -74,7 +74,7 @@ internal static class Renderables
 			=> RU.AsRenderable(sri.Similarity);
 
 		public IRenderable GetUrl()
-			=> Url.IsValid(sri.Url) ? new Markup($"[link]{sri.Url}[/]") : ElementUtility.Txt_NA;
+			=> Url.IsValid(sri.Url) ? Elements.MarkupLink(sri.Url) : ElementUtility.Txt_NA;
 
 		public Grid GetItemInfoGrid()
 		{
@@ -126,7 +126,7 @@ internal static class Renderables
 		{
 			var result = sri.Root;
 			var style  = new Style(foreground: result.Engine.Option.GetColor());
-			var name   = new Markup($"[link={sri.Url}]#{idx}.{subIdx}[/]", style);
+			var name   = new Markup($"[link={Markup.Escape(sri.Url)}]#{idx}.{subIdx}[/]", style);
 			
 			var rows = sri.GetMainRows(false);
 			rows[0] = name;
@@ -215,9 +215,9 @@ internal static class Renderables
 		var dt = new Grid();
 		dt.AddColumns(2);
 
-		dt.AddRow(new Text("Query", Elements.Sty_Grid1), new Markup($"[link]{query.Source.Value}[/]"));
+		dt.AddRow(new Text("Query", Elements.Sty_Grid1), Elements.MarkupLink(query.Source.Value));
 		dt.AddRow(new Text("Query Format", Elements.Sty_Grid1), new Text($"({query.Source.Type}) {query.Source.ImageFormat.Name}"));
-		dt.AddRow(new Text("Upload", Elements.Sty_Grid1), new Markup($"[link={query.Upload.Url}]{query.Upload}[/]"));
+		dt.AddRow(new Text("Upload", Elements.Sty_Grid1), Elements.MarkupLink(query.Upload.Url, query.Upload.ToString()));
 		
 		
 		var kv = new Dictionary<object, object>

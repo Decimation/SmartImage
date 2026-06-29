@@ -27,15 +27,29 @@ public sealed partial class SearchCommand
 			Expand = true,
 		};
 
-		var cfgGrid = Renderables.CreateConfigGrid(Config, Query);
+		var cfgPanel = new Panel(Renderables.CreateConfigGrid(Config, Query))
+		{
+			Header = new PanelHeader("Search Options")
+		};
 
-		var cfgPanel = new Panel(cfgGrid) { Header = new PanelHeader("Search Options") };
+		var tblPanel = new Panel(m_mainTable)
+		{
+			Header = new PanelHeader("Results"),
+			Expand = true
+		};
+
+		var infoPanel = new Panel(new Text("* [Ctrl+C] Cancel current search"))
+		{
+			Header = new PanelHeader("Info")
+		};
 
 		return new Layout("Root")
 			.SplitColumns(
 				new Layout("L").SplitRows(
 					new("LC", cfgPanel),
-					new("LT", m_mainTable)),
+					new("LT", tblPanel),
+					new Layout("LI", infoPanel)
+				),
 				new Layout("R", ciPanel));
 	}
 

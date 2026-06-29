@@ -218,9 +218,9 @@ public static partial class ImageScanner
 
 		return;
 
-		async Task HandleLineAsync(string s)
+		Task HandleLineAsync(string s)
 		{
-			await cw.WriteAsync(s);
+			return cw.WriteAsync(s).AsTask();
 		}
 
 		/*async Task HandleLineAsync(string s, CancellationToken token)

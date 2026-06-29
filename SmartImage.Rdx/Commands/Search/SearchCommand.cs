@@ -270,7 +270,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 						for (int i = 0; i < sri.ScannedItems.Count; i++) {
 							IResultItem scnItm = sri.ScannedItems[i];
 
-							// scnItm.TryCalculateSimilarity(Query.Source);
+							scnItm.TryCalculateSimilarity(Query.Source);
 
 							var scnRow = scnItm.GetItemRow(sel.ItemIdx, i);
 							srTable.InsertRow(selIdx + i + 1, scnRow);
