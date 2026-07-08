@@ -160,27 +160,20 @@ public sealed class WindowsOSIntegration : BaseOSIntegration
 
 		string data = null;
 
-		foreach ((ClipboardFormat fmt, Func<string> fn) in s_cbFormatFunctions) {
-			if (Clipboard.IsFormatAvailable((uint) fmt)) {
-				var dataClip = fn();
+		if (Clipboard.IsFormatAvailable((uint)(ClipboardFormat.CF_TEXT))) {
+			data = (string) Clipboard.GetData((uint)(ClipboardFormat.CF_TEXT));
+		}
+		else if (Clipboard.IsFormatAvailable((uint) ClipboardFormat.CF_HDROP)) {
+			data = Clipboard.GetDragQueryList()?.FirstOrDefault();
+		}
 
-				if (!String.IsNullOrWhiteSpace(dataClip) && UniImage.IsValidSourceType(dataClip)) {
-					data = dataClip;
-					break;
-				}
-			}
+		if (UniImage.IsValidSourceType(data)) {
+			
 		}
 
 		Clipboard.Close();
 
 		return data;
 	}
-
-	private static readonly Dictionary<ClipboardFormat, Func<string>> s_cbFormatFunctions = new()
-	{
-		{ ClipboardFormat.FileNameW, Clipboard.GetFileName },
-		{ ClipboardFormat.CF_TEXT, static () => Clipboard.GetData((uint) ClipboardFormat.CF_TEXT).ToString() },
-		{ ClipboardFormat.CF_HDROP, static () => Clipboard.GetDragQueryList().FirstOrDefault() },
-	};
 
 }

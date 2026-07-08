@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Images;
+using SmartImage.Lib.Images.Uni;
 using SmartImage.Rdx.Shell;
 using Spectre.Console;
 
@@ -16,28 +17,26 @@ public partial class SearchCommand
 {
 
 	private readonly MemoryCache m_previewCanvasCache;
+	private CanvasImage m_queryCanvasImg;
 
 	private CanvasImage GetPreviewCanvasImage(ScannedResultItem sri)
 	{
 		Stream str = null;
-
-		var cip = new CacheItemPolicy
-		{
-			AbsoluteExpiration = DateTimeOffset.Now + TimeSpan.FromMinutes(1),
-			RemovedCallback = static arguments =>
-			{
-				s_logger.LogDebug("Cache item {CacheItem} removed: {RemRes}", arguments.CacheItem.Key, arguments.RemovedReason);
-			}
-		};
 
 		var key = sri.Value;
 		var val = m_previewCanvasCache.Get(key);
 
 		if (val is not CanvasImage ci) {
 			str = sri.GetSource();
-			ci  = new CanvasImage(str);
 
-			m_previewCanvasCache.Set(key, ci, cip);
+			if (str == Stream.Null || !sri.HasImage) {
+				Trace.WriteLine($"No source for {key}!");
+				return m_queryCanvasImg;
+			}
+
+			ci = new CanvasImage(str);
+
+			m_previewCanvasCache.Set(key, ci, s_cip);
 		}
 
 		Trace.Assert(ci != null);
@@ -45,7 +44,7 @@ public partial class SearchCommand
 		return ci;
 	}
 
-	private static readonly PreviewConsoleAction[] _previewActions =
+	private static readonly PreviewConsoleAction[] s_previewActions =
 	[
 		new()
 		{
@@ -97,8 +96,20 @@ public partial class SearchCommand
 
 	];
 
-	private static readonly string _previewDescription =
-		_previewActions.Aggregate(String.Empty, (s, kv) => { return s + Markup.Escape(($"[{kv.Key}] : {kv.Description}")) + " | "; });
+	private static readonly string s_previewDescription = s_previewActions.Aggregate(String.Empty, (s, kv) =>
+	{
+		//
+		return s + Markup.Escape(($"[{kv.Key}] : {kv.Description}")) + " | ";
+	});
+
+	private static readonly CacheItemPolicy s_cip = new CacheItemPolicy
+	{
+		AbsoluteExpiration = DateTimeOffset.Now + TimeSpan.FromMinutes(1),
+		RemovedCallback = static arguments =>
+		{
+			s_logger.LogDebug("Cache item {CacheItem} removed: {RemRes}", arguments.CacheItem.Key, arguments.RemovedReason);
+		}
+	};
 
 	private void ShowPreview(CanvasImage ci, ScannedResultItem sri)
 	{
@@ -119,7 +130,7 @@ public partial class SearchCommand
 		// var grid = sri.GetItemInfoGrid();
 		var infoGrid = new Grid { Expand = false, };
 		infoGrid.AddColumns(2);
-		infoGrid.AddRow("Keys", _previewDescription);
+		infoGrid.AddRow("Keys", s_previewDescription);
 		infoGrid.AddRow("Metadata", sri.ToString());
 
 		sriLayout["Image"].Update(pnl);
@@ -136,7 +147,7 @@ public partial class SearchCommand
 					continue;
 				}
 
-				foreach (PreviewConsoleAction action in _previewActions) {
+				foreach (PreviewConsoleAction action in s_previewActions) {
 					if (action.Key == cki.Value.Key) {
 						var retVal = action.Func(ci, sri);
 

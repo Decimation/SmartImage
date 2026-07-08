@@ -267,7 +267,9 @@ internal static class Renderables
 		nameof(IImage.Width),
 		nameof(IImage.Height),
 		nameof(SearchResultItem.Metadata),
-		nameof(ISubResultItem.Parent)
+		nameof(ISubResultItem.Parent),
+		nameof(IUniImage.Bytes),
+		nameof(IResultItem.Url),
 
 	];
 

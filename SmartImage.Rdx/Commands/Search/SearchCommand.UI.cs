@@ -19,9 +19,8 @@ public sealed partial class SearchCommand
 
 	private Layout CreateLayout()
 	{
-		var queryCi = new CanvasImage(Query.Source.GetSource());
 
-		var ciPanel = new Panel(queryCi)
+		var ciPanel = new Panel(m_queryCanvasImg)
 		{
 			Header = new PanelHeader($"{Query.Source.Value}"),
 			Expand = true,
@@ -29,7 +28,8 @@ public sealed partial class SearchCommand
 
 		var cfgPanel = new Panel(Renderables.CreateConfigGrid(Config, Query))
 		{
-			Header = new PanelHeader("Search Options")
+			Header = new PanelHeader("Search Options"),
+			Padding = null
 		};
 
 		var tblPanel = new Panel(m_mainTable)
@@ -40,7 +40,8 @@ public sealed partial class SearchCommand
 
 		var infoPanel = new Panel(new Text("* [Ctrl+C] Cancel current search"))
 		{
-			Header = new PanelHeader("Info")
+			Header = new PanelHeader("Info"),
+			Expand = false
 		};
 
 		return new Layout("Root")
@@ -61,7 +62,7 @@ public sealed partial class SearchCommand
 			prev = GetPreviewCanvasImage(scnItem);
 		}
 		else {
-			prev = new CanvasImage(Query.Source.GetSource());
+			prev = m_queryCanvasImg;
 		}
 
 		var ciPanel = new Panel(prev)

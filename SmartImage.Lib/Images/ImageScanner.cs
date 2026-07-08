@@ -51,6 +51,17 @@ public static partial class ImageScanner
 			builder.Settings.HttpVersion            = "2.0";
 
 			builder.Headers.AddOrReplace(HeaderNames.UserAgent, R1.UserAgent1);
+			builder.WithHeaders(new
+			{
+				Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+				Accept_Language = "en-US,en;q=0.9",
+				Accept_Encoding = "gzip, deflate, br, zstd",
+				Sec_Fetch_Site = "none",
+				Sec_Fetch_Mode = "navigate",
+				Sec_Fetch_User = "?1",
+				Sec_Fetch_Dest = "document",
+				Upgrade_Insecure_Requests = "1"
+			});
 
 			// builder.AllowAnyHttpStatus();
 

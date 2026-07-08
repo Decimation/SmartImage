@@ -98,6 +98,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		if (!url) {
 			throw new SmartImageException($"Could not upload {Query}");
 		}
+		
+		m_queryCanvasImg = new CanvasImage(Query.Source.GetSource());
 
 		p.Increment(Elements.COMPLETE / 2);
 
@@ -310,7 +312,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					clrWrite = true;
 				}
 
-				if (cmd == R2.Chc_Download && item is ScannedResultItem { } sriScnDl) {
+				if (cmd == R2.Chc_Download && item is ScannedResultItem { HasBytes: true } sriScnDl) {
 					if (!sriScnDl.HasLocalFilePath) {
 						HandleDownload(sriScnDl);
 					}
@@ -345,6 +347,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 							if (scn != null) {
 								sri.ScannedItems.Add(scn);
+								item.TryCalculateSimilarity(Query.Source);
 								var i = sri.ScannedItems.IndexOf(scn);
 
 								var scnRow = scn.GetItemRow(sel.ItemIdx, i);
