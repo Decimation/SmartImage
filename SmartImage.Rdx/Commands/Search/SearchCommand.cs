@@ -36,6 +36,7 @@ using SmartImage.Lib.Utilities.Diagnostics;
 using SmartImage.Lib.Utilities.Integration;
 using SmartImage.Rdx.Commands.Common;
 using SmartImage.Rdx.Shell;
+using SmartImage.Shared;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Rendering;
@@ -90,7 +91,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			throw new SmartImageException($"Could not create query {Query}");
 		}
 
-		p.Increment(Elements.COMPLETE / 2);
+		p.Increment(ElementStyles.COMPLETE / 2);
 
 		p.Description = "Uploading query";
 		var url = await Query.TryUploadAsync(Client.UploadEngine);
@@ -101,7 +102,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		
 		m_queryCanvasImg = new CanvasImage(Query.Source.GetSource());
 
-		p.Increment(Elements.COMPLETE / 2);
+		p.Increment(ElementStyles.COMPLETE / 2);
 
 	}
 
@@ -112,17 +113,20 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		Client = new SearchClient(Config);
 
-		m_mainTable        = CommandSettings.Interactive ? Renderables.CreateOverviewTable() : Renderables.CreateResultTable();
+		m_mainTable        = CommandSettings.Interactive ? CreateOverviewTable() : CreateResultTable();
 		m_mainTable.Expand = true;
 
 		// todo
 		if (BaseOSIntegration.Integration.IsGalleryDLInstalled) {
-			Elements.Prm_Command.Choices.Insert(2, R2.Chc_GalleryDl);
+			Renderables.Prm_Command.Choices.Insert(2, R2.Chc_GalleryDl);
 		}
 	}
 
 	protected override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings, CancellationToken cancellationToken)
 	{
+		var envGrid = CreateEnvironmentGrid();
+		AnsiConsole.Write(envGrid);
+
 		InitConfig(settings);
 
 		Console.CancelKeyPress += OnCancelKeyPress;
@@ -161,7 +165,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			await AnsiConsole.ConfirmAsync("Exit", cancellationToken: m_cts.Token);
 		}
 
-		return Lib.Common.EC_OK;
+		return Shared.Common.EC_OK;
 	}
 
 	private async Task RunSearchLiveAsync(LiveDisplayContext c, CancellationToken ct = default)
@@ -177,7 +181,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				m_dialogs.TryAdd(result, ResultViewState.Create(result));
 
 				m_mainTable.AddRow(result.GetMainRows());
-				Elements.Prm_SearchResult.AddChoice(result);
+				Renderables.Prm_SearchResult.AddChoice(result);
 
 			}
 			else {
@@ -216,7 +220,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			AnsiConsole.Clear();
 			AnsiConsole.Write(m_layout);
 
-			sr = AnsiConsole.Prompt(Elements.Prm_SearchResult);
+			sr = AnsiConsole.Prompt(Renderables.Prm_SearchResult);
 
 			var dialog = m_dialogs[sr];
 			srTable  = dialog.Table;
@@ -228,7 +232,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					AnsiConsole.Write(srTable);
 				}
 
-				cmd = AnsiConsole.Prompt(Elements.Prm_Command);
+				cmd = AnsiConsole.Prompt(Renderables.Prm_Command);
 
 				if (cmd == R2.Chc_Exit)
 					return;
@@ -376,7 +380,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			{
 				var gr = new Grid();
 				gr.AddColumns(new(), new());
-				gr.AddRow(new Text("File", Elements.Sty_Name), new Text(sri.LocalFilePath));
+				gr.AddRow(new Text("File", ElementStyles.Sty_Name), new Text(sri.LocalFilePath));
 				AnsiConsole.Write(gr);
 
 				var prompt = new ConfirmationPrompt("Open?");
@@ -421,7 +425,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	{
 		s_logger.LogDebug("Disposing search command");
 
-		Elements.Prm_Selection.Validator = null;
+		Renderables.Prm_Selection.Validator = null;
 
 		m_cts.Dispose();
 		m_ctsRun.Dispose();

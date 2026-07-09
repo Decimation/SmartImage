@@ -130,7 +130,7 @@ internal record ShellSelection
 	{
 		ShellSelection ret;
 
-		Elements.Prm_Selection.Validator = str =>
+		Renderables.Prm_Selection.Validator = str =>
 		{
 			ret = Parse(str, res);
 
@@ -142,7 +142,7 @@ internal record ShellSelection
 		};
 
 
-		var val = AnsiConsole.Prompt(Elements.Prm_Selection);
+		var val = AnsiConsole.Prompt(Renderables.Prm_Selection);
 		var sri = Parse(val, res);
 		return sri;
 	}

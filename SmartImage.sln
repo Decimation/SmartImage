@@ -272,6 +272,7 @@ Global
 		SolutionGuid = {DE4E765E-F0E1-40F9-B11E-522639F217CA}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\..\VSProjects\SmartImage.Shared\SmartImage.Shared.projitems*{225027f2-47ff-4205-934a-d46f865a71d6}*SharedItemsImports = 5
 		..\..\VSProjects\SmartImage.Shared\SmartImage.Shared.projitems*{2a615ccf-1493-4aa4-a514-83537d809740}*SharedItemsImports = 5
 		..\..\VSProjects\SmartImage.Shared\SmartImage.Shared.projitems*{c3235d7a-acec-4910-8efe-6acb670352bc}*SharedItemsImports = 5
 		..\..\VSProjects\SmartImage.Shared\SmartImage.Shared.projitems*{d22f0476-3863-463f-81ba-2491e0478877}*SharedItemsImports = 13

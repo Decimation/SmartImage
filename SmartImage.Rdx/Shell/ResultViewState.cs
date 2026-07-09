@@ -4,6 +4,7 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Rdx.Commands.Search;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 
@@ -26,7 +27,7 @@ public class ResultViewState
 	{
 		var fullRows = result.GetFullRows();
 
-		var table = Renderables.CreateResultTable();
+		var table = SearchCommand.CreateResultTable();
 
 		foreach (var row in fullRows) {
 			table.AddRow(row);

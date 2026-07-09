@@ -6,6 +6,7 @@ using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Engines.Search.Base;
 
 namespace SmartImage.UI2.Converters;
 

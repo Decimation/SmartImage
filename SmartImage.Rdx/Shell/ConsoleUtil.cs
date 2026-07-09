@@ -72,44 +72,4 @@ internal static class ConsoleUtil
 		return path;
 	}
 
-	internal static void Dump(CommandSettings settings)
-	{
-		var table = new SpcTable().RoundedBorder();
-		table.AddColumn("[grey]Name[/]");
-		table.AddColumn("[grey]Value[/]");
-
-		var properties = settings.GetType().GetProperties();
-
-		foreach (var property in properties) {
-			var value = property.GetValue(settings)
-				?.ToString()
-				?.Replace("[", "[[");
-
-			table.AddRow(
-				property.Name,
-				value ?? "[grey]null[/]");
-		}
-
-		AnsiConsole.Write(table);
-	}
-
-	[MURV]
-	public static FigletFont LoadFigletFontFromResource(string name, out MemoryStream fs)
-		=> R2.ResourceManager.LoadFigletFontFromResource(name, out fs);
-
-	[MURV]
-	public static FigletFont LoadFigletFontFromResource(this ResourceManager rsrc, string name, out MemoryStream fs)
-	{
-		var o = rsrc.GetObject(name);
-
-		if (o == null) {
-			throw new InvalidOperationException(nameof(name));
-		}
-
-		fs = new MemoryStream((byte[]) o);
-		var ff = FigletFont.Load(fs);
-
-		return ff;
-	}
-
 }

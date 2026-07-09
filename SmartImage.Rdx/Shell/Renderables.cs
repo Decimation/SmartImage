@@ -1,7 +1,7 @@
 ﻿// Author: Deci | Project: SmartImage.Rdx | Name: Renderables.cs
 // Date: 2025/12/27 @ 22:12:49
 
-#region 
+#region
 
 global using SizeIS = SixLabors.ImageSharp.Size;
 using RU = Kantan.Console.RenderableUtility;
@@ -11,6 +11,7 @@ using EU = Kantan.Console.ElementUtility;
 
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
+using System.Resources;
 using System.Runtime.InteropServices;
 using Flurl;
 using Novus.Runtime;
@@ -33,7 +34,7 @@ using Kantan.Console;
 
 namespace SmartImage.Rdx.Shell;
 
-internal static class Renderables
+internal static partial class Renderables
 {
 
 	extension(SearchResult result)
@@ -74,7 +75,7 @@ internal static class Renderables
 			=> RU.AsRenderable(sri.Similarity);
 
 		public IRenderable GetUrl()
-			=> Url.IsValid(sri.Url) ? Elements.MarkupLink(sri.Url) : ElementUtility.Txt_NA;
+			=> Url.IsValid(sri.Url) ? MarkupLink(sri.Url) : ElementUtility.Txt_NA;
 
 		public Grid GetItemInfoGrid()
 		{
@@ -127,7 +128,7 @@ internal static class Renderables
 			var result = sri.Root;
 			var style  = new Style(foreground: result.Engine.Option.GetColor());
 			var name   = new Markup($"[link={Markup.Escape(sri.Url)}]#{idx}.{subIdx}[/]", style);
-			
+
 			var rows = sri.GetMainRows(false);
 			rows[0] = name;
 			return rows;
@@ -151,10 +152,10 @@ internal static class Renderables
 				}
 
 				var render = RU.AsRenderable(propVal);
-				grid.AddRow(new Text($"{property.Name}", Elements.Sty_ResultHeader), render);
+				grid.AddRow(new Text($"{property.Name}", ElementStyles.Sty_ResultHeader), render);
 			}
 
-			grid.AddRow(new Text("Resolution", Elements.Sty_ResultHeader), sri.GetDimensions());
+			grid.AddRow(new Text("Resolution", ElementStyles.Sty_ResultHeader), sri.GetDimensions());
 
 			return grid;
 		}
@@ -178,87 +179,27 @@ internal static class Renderables
 
 	}
 
-#region
-
-	public static SpcTable CreateOverviewTable()
+	extension(FigletFont)
 	{
-		SpcTable tb = CreateEmptyResultTable();
 
-		tb = tb.AddColumns(Elements.s_overviewTableColumns);
-
-		return tb;
-	}
-
-	private static SpcTable CreateEmptyResultTable()
-	{
-		var tb = new SpcTable()
+		[MURV]
+		public static FigletFont LoadFromResource(ResourceManager rsrc, string name, out MemoryStream fs)
 		{
-			// Caption     = new TableTitle("Results", Elements.Sty_ResultHeader),
-			Border      = TableBorder.Simple,
-			ShowHeaders = true,
-		};
-		return tb;
-	}
+			var o = rsrc.GetObject(name);
 
-	public static SpcTable CreateResultTable()
-	{
-		var tb = CreateEmptyResultTable();
-
-		tb = tb.AddColumns(Elements.s_resultTableColumns);
-
-		return tb;
-	}
-
-
-	internal static Grid CreateConfigGrid(SearchConfig cfg, SearchQuery query)
-	{
-		var dt = new Grid();
-		dt.AddColumns(2);
-
-		dt.AddRow(new Text("Query", Elements.Sty_Grid1), Elements.MarkupLink(query.Source.Value));
-		dt.AddRow(new Text("Query Format", Elements.Sty_Grid1), new Text($"({query.Source.Type}) {query.Source.ImageFormat.Name}"));
-		dt.AddRow(new Text("Upload", Elements.Sty_Grid1), Elements.MarkupLink(query.Upload.Url, query.Upload.ToString()));
-		
-		
-		var kv = new Dictionary<object, object>
-		{
-			[R1.S_SearchEngines]   = cfg.SearchEngines,
-			[R1.S_PriorityEngines] = cfg.PriorityEngines,
-			[R1.S_UploadEngine]    = cfg.UploadEngine,
-			[R1.S_AutoSearch]      = cfg.AutoSearch,
-			[R1.S_ReadCookies]     = cfg.ReadCookies,
-			["FlareSolverr"]       = cfg.FlareSolverr,
-		};
-
-		foreach (var (s, o) in kv) {
-			IRenderable kR;
-
-			if (s is Text txt) {
-				kR = txt;
-			}
-			else {
-
-				kR = String.IsNullOrWhiteSpace(s?.ToString()) ? ElementUtility.Txt_NA : new Text(s.ToString() ?? String.Empty);
+			if (o == null) {
+				throw new InvalidOperationException(nameof(name));
 			}
 
-			dt.AddRow(kR, RU.AsRenderable(o));
+			fs = new MemoryStream((byte[]) o);
+			var ff = FigletFont.Load(fs);
+
+			return ff;
 		}
 
-		return dt;
 	}
 
-	internal static Grid CreateEnvironmentGrid()
-	{
-		var gr = new Grid();
-		gr.AddColumns(2);
-		gr.AddRowsByChunk(2, s_envGridRows);
-
-		return gr;
-	}
-
-#endregion
-
-#region Renderable Elements
+#region Renderable ElementStyles
 
 	private static readonly string[] s_extGridNameBlacklist =
 	[
@@ -291,15 +232,44 @@ internal static class Renderables
 		nameof(IMetadata.Title)
 	];
 
-	private static readonly IRenderable[] s_envGridRows =
-	[
-		new Text("User", Elements.Sty_Grid1), new Text($"{Environment.UserName} / {FileSystem.IsRoot}"),
-		new Text("Version", Elements.Sty_Grid1), new Text($"{Program.Version}"),
-		new Text("Runtime", Elements.Sty_Grid1), new Text($"{Environment.OSVersion} / {Environment.Version}"),
-		new Text("Location", Elements.Sty_Grid1), new TextPath(Environment.ProcessPath)
-	];
-
 #endregion
+
+
+	
+
+	public static readonly TextPrompt<string> Prm_Selection = new(Markup.Escape("[#.#]"))
+	{
+		ShowChoices      = false,
+		ShowDefaultValue = false,
+		AllowEmpty       = false,
+	};
+
+	public static readonly TextPrompt<string> Prm_Command = new(Markup.Escape("[Command]"))
+	{
+		ShowChoices      = true,
+		ShowDefaultValue = true,
+		AllowEmpty       = false,
+		Choices =
+		{
+			R2.Chc_Open, R2.Chc_Scan, R2.Chc_Preview, R2.Chc_Calc, R2.Chc_Download, R2.Chc_Expand, R2.Chc_Back, R2.Chc_Exit
+		}
+	};
+
+	public static readonly SelectionPrompt<SearchResult> Prm_SearchResult = new()
+	{
+		Mode                  = SelectionMode.Independent,
+		SearchEnabled         = true,
+		PageSize              = 1,
+		MoreChoicesText       = "...",
+		Title                 = null,
+		SearchPlaceholderText = null,
+		WrapAround            = true,
+		Converter = static sr =>
+		{
+			//
+			return sr.Engine.Name;
+		}
+	};
 
 }
 

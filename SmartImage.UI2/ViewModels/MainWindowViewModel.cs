@@ -38,7 +38,7 @@ namespace SmartImage.UI2.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase
 {
 
-	public ObservableCollection<SearchResultItem> Items { get; } = [];
+	public ObservableCollection<IResultItem> Items { get; } = [];
 
 	public SearchClient Client { get; }
 
@@ -77,7 +77,7 @@ public partial class MainWindowViewModel : ViewModelBase
 		set => this.RaiseAndSetIfChanged(ref field, value);
 	}
 
-	public SearchResultItem SelectedItem
+	public IResultItem SelectedItem
 	{
 		get;
 		set => this.RaiseAndSetIfChanged(ref field, value);
@@ -146,18 +146,21 @@ public partial class MainWindowViewModel : ViewModelBase
 	[RelayCommand]
 	public async Task LoadItemAsync()
 	{
-		var ok = await SelectedItem.ScanAsync(TokenSource.Token);
+		if (SelectedItem is IScannableItem {} scannable) {
+			var ok = await scannable.ScanAsync(TokenSource.Token);
 
-		if (ok) {
-			Items.AddOrInsertRange(SelectedItem.ScannedItems, Items.IndexOf(SelectedItem));
+			if (ok) {
+				Items.AddOrInsertRange(scannable.ScannedItems, Items.IndexOf((IResultItem) scannable));
+			}
+
 		}
 	}
 
 	[RelayCommand]
 	public async Task HashItemAsync()
 	{
-		if (SelectedItem.HasHash) {
-			var ok = SelectedItem.CalculateSimilarity(Query.Source);
+		if (SelectedItem is { HasHash: true, HasSimilarity: false }) {
+			var ok = SelectedItem.TryCalculateSimilarity(Query.Source);
 			this.RaisePropertyChanged(nameof(SelectedItem.Similarity));
 		}
 	}
@@ -174,7 +177,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 			// IsReady = Query.IsUploaded;
 			Url   = Query.Upload.Url;
-			Image = new Bitmap(Query.Source.GetStream());
+			Image = new Bitmap(Query.Source.GetSource());
 		}
 	}
 

@@ -1,4 +1,5 @@
-﻿#region Global usings
+﻿// ReSharper disable RedundantUsingDirective.Global
+#region Global usings
 
 global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
 global using NNW = System.Diagnostics.CodeAnalysis.NotNullWhenAttribute;
@@ -43,7 +44,10 @@ internal class Program
 		=> AppBuilder.Configure<App>()
 			.UsePlatformDetect()
 			.WithInterFont()
-			.UseReactiveUI()
+			.UseReactiveUI(builder =>
+			{
+				builder.BuildApp();
+			})
 			.LogToTrace();
 
 }

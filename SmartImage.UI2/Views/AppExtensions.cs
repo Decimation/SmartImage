@@ -20,16 +20,11 @@ public static class AppExtensions
 
 	public static TopLevel? GetTopLevel(this Application app)
 	{
-		if (app.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) {
-			return desktop.MainWindow;
+		if (app.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+		{
+			return TopLevel.GetTopLevel(desktop.MainWindow);
 		}
-
-		if (app.ApplicationLifetime is ISingleViewApplicationLifetime viewApp) {
-			var visualRoot = viewApp.MainView?.GetVisualRoot();
-			return visualRoot as TopLevel;
-		}
-
 		return null;
-	}
+	}   
 
 }

@@ -28,6 +28,7 @@ using SmartImage.Lib.Utilities.Integration;
 using SmartImage.Rdx.Commands.Common;
 using SmartImage.Rdx.Commands.Integration;
 using SmartImage.Rdx.Commands.Search;
+using SmartImage.Shared;
 
 #pragma warning disable CS8601 // Possible null reference assignment.
 
@@ -62,14 +63,11 @@ public static class Program
 #if DEBUG
 
 		// Debugger.Launch();
+		HandleArgs(ref args);
 #endif
 
-		HandleArgs(ref args);
 
 		DisplayHeader();
-
-		var infoGrid = Renderables.CreateEnvironmentGrid();
-		AnsiConsole.Write(infoGrid);
 
 		var app = new CommandApp<SearchCommand>(registrar);
 
@@ -84,11 +82,6 @@ public static class Program
 
 			c.AddCommand<IntegrationCommand>("integrate")
 				.WithDescription("Configure system integration such as context menu");
-#if SERVER
-			
-			c.AddCommand<ServerCommand>("server")
-				.WithDescription("Start listen server (experimental)");
-#endif
 		});
 
 		int x = Common.EC_OK;
@@ -114,11 +107,11 @@ public static class Program
 
 	private static void DisplayHeader()
 	{
-		var ff = ConsoleUtil.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
+		var ff = FigletFont.LoadFromResource(R2.ResourceManager, nameof(R2.Fg_larry3d), out var ms);
 
 		var fg = new FigletText(ff, R1.Name)
 			.Centered()
-			.Color(Elements.Clr_Misc1);
+			.Color(ElementStyles.Clr_Misc1);
 
 		AnsiConsole.Write(fg);
 

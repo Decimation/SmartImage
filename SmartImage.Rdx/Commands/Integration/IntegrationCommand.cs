@@ -28,7 +28,7 @@ internal class IntegrationCommand : Command<IntegrationCommandSettings>
 			AnsiConsole.WriteException(e);
 		}
 
-		return Lib.Common.EC_OK;
+		return Shared.Common.EC_OK;
 	}
 
 }
