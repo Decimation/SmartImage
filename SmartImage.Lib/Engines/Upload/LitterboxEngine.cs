@@ -16,7 +16,7 @@ public sealed class LitterboxEngine : BaseCatboxEngine
 	private const string LITTERBOX_BASE_URL = "https://litterbox.catbox.moe";
 	private const string LITTERBOX_API_URL  = $"{LITTERBOX_BASE_URL}/resources/internals/api.php";
 
-	public override UploadEngineOptions Option => UploadEngineOptions.Litterbox;
+	public override UploadEngineOption Option => UploadEngineOption.Litterbox;
 
 	public override long? MaxLength => 1_000_000_000L;
 

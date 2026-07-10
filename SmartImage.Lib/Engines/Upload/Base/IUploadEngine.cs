@@ -7,7 +7,7 @@ using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Upload.Base;
 
-public interface IUploadEngine : INamedEnumOption<UploadEngineOptions>, IMaxLength, IUrl, ITimeout, IDisposable
+public interface IUploadEngine : INamedEnumOption<UploadEngineOption>, IMaxLength, IUrl, ITimeout, IDisposable
 {
 
 	Task<IUploadResult> UploadFileAsync(string file, CancellationToken ct = default);

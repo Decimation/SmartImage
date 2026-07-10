@@ -56,7 +56,7 @@
 
 Supported search engines:
 
-**See the [Engines Index](https://docs.google.com/spreadsheets/d/1BdBqGzEQ7x6XKcDSE_w_KrfBzTaYB48CCPJyeSNtbyg/edit?usp=sharing) spreadsheet.**
+**See the [Engines Index](https://1drv.ms/x/c/a8b0522c09a962ee/IQAtmZ-3X51GSadq791jQXoVAYHGEDxWlO7ICqzhJBUqjmg?e=etKXMa) spreadsheet.**
 
 <!-- - <img src="https://saucenao.com/favicon.ico" width="16" height="16"/> [SauceNao](https://saucenao.com/)
 - <img src="http://imgops.com/favicon.ico" width="16" height="16"/> [ImgOps](http://imgops.com/)

@@ -27,7 +27,7 @@ public class CommonCommandSettings : CommandSettings
 	[CommandOption("-u|--upload-engine")]
 	[DefaultValue(SearchConfig.UE_DEFAULT)]
 	[Description("Upload engine")]
-	public UploadEngineOptions UploadEngine { get; internal set; }
+	public UploadEngineOption UploadEngine { get; internal set; }
 
 	[CommandOption("--read-cookies")]
 	[DefaultValue(SearchConfig.READCOOKIES_DEFAULT)]

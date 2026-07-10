@@ -1,11 +1,11 @@
-﻿// Author: Deci | Project: SmartImage.Lib | Name: IMetadata.cs
+﻿// Author: Deci | Project: SmartImage.Lib | Name: IResultMetadata.cs
 // Date: 2026/03/07 @ 01:03:45
 
 using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Results;
 
-public interface IMetadata : IDimensions
+public interface IResultMetadata : IDimensions
 {
 
 	/// <summary>

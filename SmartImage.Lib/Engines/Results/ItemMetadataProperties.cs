@@ -25,37 +25,37 @@ public enum ItemMetadataProperties
 	Similarity = 1 << 2,
 
 	/// <summary>
-	/// <see cref="IMetadata"/>
+	/// <see cref="IResultMetadata"/>
 	/// </summary>
 	Title = 1 << 3,
 
 	/// <summary>
-	/// <see cref="IMetadata"/>
+	/// <see cref="IResultMetadata"/>
 	/// </summary>
 	Source = 1 << 4,
 
 	/// <summary>
-	/// <see cref="IMetadata"/>
+	/// <see cref="IResultMetadata"/>
 	/// </summary>
 	Artist = 1 << 5,
 
 	/// <summary>
-	/// <see cref="IMetadata"/>
+	/// <see cref="IResultMetadata"/>
 	/// </summary>
 	Description = 1 << 6,
 
 	/// <summary>
-	/// <see cref="IMetadata"/>
+	/// <see cref="IResultMetadata"/>
 	/// </summary>
 	Character = 1 << 7,
 
 	/// <summary>
-	/// <see cref="IMetadata"/>
+	/// <see cref="IResultMetadata"/>
 	/// </summary>
 	Site = 1 << 8,
 
 	/// <summary>
-	/// <see cref="IMetadata"/>
+	/// <see cref="IResultMetadata"/>
 	/// </summary>
 	Time = 1 << 9,
 

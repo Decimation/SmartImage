@@ -13,7 +13,7 @@ namespace SmartImage.Lib.Engines.Upload.Base;
 public abstract class BaseCatboxEngine : BaseUploadEngine
 {
 
-	public override UploadEngineOptions Option => UploadEngineOptions.Catbox;
+	public override UploadEngineOption Option => UploadEngineOption.Catbox;
 
 	protected BaseCatboxEngine(string s) : base(s) { }
 

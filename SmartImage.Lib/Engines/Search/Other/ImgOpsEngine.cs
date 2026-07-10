@@ -17,7 +17,7 @@ public sealed class ImgOpsEngine : BaseSearchEngine, IUploadEngine
 
 	public override SearchEngineOptions Option => SearchEngineOptions.ImgOps;
 
-	UploadEngineOptions INamedEnumOption<UploadEngineOptions>.Option => UploadEngineOptions.ImgOps;
+	UploadEngineOption INamedEnumOption<UploadEngineOption>.Option => UploadEngineOption.ImgOps;
 
 	public async Task<IUploadResult> UploadFileAsync(string file, CancellationToken ct = default)
 	{

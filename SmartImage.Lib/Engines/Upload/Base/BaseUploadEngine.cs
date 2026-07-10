@@ -12,7 +12,7 @@ namespace SmartImage.Lib.Engines.Upload.Base;
 public abstract class BaseUploadEngine : IUploadEngine, IDisposable
 {
 
-	protected static readonly ILogger Logger = AppSupport.Factory.CreateLogger(nameof(BaseUploadEngine));
+	protected static readonly ILogger s_Logger = AppSupport.Factory.CreateLogger(nameof(BaseUploadEngine));
 
 	protected static FlurlClient Client { get; }
 
@@ -23,7 +23,7 @@ public abstract class BaseUploadEngine : IUploadEngine, IDisposable
 			builder.OnError(static f =>
 			{
 				//
-				Logger.LogError(f.Exception, $"from {nameof(BaseUploadEngine)}");
+				s_Logger.LogError(f.Exception, $"from {nameof(BaseUploadEngine)}");
 			});
 
 			// builder.AddMiddleware(static () => new HttpLoggingHandler(Logger));
@@ -40,7 +40,7 @@ public abstract class BaseUploadEngine : IUploadEngine, IDisposable
 	/// </summary>
 	public abstract long? MaxLength { get; }
 
-	public abstract UploadEngineOptions Option { get; }
+	public abstract UploadEngineOption Option { get; }
 
 	public TimeSpan Timeout { get; protected set; }
 
@@ -62,23 +62,27 @@ public abstract class BaseUploadEngine : IUploadEngine, IDisposable
 	}
 
 
+	public static IUploadEngine GetUploadEngine(UploadEngineOption option)
+	{
+		if (UploadEngineOption.Obsolete.HasFlag(option)) {
+			throw new ArgumentException($"Selected option {option} is obsolete", nameof(option));
+		}
+
+		return option switch
+		{
+			UploadEngineOption.Catbox    => new CatboxEngine(),
+			UploadEngineOption.Litterbox => new LitterboxEngine(),
+			UploadEngineOption.Pomf      => new PomfEngine(),
+			UploadEngineOption.ImgOps    => new ImgOpsEngine(),
+			UploadEngineOption.TmpFiles  => new TmpFilesEngine(),
+
+			UploadEngineOption.None or _ => throw new ArgumentOutOfRangeException(nameof(option), option, null)
+		};
+	}
+
 	public virtual void Dispose()
 	{
 		GC.SuppressFinalize(this);
-	}
-
-	public static IUploadEngine GetUploadEngine(UploadEngineOptions options)
-	{
-		return options switch
-		{
-			UploadEngineOptions.Catbox    => new CatboxEngine(),
-			UploadEngineOptions.Litterbox => new LitterboxEngine(),
-			UploadEngineOptions.Pomf      => new PomfEngine(),
-			UploadEngineOptions.ImgOps    => throw new NotImplementedException(),
-			UploadEngineOptions.TmpFiles  => new TmpFilesEngine(),
-
-			UploadEngineOptions.None or _ => throw new ArgumentOutOfRangeException(nameof(options), options, null)
-		};
 	}
 
 }

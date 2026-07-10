@@ -141,6 +141,8 @@ public abstract class BaseSearchEngine : INamedEnumOption<SearchEngineOptions>, 
 
 	public static IEnumerable<BaseSearchEngine> GetSelectedEngines(SearchEngineOptions options)
 	{
+		options &= ~SearchEngineOptions.Obsolete;
+
 		if (options.HasFlag(SearchEngineOptions.SauceNao))
 			yield return new SauceNaoEngine();
 

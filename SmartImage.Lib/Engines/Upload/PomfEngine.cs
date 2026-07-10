@@ -6,11 +6,11 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Upload;
 
-[Obsolete("No longer in service")]
+[Obsolete]
 public sealed class PomfEngine : BaseUploadEngine
 {
 
-	public override UploadEngineOptions Option => UploadEngineOptions.Pomf;
+	public override UploadEngineOption Option => UploadEngineOption.Pomf;
 
 	public PomfEngine() : base("https://pomf.lain.la/upload.php") { }
 

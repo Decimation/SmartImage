@@ -36,7 +36,7 @@ internal record ShellSelection
 		int root   = 0;
 		int t      = 0;
 
-		if (Item is ISubResultItem { IsChild: true } sub) {
+		if (Item is IChildResultItem { IsChild: true } sub) {
 			// scnIdx = Item.Parent.ScannedItems.IndexOf(Item);
 			root = sub.Parent.Root.Results.IndexOf(sub.Parent);
 
@@ -50,7 +50,7 @@ internal record ShellSelection
 
 		for (int k = 0; k < root; k++) {
 
-			var kItem = Item is ISubResultItem {} subItem ? subItem.Parent : Item;
+			var kItem = Item is IChildResultItem {} subItem ? subItem.Parent : Item;
 
 			var result  = kItem.Root.Results[k] as IScannableItem;
 
@@ -91,7 +91,7 @@ internal record ShellSelection
 
 			t += i;
 
-			if (itemResult is ISubResultItem { } sub && Item is IScannableItem {} scannableItem) {
+			if (itemResult is IChildResultItem { } sub && Item is IScannableItem {} scannableItem) {
 				var subIdx = scannableItem.ScannedItems.IndexOf(sub);
 				t += subIdx;
 			}

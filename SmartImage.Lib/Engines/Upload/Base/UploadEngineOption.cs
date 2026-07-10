@@ -1,11 +1,11 @@
-﻿// Author: Deci | Project: SmartImage.Lib | Name: UploadEngineOptions.cs
+﻿// Author: Deci | Project: SmartImage.Lib | Name: UploadEngineOption.cs
 // Date: 2024/12/06 @ 03:12:53
 
 using SmartImage.Lib.Engines.Search.Other;
 
 namespace SmartImage.Lib.Engines.Upload.Base;
 
-public enum UploadEngineOptions
+public enum UploadEngineOption
 {
 
 	None = 0,
@@ -25,7 +25,6 @@ public enum UploadEngineOptions
 	/// </summary>
 	Pomf,
 
-
 	/// <summary>
 	/// <see cref="ImgOpsEngine"/>
 	/// </summary>
@@ -34,5 +33,11 @@ public enum UploadEngineOptions
 	/// <summary>
 	/// <see cref="TmpFilesEngine"/>
 	/// </summary>
-	TmpFiles
+	TmpFiles,
+
+#region 
+
+	Obsolete = Pomf | ImgOps
+
+#endregion
 }

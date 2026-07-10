@@ -58,7 +58,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// <summary>
 	/// Default value for <see cref="UploadEngine"/>
 	/// </summary>
-	public const UploadEngineOptions UE_DEFAULT = UploadEngineOptions.Catbox;
+	public const UploadEngineOption UE_DEFAULT = UploadEngineOption.Catbox;
 
 #endregion
 
@@ -85,7 +85,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// <summary>
 	/// Upload engine
 	/// </summary>
-	public UploadEngineOptions UploadEngine
+	public UploadEngineOption UploadEngine
 	{
 		get => Get(UE_DEFAULT);
 		set => Set(value);

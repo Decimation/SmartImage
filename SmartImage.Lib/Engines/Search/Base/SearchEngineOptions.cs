@@ -113,7 +113,9 @@ public enum SearchEngineOptions
 
 	Artwork = SauceNao | Iqdb | Ascii2D | EHentai | Fluffle,
 
-	Advanced = All & ~ (Bing | GoogleImages | ImgOps | KarmaDecay)
+	Advanced = All & ~ (Bing | GoogleImages | ImgOps | KarmaDecay | Obsolete),
+
+	Obsolete = KarmaDecay
 
 #endregion
 

@@ -36,7 +36,7 @@ public class TmpFilesEngine : BaseUploadEngine
 
 	public override long? MaxLength => 100_000_000;
 
-	public override UploadEngineOptions Option => UploadEngineOptions.TmpFiles;
+	public override UploadEngineOption Option => UploadEngineOption.TmpFiles;
 
 	public override async Task<IUploadResult> UploadFileAsync(string file, CancellationToken ct = default)
 	{

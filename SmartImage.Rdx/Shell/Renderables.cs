@@ -208,7 +208,7 @@ internal static partial class Renderables
 		nameof(IImage.Width),
 		nameof(IImage.Height),
 		nameof(SearchResultItem.Metadata),
-		nameof(ISubResultItem.Parent),
+		nameof(IChildResultItem.Parent),
 		nameof(IUniImage.Bytes),
 		nameof(IResultItem.Url),
 
@@ -219,17 +219,17 @@ internal static partial class Renderables
 		typeof(IResultItem),
 		typeof(ISimilarity),
 		typeof(IHashable),
-		typeof(IMetadata),
+		typeof(IResultMetadata),
 		typeof(IUniImage)
 	];
 
 	private static readonly string[] s_itemInfoGridNames =
 	[
-		nameof(IMetadata.Character),
-		nameof(IMetadata.Source),
-		nameof(IMetadata.Description),
-		nameof(IMetadata.Site),
-		nameof(IMetadata.Title)
+		nameof(IResultMetadata.Character),
+		nameof(IResultMetadata.Source),
+		nameof(IResultMetadata.Description),
+		nameof(IResultMetadata.Site),
+		nameof(IResultMetadata.Title)
 	];
 
 #endregion

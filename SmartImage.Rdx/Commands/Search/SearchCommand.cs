@@ -262,7 +262,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					continue;
 				}
 
-				if (cmd == R2.Chc_Scan && item is not ISubResultItem { IsChild: true } && (sri is not { HasScannedItems: true } and not null)) {
+				if (cmd == R2.Chc_Scan && item is not IChildResultItem { IsChild: true } && (sri is not { HasScannedItems: true } and not null)) {
 					await AnsiConsole.Live(srTable).StartAsync(async f =>
 					{
 						s_logger.LogTrace("Scanning {Item}", item);
@@ -339,7 +339,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				}
 
 				// todo: wip
-				if (cmd == R2.Chc_GalleryDl && item is not ISubResultItem { IsChild: true }) {
+				if (cmd == R2.Chc_GalleryDl && item is not IChildResultItem { IsChild: true }) {
 					var ch      = Channel.CreateUnbounded<Url>();
 					var gdlTask = ImageScanner.RunGalleryDLAsync(item.Url, ch.Writer, ct);
 
