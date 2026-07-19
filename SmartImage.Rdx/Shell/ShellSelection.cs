@@ -55,7 +55,7 @@ internal record ShellSelection
 			var result  = kItem.Root.Results[k] as IScannableItem;
 
 			var scnItm  = result.ScannedItems;
-			var scnIdx2 = scnItm.IndexOf(kItem);
+			var scnIdx2 = scnItm.FindIndex(p=>p.Parent == kItem);
 
 			if (scnIdx2 == -1) {
 				t += scnItm.Count;
@@ -92,7 +92,7 @@ internal record ShellSelection
 			t += i;
 
 			if (itemResult is IChildResultItem { } sub && Item is IScannableItem {} scannableItem) {
-				var subIdx = scannableItem.ScannedItems.IndexOf(sub);
+				var subIdx = scannableItem.ScannedItems.FindIndex(p=>p.Parent==sub);
 				t += subIdx;
 			}
 		}
@@ -105,7 +105,8 @@ internal record ShellSelection
 	{
 		var spl = str.Split('.');
 
-		IResultItem sri = null, sri2 = null;
+		IResultItem sri = null;
+		ScannedResultItem sri2 = null;
 
 		var  resIdx    = 0;
 		var  scnIdx    = -1;
@@ -114,7 +115,7 @@ internal record ShellSelection
 		if (sr.Results.TryParseIndex(spl[0], out resIdx, out sri)) {
 			if (spl.Length == 2) {
 				if (sri is SearchResultItem { } sriOrig && sriOrig.ScannedItems.TryParseIndex(spl[1], out scnIdx, out sri2)) {
-					sri       = sri2;
+					sri       = sri2.Parent;
 					isScanned = true;
 				}
 			}

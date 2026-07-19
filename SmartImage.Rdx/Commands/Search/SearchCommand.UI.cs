@@ -26,7 +26,7 @@ public sealed partial class SearchCommand
 
 		var ciPanel = new Panel(m_queryCanvasImg)
 		{
-			Header = new PanelHeader($"{Query.Source.Value}"),
+			Header = new PanelHeader($"{Query.AllocImage.Value}"),
 			Expand = true,
 		};
 
@@ -130,8 +130,8 @@ public sealed partial class SearchCommand
 		var dt = new Grid();
 		dt.AddColumns(2);
 
-		dt.AddRow(new Text("Query", ElementStyles.Sty_Grid1), Renderables.MarkupLink(query.Source.Value));
-		dt.AddRow(new Text("Query Format", ElementStyles.Sty_Grid1), new Text($"({query.Source.Type}) {query.Source.ImageFormat.Name}"));
+		dt.AddRow(new Text("Query", ElementStyles.Sty_Grid1), Renderables.MarkupLink(query.AllocImage.Value));
+		dt.AddRow(new Text("Query Format", ElementStyles.Sty_Grid1), new Text($"({query.AllocImage.Type}) {query.AllocImage.ImageFormat.Name}"));
 		dt.AddRow(new Text("Upload", ElementStyles.Sty_Grid1), Renderables.MarkupLink(query.Upload.Url, query.Upload.ToString()));
 
 

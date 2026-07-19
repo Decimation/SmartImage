@@ -16,7 +16,7 @@ using System.Runtime.InteropServices;
 using Flurl;
 using Novus.Runtime;
 using SmartImage.Lib.Images;
-using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Images.Alloc;
 using SmartImage.Lib.Model;
 #nullable disable
 using System.Reflection;
@@ -209,7 +209,7 @@ internal static partial class Renderables
 		nameof(IImage.Height),
 		nameof(SearchResultItem.Metadata),
 		nameof(IChildResultItem.Parent),
-		nameof(IUniImage.Bytes),
+		nameof(IAllocImage.Bytes),
 		nameof(IResultItem.Url),
 
 	];
@@ -220,7 +220,7 @@ internal static partial class Renderables
 		typeof(ISimilarity),
 		typeof(IHashable),
 		typeof(IResultMetadata),
-		typeof(IUniImage)
+		typeof(IAllocImage)
 	];
 
 	private static readonly string[] s_itemInfoGridNames =

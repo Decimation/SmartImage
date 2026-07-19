@@ -3,7 +3,7 @@
 
 namespace SmartImage.Lib.Engines.Results;
 
-public interface IChildResultItem : IResultItem
+public interface IChildResultItem /*: IResultItem*/
 {
 
 	IResultItem Parent { get; }

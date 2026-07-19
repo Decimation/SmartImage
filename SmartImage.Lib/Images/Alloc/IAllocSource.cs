@@ -1,9 +1,7 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: IAlloc.cs
 // Date: 2026/06/13 @ 01:06:37
 
-using SmartImage.Lib.Model;
-
-namespace SmartImage.Lib.Images.Uni;
+namespace SmartImage.Lib.Images.Alloc;
 
 public interface IAllocSource
 {

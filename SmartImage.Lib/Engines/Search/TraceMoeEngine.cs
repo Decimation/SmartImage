@@ -8,6 +8,7 @@ using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Results.Enums;
 using SmartImage.Lib.Engines.Search.Base;
 
 // ReSharper disable InconsistentNaming
@@ -98,11 +99,11 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 
 		return req.PostMultipartAsync(ac =>
 		{
-			if (query.Source.IsFile) {
-				ac.AddFile("file", query.Source.Value);
+			if (query.AllocImage.IsFile) {
+				ac.AddFile("file", query.AllocImage.Value);
 			}
 			else {
-				ac.AddFile("image", query.Source.GetSource(), "image");
+				ac.AddFile("image", query.AllocImage.GetSource(), "image");
 			}
 		}, cancellationToken: ct);
 	}

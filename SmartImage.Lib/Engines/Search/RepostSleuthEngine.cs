@@ -2,6 +2,7 @@
 using System.Text.Json;
 using Flurl.Http;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Results.Enums;
 using SmartImage.Lib.Engines.Search.Base;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -49,8 +50,8 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 				                     .WithTimeout(Timeout)
 				                     .PostMultipartAsync(buildContent: content =>
 				                     {
-					                     var stream = query.Source.GetSource();
-					                     content.AddFile("image", stream, query.Source.Name);
+					                     var stream = query.AllocImage.GetSource();
+					                     content.AddFile("image", stream, query.AllocImage.Name);
 				                     }, cancellationToken: ct);
 
 			if (response.StatusCode == 530) {

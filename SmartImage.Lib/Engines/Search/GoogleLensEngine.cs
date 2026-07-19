@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search.Base;
-using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Images.Alloc;
 using SmartImage.Lib.Model;
 
 // ReSharper disable UnusedMember.Local
@@ -90,13 +90,13 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 	private Task<IFlurlResponse> SearchFileAsync(SearchQuery query, CancellationToken token)
 	{
 		string               endpoint;
-		UniImageFile         uif      = query.Source as UniImageFile;
+		AllocImageFile         uif      = query.AllocImage as AllocImageFile;
 		string               filename = uif.LocalFileInfo.Name;
 		Task<IFlurlResponse> req;
 		endpoint = "v3/upload";
 
 		// filename = "image.jpg";
-		// filename = (query.Source is UniImageFile uif) ? uif.FileInfo.Name : "image.jpg";
+		// filename = (query.AllocImage is AllocImageFile uif) ? uif.FileInfo.Name : "image.jpg";
 		filename = uif.LocalFileInfo.Name;
 
 		req = Client.Request(Url, endpoint)
@@ -122,11 +122,11 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 
 		//todo
 
-		if (query.Source.IsUri) {
+		if (query.AllocImage.IsUri) {
 			req = SearchUrlAsync(query, token);
 			res = await req.ConfigureAwait(false);
 		}
-		else if (query.Source.IsFile) {
+		else if (query.AllocImage.IsFile) {
 			req = SearchFileAsync(query, token);
 			res = await req.ConfigureAwait(false);
 		}

@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Flurl.Http;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Results.Enums;
 using SmartImage.Lib.Engines.Search.Base;
 
 namespace SmartImage.Lib.Engines.Search;
@@ -29,7 +30,7 @@ public sealed class TinEyeEngine : BaseSearchEngine
 			goto ret;
 		}
 
-		if (q.Source.Image.Width >= 10000) {
+		if (q.AllocImage.Image.Width >= 10000) {
 			ok = false;
 			goto ret;
 		}

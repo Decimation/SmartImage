@@ -1,16 +1,21 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: SearchResultItem.cs
 // Date: 2026/02/28 @ 19:02:49
 
+using CoenM.ImageHash;
+using Flurl.Http;
+using Microsoft.Extensions.Logging;
+using Microsoft.IO;
+using SmartImage.Lib.Images;
+using SmartImage.Lib.Images.Alloc;
+using SmartImage.Lib.Model;
+using SmartImage.Lib.Utilities;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Numerics;
 using System.Text;
 using System.Threading.Channels;
-using CoenM.ImageHash;
-using Microsoft.Extensions.Logging;
-using SmartImage.Lib.Images;
-using SmartImage.Lib.Images.Uni;
-using SmartImage.Lib.Model;
-using SmartImage.Lib.Utilities;
+using System.Xml.Linq;
+using SixLabors.ImageSharp.Formats;
 
 namespace SmartImage.Lib.Engines.Results;
 
@@ -20,13 +25,14 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 
 	internal SearchResultItem(SearchResult r, bool isRaw = false)
 	{
-		Root     = r;
-		Metadata = null;
-		IsRaw    = isRaw;
+		Root         = r;
+		Metadata     = null;
+		IsRaw        = isRaw;
 		ScannedItems = [];
 	}
 
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchResultItem));
+
 
 	/// <summary>
 	///     Whether this is <see cref="SearchResult.RawResultItem" />
@@ -153,7 +159,7 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 			if (Metadata is not null)
 				s++;
 
-			// s += Root.ScannedResults.Count;
+			s += ScannedItems.Count;
 
 			return s;
 		}
@@ -214,34 +220,26 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 
 #region Scanning
 
-	public List<IResultItem> ScannedItems { get; }
+	public List<ScannedResultItem> ScannedItems { get; }
 
 	[MNNW(true, nameof(ScannedItems))]
 	public bool HasScannedItems => ScannedItems is { Count: > 0 };
 
-	public virtual async ValueTask<bool> ScanAsync(CancellationToken ct = default)
+	public virtual async ValueTask<ScannedResultItem> ToScannedItem(CancellationToken ct = default)
 	{
-		//todo
 		if (HasScannedItems) {
-			return true;
+			return ScannedItems.FirstOrDefault(s => s.Parent == this);
 		}
 
-		var cw = Channel.CreateUnbounded<IUniImage>();
+		var scn = await ScannedResultItem.FromSourceAsync(Url, this, ct: ct);
 
-		var scr = await ScannedResultItem.FromSourceAsync(this, ct: ct);
-
-		var task = scr.ScanAsync(cw, url => new ScannedResultItem(url, this), ct);
-
-		while (await cw.Reader.WaitToReadAsync(ct)) {
-			var val = await cw.Reader.ReadAsync(ct);
-
-			ScannedItems.Add((ScannedResultItem) val);
+		if (scn != null) {
+			ScannedItems.Add(scn);
 		}
 
-		var ok = await task;
-
-		return ok;
+		return scn;
 	}
+
 #endregion
 
 
@@ -250,15 +248,6 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 		Similarity = CompareHash.Calculate(this, hashable);
 
 		return HasSimilarity;
-	}
-
-	public void Dispose()
-	{
-		GC.SuppressFinalize(this);
-
-		s_logger.LogDebug("Disposing {Item} of {Name}", Url, Root.Engine.Name);
-		ThumbnailImage?.Dispose();
-
 	}
 
 	protected virtual bool PrintMembers(StringBuilder builder)
@@ -270,6 +259,19 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 	{
 		return
 			$"{Url} {Similarity / 100:P} {Artist} {Description} {Site} {Source} {Title} {Character} {Time} {Width}x{Height}";
+	}
+
+	public void Dispose()
+	{
+		GC.SuppressFinalize(this);
+
+		s_logger.LogDebug("Disposing {Item} of {Name}", Url, Root.Engine.Name);
+		ThumbnailImage?.Dispose();
+
+		foreach (var item in ScannedItems) {
+			item.Dispose();
+		}
+
 	}
 
 #region Relational members

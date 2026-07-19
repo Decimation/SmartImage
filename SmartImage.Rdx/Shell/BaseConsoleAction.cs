@@ -3,6 +3,7 @@
 
 #nullable disable
 using SmartImage;
+using SmartImage.Lib.Engines.Results;
 using Spectre.Console.Rendering;
 
 // ReSharper disable InconsistentNaming
@@ -19,4 +20,11 @@ public class BaseConsoleAction<T, T2>
 
 	public Func<T, T2, bool> Func { get; init; }
 
+}
+
+public class BaseResultViewAction<T>
+{
+	public Predicate<T> Validator {get;}
+	
+	public Func<T, bool> Func {get;}
 }

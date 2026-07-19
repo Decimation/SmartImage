@@ -4,6 +4,7 @@ using Argon;
 using Flurl.Http;
 using Microsoft.Net.Http.Headers;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Results.Enums;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Utilities;
 
@@ -47,7 +48,7 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 		                       .OnError(e => { e.ExceptionHandled = true; })
 		                       .PostMultipartAsync(c =>
 		                       {
-			                       string file = query.Source.WriteImageToFile();
+			                       string file = query.AllocImage.WriteImageToFile();
 			                       c.AddFile("file", file, "file");
 			                       c.AddString("includeNsfw", true.ToString());
 			                       c.AddString("limit", LIM_MAX.ToString());

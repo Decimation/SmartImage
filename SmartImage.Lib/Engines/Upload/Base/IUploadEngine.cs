@@ -2,7 +2,7 @@
 // Date: 2026/02/28 @ 12:02:15
 
 using Flurl.Http;
-using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Images.Alloc;
 using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Upload.Base;
@@ -14,6 +14,6 @@ public interface IUploadEngine : INamedEnumOption<UploadEngineOption>, IMaxLengt
 
 	Task<IUploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default);
 
-	void Verify(IUniImage file);
+	void Verify(IAllocImage file);
 
 }

@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Novus.Win32;
 using SmartImage.Lib;
-using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Images.Alloc;
 using SmartImage.Lib.Utilities.Integration;
 using SmartImage.Rdx.Commands;
 using SmartImage.Rdx.Commands.Common;
@@ -106,7 +106,7 @@ public sealed class SearchCommandSettings : CommonCommandSettings
 
 		}
 
-		if (!UniImage.IsValidSourceType(Query)) {
+		if (!AllocImage.IsValidSourceType(Query)) {
 			return ValidationResult.Error($"Invalid query: {Query}");
 		}
 

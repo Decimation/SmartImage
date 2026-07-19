@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Channels;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Engines.Search.Base;
-using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Engines.Results.Enums;
 
 namespace SmartImage.Lib.Engines.Results;
 
@@ -52,8 +52,6 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	[NN]
 	public List<IResultItem> Results { get; }
 
-	
-
 	[JI]
 	public SearchResultItem RawResultItem { get; }
 
@@ -67,7 +65,7 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 			Url = rawUrl
 		};
 
-		Results      = [RawResultItem];
+		Results = [RawResultItem];
 	}
 
 #region

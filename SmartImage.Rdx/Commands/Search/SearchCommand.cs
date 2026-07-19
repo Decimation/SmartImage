@@ -30,7 +30,7 @@ using Microsoft.Extensions.Logging;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Images;
-using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Images.Alloc;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Diagnostics;
 using SmartImage.Lib.Utilities.Integration;
@@ -100,7 +100,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			throw new SmartImageException($"Could not upload {Query}");
 		}
 		
-		m_queryCanvasImg = new CanvasImage(Query.Source.GetSource());
+		m_queryCanvasImg = new CanvasImage(Query.AllocImage.GetSource());
 
 		p.Increment(ElementStyles.COMPLETE / 2);
 
@@ -266,20 +266,23 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					await AnsiConsole.Live(srTable).StartAsync(async f =>
 					{
 						s_logger.LogTrace("Scanning {Item}", item);
-						bool scannedOk = false;
-						scannedOk = await sri.ScanAsync(ct);
+						bool scannedOk     = false;
+						var  ch = Channel.CreateUnbounded<ScannedResultItem>();
+						scannedOk = await ImageScanner.ScanAsync(ch.Writer, sri, ct);
 
 						if (!scannedOk) {
 							return;
 						}
 
-						for (int i = 0; i < sri.ScannedItems.Count; i++) {
-							IResultItem scnItm = sri.ScannedItems[i];
+						int i = 0;
 
-							scnItm.TryCalculateSimilarity(Query.Source);
-
-							var scnRow = scnItm.GetItemRow(sel.ItemIdx, i);
+						while (await ch.Reader.WaitToReadAsync(ct)) {
+							var snItm= await ch.Reader.ReadAsync(ct);
+							sri.ScannedItems.Add(snItm);
+							i++;
+							var scnRow = snItm.Parent.GetItemRow(sel.ItemIdx, i);
 							srTable.InsertRow(selIdx + i + 1, scnRow);
+
 						}
 
 						f.Refresh();
@@ -293,7 +296,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 					AnsiConsole.Live(srTable).Start(f =>
 					{
-						item.TryCalculateSimilarity(Query.Source);
+						item.TryCalculateSimilarity(Query.AllocImage);
 
 						srTableCpy.Rows.Update(selIdx2, (int) ResultRowIndex.ROW_SIMILARITY, item.GetSimilarity());
 						f.Refresh();
@@ -305,7 +308,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				}
 
 
-				if (cmd == R2.Chc_Preview && item is ScannedResultItem { HasImage: true } sriScn) {
+				if (cmd == R2.Chc_Preview && item is ScannedResultItem { AllocImage.HasImage: true } sriScn) {
 					var ci = GetPreviewCanvasImage(sriScn);
 
 					AnsiConsole.AlternateScreen(() =>
@@ -316,9 +319,9 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					clrWrite = true;
 				}
 
-				if (cmd == R2.Chc_Download && item is ScannedResultItem { HasBytes: true } sriScnDl) {
+				if (cmd == R2.Chc_Download && item is ScannedResultItem { AllocImage.HasBytes: true } sriScnDl1 && sriScnDl1.AllocImage is AllocImage sriScnDl) {
 					if (!sriScnDl.HasLocalFilePath) {
-						HandleDownload(sriScnDl);
+						HandleDownload(sriScnDl1);
 					}
 					else {
 						AnsiConsole.WriteLine($"Already downloaded {sriScnDl}");
@@ -351,10 +354,10 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 							if (scn != null) {
 								sri.ScannedItems.Add(scn);
-								item.TryCalculateSimilarity(Query.Source);
+								item.TryCalculateSimilarity(Query.AllocImage);
 								var i = sri.ScannedItems.IndexOf(scn);
 
-								var scnRow = scn.GetItemRow(sel.ItemIdx, i);
+								var scnRow = scn.Parent.GetItemRow(sel.ItemIdx, i);
 								srTable.InsertRow(selIdx + i + 1, scnRow);
 							}
 
@@ -373,14 +376,16 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 	private static void HandleDownload(ScannedResultItem sri)
 	{
-		var ok = sri.TryWriteOrGetFile();
+		var allocImage = (AllocImage) sri.AllocImage;
+		var ok         = allocImage.TryWriteOrGetFile();
 
 		if (ok) {
 			AC.AlternateScreen(() =>
 			{
 				var gr = new Grid();
 				gr.AddColumns(new(), new());
-				gr.AddRow(new Text("File", ElementStyles.Sty_Name), new Text(sri.LocalFilePath));
+				var sriAllocImage = ((AllocImage) sri.AllocImage);
+				gr.AddRow(new Text("File", ElementStyles.Sty_Name), new Text(sriAllocImage.LocalFilePath));
 				AnsiConsole.Write(gr);
 
 				var prompt = new ConfirmationPrompt("Open?");
@@ -389,7 +394,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				if (choice) {
 					using var proc = Process.Start(new ProcessStartInfo
 					{
-						FileName         = sri.LocalFilePath,
+						FileName         = sriAllocImage.LocalFilePath,
 						WorkingDirectory = String.Empty,
 						UseShellExecute  = true
 					});

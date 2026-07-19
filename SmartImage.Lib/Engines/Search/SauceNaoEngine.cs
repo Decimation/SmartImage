@@ -12,6 +12,7 @@ using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Results.Enums;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Model;
 
@@ -133,16 +134,16 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 
 		IFlurlResponse response = await Client.Request(Endpoint).WithTimeout(Timeout).PostMultipartAsync(m =>
 		{
-			m.AddString("url", query.Source.IsUri ? query.Source.Value : String.Empty);
+			m.AddString("url", query.AllocImage.IsUri ? query.AllocImage.Value : String.Empty);
 			string s;
 
-			if (query.Source.IsUri) { }
+			if (query.AllocImage.IsUri) { }
 			else {
-				if (query.Source.IsFile) {
-					s = query.Source.Value;
+				if (query.AllocImage.IsFile) {
+					s = query.AllocImage.Value;
 				}
 				else {
-					s = query.Source.LocalFilePath;
+					s = query.AllocImage.LocalFilePath;
 				}
 
 				m.AddFile("file", s, fileName: "image.png");
@@ -313,7 +314,7 @@ public sealed record SauceNaoResultItem : SearchResultItem
 
 	internal const string KEY_MATERIAL = "Material:";
 
-	internal const string KEY_SOURCE = "Source:";
+	internal const string KEY_SOURCE = "AllocImage:";
 
 	internal static readonly string[] Keys_Artist = ["Creator(s):", "Creator:", "Member:", "Artist:", "Author:"];
 

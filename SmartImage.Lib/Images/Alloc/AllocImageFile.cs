@@ -1,14 +1,12 @@
-﻿// Author: Deci | Project: SmartImage.Lib | Name: UniImageFile.cs
+﻿// Author: Deci | Project: SmartImage.Lib | Name: AllocImageFile.cs
 // Date: 2024/07/17 @ 02:07:16
 
-using SmartImage.Lib.Model;
+namespace SmartImage.Lib.Images.Alloc;
 
-namespace SmartImage.Lib.Images.Uni;
-
-public class UniImageFile : UniImage
+public class AllocImageFile : AllocImage
 {
 
-	internal UniImageFile(FileInfo fi) : base(fi.FullName, UniImageType.File)
+	internal AllocImageFile(FileInfo fi) : base(fi.FullName, UniImageType.File)
 	{
 		LocalFileInfo = fi;
 		LocalFilePath = Value;

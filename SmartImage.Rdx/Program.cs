@@ -18,7 +18,6 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SmartImage.Lib;
 using SmartImage.Lib.Images;
-using SmartImage.Lib.Images.Uni;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using SmartImage.Rdx.Shell;
@@ -155,7 +154,7 @@ public static class Program
 					var res = task.Result;
 					#1#
 
-					if (UniImage.IsValidSourceType(s)) {
+					if (AllocImage.IsValidSourceType(s)) {
 						// var sq = SearchQuery.TryCreateAsync(s).Result;
 
 						return s;

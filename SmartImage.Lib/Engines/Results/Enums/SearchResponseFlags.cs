@@ -1,7 +1,7 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: SearchResponseFlags.cs
 // Date: 2026/05/02 @ 08:05:22
 
-namespace SmartImage.Lib.Engines.Results;
+namespace SmartImage.Lib.Engines.Results.Enums;
 
 /// <summary>
 /// Describes the response status from an engine

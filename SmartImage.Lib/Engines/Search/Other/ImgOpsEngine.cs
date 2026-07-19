@@ -2,10 +2,11 @@
 using Flurl.Http.Content;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Engines.Upload;
-using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Model;
 using System.Collections;
 using SmartImage.Lib.Engines.Upload.Base;
+using SmartImage.Lib.Images.Alloc;
+
 #pragma warning disable CS0162 // Unreachable code detected
 
 namespace SmartImage.Lib.Engines.Search.Other;
@@ -43,7 +44,7 @@ public sealed class ImgOpsEngine : BaseSearchEngine, IUploadEngine
 		throw new NotImplementedException();
 	}
 
-	public void Verify(IUniImage file)
+	public void Verify(IAllocImage file)
 	{
 		throw new NotImplementedException();
 	}

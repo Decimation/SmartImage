@@ -15,6 +15,7 @@ using SmartImage.Lib.Utilities.Diagnostics;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 using SmartImage.Shared;
+using SmartImage.Lib.Engines.Results.Enums;
 
 [assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_TEST)]
 [assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_UI2)]
@@ -127,7 +128,7 @@ public abstract class BaseSearchEngine : INamedEnumOption<SearchEngineOptions>, 
 		bool b = true;
 
 		if (MaxLength.HasValue) {
-			b = q.Source.Length <= MaxLength;
+			b = q.AllocImage.Length <= MaxLength;
 		}
 
 		return b;

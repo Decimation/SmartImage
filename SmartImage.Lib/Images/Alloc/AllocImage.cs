@@ -1,4 +1,4 @@
-﻿// Author: Deci | Project: SmartImage.Lib | Name: UniImage.cs
+﻿// Author: Deci | Project: SmartImage.Lib | Name: AllocImage.cs
 // Date: 2024/05/02 @ 10:05:55
 
 // ReSharper disable InconsistentNaming
@@ -6,32 +6,27 @@
 #nullable disable
 #pragma warning disable CS0168 // Variable is declared but never used
 
+using System.ComponentModel;
+using System.Diagnostics;
 using CoenM.ImageHash;
 using Microsoft.Extensions.Logging;
 using Microsoft.IO;
 using Novus.FileTypes.Uni;
-using Novus.Streams;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Drawing.Imaging;
-using System.Net.WebSockets;
-using AngleSharp.Css.Dom;
-using SmartImage.Lib.Engines.Results;
 
-namespace SmartImage.Lib.Images.Uni;
+namespace SmartImage.Lib.Images.Alloc;
 
 /// <summary>
 /// Represents an image dynamically loaded from a described source
 /// <seealso cref="UniSource"/>
 /// </summary>	
-public abstract class UniImage : IUniImage, IEquatable<UniImage>, IFromSource<UniImage>
+public abstract class AllocImage : IAllocImage, IEquatable<AllocImage>, IAllocFromSource<IAllocImage>
 {
 
-	private protected static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(UniImage));
+	private protected static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(AllocImage));
 
 	internal static readonly RecyclableMemoryStreamManager MemMgr = new(new RecyclableMemoryStreamManager.Options { });
 
@@ -121,14 +116,14 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, IFromSource<Un
 		}
 	}
 
-	[MNNW(true, nameof(Bytes), nameof(IUniImage.Length))]
+	[MNNW(true, nameof(Bytes), nameof(IAllocImage.Length))]
 	public bool HasBytes => Bytes != null;
 
 	public long? Length => Bytes?.Length;
 
 #endregion
 
-	protected UniImage(string value, UniImageType type)
+	protected AllocImage(string value, UniImageType type)
 	{
 		Value = value;
 		Type  = type;
@@ -206,20 +201,20 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, IFromSource<Un
 	}
 
 	/// <summary>
-	/// Attempts to create the appropriate <see cref="UniImage" /> for <paramref name="src" />.
+	/// Attempts to create the appropriate <see cref="AllocImage" /> for <paramref name="src" />.
 	/// </summary>
-	public static async Task<UniImage> FromSourceAsync(object            src, bool autoInit = true, bool autoDisposeOnError = true,
-	                                                  CancellationToken ct = default)
+	public static async Task<IAllocImage> FromSourceAsync(object            src, bool autoInit = true, bool autoDisposeOnError = true,
+	                                                      CancellationToken ct = default)
 	{
-		UniImage ui = null;
+		AllocImage ui = null;
 
 		try {
 
-			if (UniImageFile.IsFileType(src, out var fi)) {
-				ui = new UniImageFile(fi);
+			if (AllocImageFile.IsFileType(src, out var fi)) {
+				ui = new AllocImageFile(fi);
 			}
-			else if (UniImageUrl.IsUrlType(src, out var url2)) {
-				ui = new UniImageUrl(url2);
+			else if (AllocImageUrl.IsUrlType(src, out var url2)) {
+				ui = new AllocImageUrl(url2);
 			}
 			else {
 				goto ret;
@@ -249,26 +244,26 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, IFromSource<Un
 		return ui;
 	}
 
-	/*public static bool Union(object o, [CBN] out UniImage img)
+	/*public static bool Union(object o, [CBN] out AllocImage img)
 	{
 		img = null;
 
 		switch (o) {
 			case string s when String.IsNullOrWhiteSpace(s) && File.Exists(s):
-				img = new UniImageFile(new FileInfo(s));
+				img = new AllocImageFile(new FileInfo(s));
 				break;
 
 			case string s2 when Url.IsValid(s2):
 				Url u2 = s2;
 
 				if (ImageScanner.LegalSchemeWhitelist.Contains(u2.Scheme)) {
-					img = new UniImageUrl(u2);
+					img = new AllocImageUrl(u2);
 				}
 
 				break;
 
 			case Url u when ImageScanner.LegalSchemeWhitelist.Contains(u.Scheme):
-				img = new UniImageUrl(u);
+				img = new AllocImageUrl(u);
 				break;
 		}
 
@@ -278,8 +273,8 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, IFromSource<Un
 
 	public static bool IsValidSourceType(object o)
 	{
-		bool isFile = UniImageFile.IsFileType(o, out var f);
-		bool isUri  = UniImageUrl.IsUrlType(o, out var url);
+		bool isFile = AllocImageFile.IsFileType(o, out var f);
+		bool isUri  = AllocImageUrl.IsUrlType(o, out var url);
 		bool ok     = isFile || isUri;
 
 		return ok;
@@ -349,19 +344,19 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, IFromSource<Un
 	{
 		object clone = this;
 
-		if (IsFile && this is UniImageFile uif) {
-			var ui = new UniImageFile(uif.LocalFileInfo);
+		if (IsFile && this is AllocImageFile uif) {
+			var ui = new AllocImageFile(uif.LocalFileInfo);
 			clone = ui;
 		}
-		else if (IsUri && this is UniImageUrl uiu) {
-			var ui = new UniImageUrl(uiu.Url)
+		else if (IsUri && this is AllocImageUrl uiu) {
+			var ui = new AllocImageUrl(uiu.Url)
 			{
 				Bytes = Bytes
 			};
 			clone = ui;
 		}
 
-		if (clone is UniImage ui2 && ui2 != this) {
+		if (clone is AllocImage ui2 && ui2 != this) {
 			ui2.Bytes = Bytes;
 			ui2.LocalFilePath = LocalFilePath;
 			Similarity = Similarity;
@@ -374,7 +369,7 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, IFromSource<Un
 
 #region Equality members
 
-	public bool Equals(UniImage other)
+	public bool Equals(AllocImage other)
 	{
 		if (other is null)
 			return false;
@@ -387,7 +382,7 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, IFromSource<Un
 
 	public override bool Equals(object obj)
 	{
-		return ReferenceEquals(this, obj) || obj is UniImage other && Equals(other);
+		return ReferenceEquals(this, obj) || obj is AllocImage other && Equals(other);
 	}
 
 	public override int GetHashCode()
@@ -395,10 +390,10 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, IFromSource<Un
 		return (Value != null ? Value.GetHashCode() : 0);
 	}
 
-	public static bool operator ==(UniImage left, UniImage right)
+	public static bool operator ==(AllocImage left, AllocImage right)
 		=> Equals(left, right);
 
-	public static bool operator !=(UniImage left, UniImage right)
+	public static bool operator !=(AllocImage left, AllocImage right)
 		=> !Equals(left, right);
 
 #endregion

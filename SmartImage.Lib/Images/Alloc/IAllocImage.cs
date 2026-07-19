@@ -1,15 +1,12 @@
-﻿// Author: Deci | Project: SmartImage.Lib | Name: IUniImage.cs
+﻿// Author: Deci | Project: SmartImage.Lib | Name: IAllocImage.cs
 // Date: 2026/02/08 @ 02:02:10
 
-using Novus.Streams;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Model;
-using System.Threading.Channels;
-using JetBrains.Annotations;
 
-namespace SmartImage.Lib.Images.Uni;
+namespace SmartImage.Lib.Images.Alloc;
 
-public interface IUniImage : IImage, IDisposable, ILength, IAllocSource
+public interface IAllocImage : IImage, IDisposable, ILength, IAllocSource
 {
 
 	long? ILength.Length => Bytes?.Length;
@@ -34,7 +31,14 @@ public interface IUniImage : IImage, IDisposable, ILength, IAllocSource
 	/// </summary>
 	Task<bool> AllocImageAsync(CancellationToken ct = default);
 
-	/// <returns><see cref="IAllocSource.AllocSourceAsync"/>, <see cref="IUniImage.AllocImageAsync"/></returns>
+	/// <returns><see cref="IAllocSource.AllocSourceAsync"/>, <see cref="IAllocImage.AllocImageAsync"/></returns>
 	Task<(bool AllocSourceOk, bool AllocImageOk)> AllocAllAsync(CancellationToken ct);
+
+}
+
+public interface IScannedResultItem : IAllocImage, IChildResultItem, IResultItem
+{
+
+	
 
 }

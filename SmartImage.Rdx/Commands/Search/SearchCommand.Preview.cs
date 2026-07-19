@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Images;
-using SmartImage.Lib.Images.Uni;
 using SmartImage.Rdx.Shell;
 using Spectre.Console;
 
@@ -17,32 +16,8 @@ public partial class SearchCommand
 {
 
 	private readonly MemoryCache m_previewCanvasCache;
+
 	private CanvasImage m_queryCanvasImg;
-
-	private CanvasImage GetPreviewCanvasImage(ScannedResultItem sri)
-	{
-		Stream str = null;
-
-		var key = sri.Value;
-		var val = m_previewCanvasCache.Get(key);
-
-		if (val is not CanvasImage ci) {
-			str = sri.GetSource();
-
-			if (str == Stream.Null || !sri.HasImage) {
-				Trace.WriteLine($"No source for {key}!");
-				return m_queryCanvasImg;
-			}
-
-			ci = new CanvasImage(str);
-
-			m_previewCanvasCache.Set(key, ci, s_cip);
-		}
-
-		Trace.Assert(ci != null);
-
-		return ci;
-	}
 
 	private static readonly PreviewConsoleAction[] s_previewActions =
 	[
@@ -55,7 +30,7 @@ public partial class SearchCommand
 				ci.Mutate(act =>
 				{
 					//
-					act.Resize(sri.Image.Width, sri.Image.Height);
+					act.Resize(sri.AllocImage.Image.Width, sri.AllocImage.Image.Height);
 				});
 				return false;
 			},
@@ -102,7 +77,7 @@ public partial class SearchCommand
 		return s + Markup.Escape(($"[{kv.Key}] : {kv.Description}")) + " | ";
 	});
 
-	private static readonly CacheItemPolicy s_cip = new CacheItemPolicy
+	private static readonly CacheItemPolicy s_cacheItemPolicy = new CacheItemPolicy
 	{
 		AbsoluteExpiration = DateTimeOffset.Now + TimeSpan.FromMinutes(1),
 		RemovedCallback = static arguments =>
@@ -111,13 +86,38 @@ public partial class SearchCommand
 		}
 	};
 
+	private CanvasImage GetPreviewCanvasImage(ScannedResultItem sri)
+	{
+		Stream str = null;
+
+		var key = sri.AllocImage.Value;
+		var val = m_previewCanvasCache.Get(key);
+
+		if (val is not CanvasImage ci) {
+			str = sri.AllocImage.GetSource();
+
+			if (str == Stream.Null || !sri.AllocImage.HasImage) {
+				Trace.WriteLine($"No source for {key}!");
+				return m_queryCanvasImg;
+			}
+
+			ci = new CanvasImage(str);
+
+			m_previewCanvasCache.Set(key, ci, s_cacheItemPolicy);
+		}
+
+		Trace.Assert(ci != null);
+
+		return ci;
+	}
+
 	private void ShowPreview(CanvasImage ci, ScannedResultItem sri)
 	{
 		var pnl = new Panel(ci)
 		{
 			Expand = true,
 			Border = BoxBorder.None,
-			Header = new PanelHeader($"{sri.Value}"),
+			Header = new PanelHeader($"{sri.AllocImage.Value}"),
 		};
 
 		var sriLayout = new Layout("Preview");

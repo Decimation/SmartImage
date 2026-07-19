@@ -8,7 +8,7 @@ using Microsoft.Win32;
 using Novus.OS;
 using Novus.Win32;
 using Novus.Win32.Structures.User32;
-using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Images.Alloc;
 using SmartImage.Shared;
 
 // ReSharper disable IdentifierTypo
@@ -160,6 +160,8 @@ public sealed class WindowsOSIntegration : BaseOSIntegration
 		Clipboard.Open();
 
 		string data = null;
+		
+		ClipboardFormat[] imgFormats = [ClipboardFormat.PNG, ClipboardFormat.PNG2,ClipboardFormat.PNG3, ClipboardFormat.BMP2];
 
 		if (Clipboard.IsFormatAvailable((uint)(ClipboardFormat.CF_TEXT))) {
 			data = (string) Clipboard.GetData((uint)(ClipboardFormat.CF_TEXT));
@@ -168,7 +170,16 @@ public sealed class WindowsOSIntegration : BaseOSIntegration
 			data = Clipboard.GetDragQueryList()?.FirstOrDefault();
 		}
 
-		if (UniImage.IsValidSourceType(data)) {
+		var format = imgFormats.FirstOrDefault(f=>Clipboard.IsFormatAvailable((uint) f));
+
+		if (format != default) {
+			var    ptr          = (byte[]) Clipboard.GetData((uint)(format));
+			var tempFileName = Path.ChangeExtension(Path.GetTempFileName(), "png");
+			File.WriteAllBytes(tempFileName, ptr);
+			data = tempFileName;
+		}
+
+		if (AllocImage.IsValidSourceType(data)) {
 			
 		}
 

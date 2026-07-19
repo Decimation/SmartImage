@@ -33,7 +33,7 @@ public partial class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 
 	protected override Url GetRawUrl(SearchQuery query)
 	{
-		Base64MD5Hash = GetBase64MD5Hash(query.Source.Bytes);
+		Base64MD5Hash = GetBase64MD5Hash(query.AllocImage.Bytes);
 
 		return Url.Combine(Url, "image", Base64MD5Hash);
 	}

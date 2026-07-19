@@ -1,23 +1,22 @@
-﻿// Author: Deci | Project: SmartImage.Lib | Name: UniImageUrl.cs
+﻿// Author: Deci | Project: SmartImage.Lib | Name: AllocImageUrl.cs
 // Date: 2024/07/17 @ 02:07:26
 
+using System.Threading.Channels;
 using Flurl.Http;
 using Kantan.Net.Utilities;
-using SmartImage.Lib.Model;
-using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
-using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Model;
 
-namespace SmartImage.Lib.Images.Uni;
+namespace SmartImage.Lib.Images.Alloc;
 
-public class UniImageUrl : UniImage, IUrl
+public class AllocImageUrl : AllocImage, IUrl
 {
 
 	[MN]
 	[JPN("url")]
 	public Url Url { get; protected set; }
 
-	internal UniImageUrl(Url url) : base(url?.ToString(), UniImageType.Uri)
+	internal AllocImageUrl(Url url) : base(url?.ToString(), UniImageType.Uri)
 	{
 		Url = url;
 	}
@@ -72,12 +71,12 @@ public class UniImageUrl : UniImage, IUrl
 
 	// todo: create IImageScanner type
 
-	public virtual async ValueTask<bool> ScanAsync(ChannelWriter<IUniImage> cw, Func<Url, IUniImage> f, CancellationToken ct = default)
+	public virtual async ValueTask<bool> ScanAsync(ChannelWriter<IAllocImage> cw, Func<Url, IAllocImage> f, CancellationToken ct = default)
 	{
 		var (allocOk, allocImgOk) = await AllocAllAsync(ct);
 
 		if (allocImgOk) {
-			await cw.WriteAsync((IUniImage) this, ct);
+			await cw.WriteAsync((IAllocImage) this, ct);
 			cw.TryComplete();
 			return true;
 		}

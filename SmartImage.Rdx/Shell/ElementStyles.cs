@@ -9,7 +9,6 @@ using SixLabors.ImageSharp.Memory;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Images;
-using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Utilities.Integration;
 using Spectre.Console;
 using Spectre.Console.Cli;

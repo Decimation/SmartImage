@@ -10,7 +10,6 @@ using SixLabors.ImageSharp.Formats.Bmp;
 using SixLabors.ImageSharp.Formats.Gif;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
-using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Integration;
 using System.Collections.Concurrent;
@@ -18,8 +17,10 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Channels;
+using AngleSharp.Html.Parser;
 using AngleSharp.Io;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Images.Alloc;
 
 // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
 
@@ -51,6 +52,7 @@ public static partial class ImageScanner
 			builder.Settings.HttpVersion            = "2.0";
 
 			builder.Headers.AddOrReplace(HeaderNames.UserAgent, R1.UserAgent1);
+
 			builder.WithHeaders(new
 			{
 				Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
@@ -109,6 +111,41 @@ public static partial class ImageScanner
 
 	internal const char URL_DELIM = '/';
 
+	public static async Task<bool> ScanAsync(ChannelWriter<ScannedResultItem> cw, IScannableItem item, CancellationToken ct = default)
+	{
+
+		if (item is { HasScannedItems: true }) {
+			return true;
+		}
+
+		var sri = await ScannedResultItem.FromSourceAsync(item.Url, item, autoInit: true, autoDisposeOnError: false, ct);
+
+		if (sri is { AllocImage: {HasImage: true}}) {
+			cw.TryWrite(sri);
+			cw.TryComplete();
+			return true;
+		}
+
+		if (sri is {AllocImage: {HasBytes: true}}) {
+			using var src = sri.AllocImage.GetSource();
+			var parser = new StreamReader(src);
+			var doc = await parser.ReadToEndAsync(ct);
+			var urls = ParseImageUrls(doc, item.Url);
+
+			await Parallel.ForEachAsync(urls, ct, async (s, token) =>
+			{
+				var urlSri = await ScannedResultItem.FromSourceAsync(s, item, ct: token);
+
+				if (urlSri is {AllocImage: { HasImage: true}}) {
+					cw.TryWrite(urlSri);
+				}
+				else {
+					urlSri?.Dispose();
+				}
+			});
+		}
+		return true;
+	}
 
 	/// <summary>
 	/// Parses image URLs using adapted <em><c>gallery-dl</c></em> regex 
@@ -236,7 +273,7 @@ public static partial class ImageScanner
 
 		/*async Task HandleLineAsync(string s, CancellationToken token)
 		{
-			var uni = await UniImage.FromSourceAsync(s, ct: token);
+			var uni = await AllocImage.FromSourceAsync(s, ct: token);
 
 			// var uni = await ScannedResultItem.FromResult(s, new ScannedResultItem(cri, null), token);
 			var b = cw.TryWrite(uni);

@@ -1,7 +1,7 @@
 ﻿using Flurl.Http;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Search.Other;
-using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Images.Alloc;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Diagnostics;
 
@@ -54,7 +54,7 @@ public abstract class BaseUploadEngine : IUploadEngine, IDisposable
 
 	public abstract Task<IUploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default);
 
-	public void Verify(IUniImage file)
+	public void Verify(IAllocImage file)
 	{
 		if (file.Length > MaxLength) {
 			throw new ArgumentException($"File {file} is too large (max {MaxLength}) for {Name}");
@@ -65,7 +65,8 @@ public abstract class BaseUploadEngine : IUploadEngine, IDisposable
 	public static IUploadEngine GetUploadEngine(UploadEngineOption option)
 	{
 		if (UploadEngineOption.Obsolete.HasFlag(option)) {
-			throw new ArgumentException($"Selected option {option} is obsolete", nameof(option));
+			// throw new ArgumentException($"Selected option {option} is obsolete", nameof(option));
+			option = SearchConfig.UE_DEFAULT;
 		}
 
 		return option switch

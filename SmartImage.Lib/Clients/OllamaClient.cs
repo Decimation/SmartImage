@@ -62,7 +62,7 @@ public class OllamaClient
 
 	public Task<IFlurlResponse> CreateRequestAsync(SearchQuery query, CancellationToken ct = default)
 	{
-		var b64   = Convert.ToBase64String(query.Source.Bytes);
+		var b64   = Convert.ToBase64String(query.AllocImage.Bytes);
 
 		var ollamaRequest = new OllamaRequest()
 		{

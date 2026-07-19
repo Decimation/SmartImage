@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Results.Enums;
 
 namespace SmartImage.Lib.Engines.Search.Base;
 

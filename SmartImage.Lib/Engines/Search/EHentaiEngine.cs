@@ -15,6 +15,7 @@ using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Results.Enums;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Model;
 
@@ -75,17 +76,17 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, ICo
 		string fileName;
 		string filePath = null;
 
-		if (query.Source.HasLocalFilePath) {
-			filePath = query.Source.LocalFilePath;
+		if (query.AllocImage.HasLocalFilePath) {
+			filePath = query.AllocImage.LocalFilePath;
 			fileName = Path.GetFileName(filePath);
 
 		}
 		else {
 			fileName = SFILE_NAME_DEFAULT;
-			var ok = query.Source.TryWriteOrGetFile(fileName);
+			var ok = query.AllocImage.TryWriteOrGetFile(fileName);
 
 			if (ok) {
-				filePath = query.Source.LocalFilePath;
+				filePath = query.AllocImage.LocalFilePath;
 			}
 			else {
 				Debugger.Break();

@@ -29,12 +29,13 @@ global using CA = JetBrains.Annotations.ContractAnnotationAttribute;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using SmartImage.Lib.Engines.Upload;
-using SmartImage.Lib.Images.Uni;
 using System.ComponentModel;
 using Flurl;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib;
+using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Upload.Base;
+using SmartImage.Lib.Images.Alloc;
 using SmartImage.Lib.Utilities;
 using SmartImage.Shared;
 
@@ -49,8 +50,8 @@ using SmartImage.Shared;
 
 namespace SmartImage.Lib;
 
-// TODO: This should be a UniImage?
-public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyPropertyChanged, IUploadable
+// TODO: This should be a AllocImage?
+public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyPropertyChanged, IUploadable, IAllocImageView<AllocImage>
 {
 
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchQuery));
@@ -70,17 +71,17 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 		}
 	}
 
-	public UniImage Source { get; }
+	public AllocImage AllocImage { get; }
 
-	private SearchQuery(UniImage img, UploadResult upload)
+	private SearchQuery(AllocImage img, UploadResult upload)
 	{
-		Source = img;
+		AllocImage = img;
 		Upload = upload;
 
 		// Length = Uni == null ? default : Uni.Stream.Length;
 	}
 
-	private SearchQuery(UniImage img) : this(img, null) { }
+	private SearchQuery(AllocImage img) : this(img, null) { }
 
 	static SearchQuery() { }
 
@@ -88,7 +89,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 
 	public static async Task<SearchQuery> TryCreateAsync(object o, CancellationToken t = default)
 	{
-		var ui = await UniImage.FromSourceAsync(o, ct: t);
+		var ui = (AllocImage) await AllocImageUrl.FromSourceAsync(o, ct: t);
 
 		return ui != null ? new SearchQuery(ui) : Null;
 
@@ -102,14 +103,14 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 
 		ue ??= BaseUploadEngine.GetUploadEngine(SearchConfig.UE_DEFAULT); //todo
 
-		ue.Verify(Source);
+		ue.Verify(AllocImage);
 
-		if (Source is UniImageUrl { } uri) {
-			s_logger.LogTrace("Not uploading {Uni} {Val}", Source, Source.Value);
+		if (AllocImage is AllocImageUrl { } uri) {
+			s_logger.LogTrace("Not uploading {Uni} {Val}", AllocImage, AllocImage.Value);
 			Upload = new UploadResult(uri.Url, uri.Length) { };
 		}
 		else {
-			Upload = await ue.UploadFileAsync(Source.Value, ct);
+			Upload = await ue.UploadFileAsync(AllocImage.Value, ct);
 		}
 
 		return IsUploaded;
@@ -117,13 +118,13 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 
 	public void Dispose()
 	{
-		s_logger.LogTrace($"Disposing {Source}");
-		Source?.Dispose();
+		s_logger.LogTrace($"Disposing {AllocImage}");
+		AllocImage?.Dispose();
 	}
 
 	public override string ToString()
 	{
-		return $"{Source}: {IsUploaded}";
+		return $"{AllocImage}: {IsUploaded}";
 	}
 
 #region Equality members
@@ -136,7 +137,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 		if (ReferenceEquals(this, other))
 			return true;
 
-		return Equals(Source, other.Source) && Equals(Upload, other.Upload);
+		return Equals(AllocImage, other.AllocImage) && Equals(Upload, other.Upload);
 	}
 
 	public override bool Equals(object obj)
@@ -146,7 +147,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 
 	public override int GetHashCode()
 	{
-		return HashCode.Combine(Source);
+		return HashCode.Combine(AllocImage);
 	}
 
 	public static bool operator ==(SearchQuery left, SearchQuery right)

@@ -66,11 +66,11 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 				               {
 					               m.AddString("MAX_FILE_SIZE", MaxLength.ToString());
 
-					               if (query.Source.IsUri) {
+					               if (query.AllocImage.IsUri) {
 						               m.AddString("url", query.Upload.Url);
 					               }
-					               else if (query.Source.IsFile) {
-						               m.AddFile("file", query.Source.Value, fileName: "image.jpg");
+					               else if (query.AllocImage.IsFile) {
+						               m.AddFile("file", query.AllocImage.Value, fileName: "image.jpg");
 					               }
 					               else { }
 
