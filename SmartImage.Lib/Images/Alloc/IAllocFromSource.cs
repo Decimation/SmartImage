@@ -5,17 +5,17 @@ using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Images.Alloc;
 
-public interface IAllocFromSource<TItem> where TItem:IAllocImage
+public interface IAllocFromSource<TItem> where TItem : IAllocImage
 {
 
 	static abstract Task<TItem> FromSourceAsync(object src, bool autoInit = true, bool autoDisposeOnError = true, CancellationToken ct = default);
 
 }
 
-public interface IAllocSourceItem<TItem> /*where TItem:IAllocImage*/
+public interface IAllocSourceItem<TItem, in TResultItem> /*where TItem:IAllocImage*/ where TResultItem : IResultItem
 {
 
-	static abstract Task<TItem> FromSourceAsync(object            src, IResultItem item, bool autoInit = true, bool autoDisposeOnError = true,
-	                                                  CancellationToken ct = default);
+	static abstract Task<TItem> FromSourceAsync(object            src, TResultItem srcItem, bool autoInit = true, bool autoDisposeOnError = true,
+	                                            CancellationToken ct = default);
 
 }

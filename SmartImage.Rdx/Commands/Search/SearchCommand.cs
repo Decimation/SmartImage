@@ -267,8 +267,9 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					{
 						s_logger.LogTrace("Scanning {Item}", item);
 						bool scannedOk     = false;
+						
 						var  ch = Channel.CreateUnbounded<ScannedResultItem>();
-						scannedOk = await ImageScanner.ScanAsync(ch.Writer, sri, ct);
+						scannedOk = await ImageScanner.ScanAsync(sri, ch.Writer, ct);
 
 						if (!scannedOk) {
 							return;
@@ -319,7 +320,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					clrWrite = true;
 				}
 
-				if (cmd == R2.Chc_Download && item is ScannedResultItem { AllocImage.HasBytes: true } sriScnDl1 && sriScnDl1.AllocImage is AllocImage sriScnDl) {
+				if (cmd == R2.Chc_Download && item is ScannedResultItem { AllocImage.HasSource: true } sriScnDl1 && sriScnDl1.AllocImage is AllocImage sriScnDl) {
 					if (!sriScnDl.HasLocalFilePath) {
 						HandleDownload(sriScnDl1);
 					}

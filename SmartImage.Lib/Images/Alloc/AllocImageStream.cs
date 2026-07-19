@@ -7,7 +7,7 @@ namespace SmartImage.Lib.Images.Alloc;
 public class AllocImageStream : AllocImage
 {
 
-	public AllocImageStream(Stream value, UniImageType type) : base($"{value.ToString()}", type)
+	public AllocImageStream(Stream value, AllocImageType type) : base($"{value.ToString()}", type)
 	{
 		throw new NotImplementedException();
 

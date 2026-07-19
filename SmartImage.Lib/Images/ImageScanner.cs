@@ -111,32 +111,30 @@ public static partial class ImageScanner
 
 	internal const char URL_DELIM = '/';
 
-	public static async Task<bool> ScanAsync(ChannelWriter<ScannedResultItem> cw, IScannableItem item, CancellationToken ct = default)
+	// todo: create IImageScanner type
+
+	public static async Task<bool> ScanAsync(IScannableItem item, ChannelWriter<ScannedResultItem> cw, CancellationToken ct = default)
 	{
-
-		if (item is { HasScannedItems: true }) {
-			return true;
-		}
-
 		var sri = await ScannedResultItem.FromSourceAsync(item.Url, item, autoInit: true, autoDisposeOnError: false, ct);
 
-		if (sri is { AllocImage: {HasImage: true}}) {
+		await cw.WaitToWriteAsync(ct);
+
+		if (sri is { AllocImage.HasImage: true }) {
 			cw.TryWrite(sri);
-			cw.TryComplete();
-			return true;
+			goto ret;
 		}
 
-		if (sri is {AllocImage: {HasBytes: true}}) {
-			using var src = sri.AllocImage.GetSource();
-			var parser = new StreamReader(src);
-			var doc = await parser.ReadToEndAsync(ct);
-			var urls = ParseImageUrls(doc, item.Url);
+		if (sri is { AllocImage.HasSource: true }) {
+			await using var src    = sri.AllocImage.GetSource();
+			using var       parser = new StreamReader(src);
+			var             doc    = await parser.ReadToEndAsync(ct);
+			var             urls   = ParseImageUrls(doc, item.Url);
 
-			await Parallel.ForEachAsync(urls, ct, async (s, token) =>
+			await Parallel.ForEachAsync(urls, ct, async (url, token) =>
 			{
-				var urlSri = await ScannedResultItem.FromSourceAsync(s, item, ct: token);
+				var urlSri = await ScannedResultItem.FromSourceAsync(url, item, ct: token);
 
-				if (urlSri is {AllocImage: { HasImage: true}}) {
+				if (urlSri is { AllocImage: { HasImage: true } }) {
 					cw.TryWrite(urlSri);
 				}
 				else {
@@ -144,7 +142,9 @@ public static partial class ImageScanner
 				}
 			});
 		}
-		return true;
+
+	ret:
+		return cw.TryComplete();
 	}
 
 	/// <summary>

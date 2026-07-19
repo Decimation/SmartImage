@@ -3,6 +3,8 @@
 
 using SmartImage.Lib.Images.Alloc;
 using SmartImage.Lib.Model;
+using System.Threading.Channels;
+using SmartImage.Lib.Images;
 
 namespace SmartImage.Lib.Engines.Results;
 
@@ -14,6 +16,8 @@ public interface IScannableItem : IResultItem
 	bool HasScannedItems { get; }
 
 
-	ValueTask<ScannedResultItem> ToScannedItem(CancellationToken ct = default);
+	ValueTask<bool> ScanAsync(CancellationToken ct = default);
+
+	
 
 }

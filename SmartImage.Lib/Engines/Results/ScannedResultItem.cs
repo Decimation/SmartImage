@@ -12,7 +12,7 @@ using SmartImage.Lib.Images.Alloc;
 
 namespace SmartImage.Lib.Engines.Results;
 
-public class ScannedResultItem : IAllocImageView<AllocImage>, IChildResultItem, IDisposable, IAllocSourceItem<ScannedResultItem>
+public class ScannedResultItem : IAllocImageView<AllocImage>, IChildResultItem, IAllocSourceItem<ScannedResultItem, IResultItem>, IDisposable
 {
 
 	public SearchResult Root { get; }
@@ -23,6 +23,8 @@ public class ScannedResultItem : IAllocImageView<AllocImage>, IChildResultItem, 
 	public bool IsChild { get; }
 
 	public AllocImage AllocImage { get; }
+
+	public int SubIndex => ((IScannableItem) Parent).ScannedItems.IndexOf(this);
 
 	internal ScannedResultItem(IResultItem parent)
 	{
@@ -41,6 +43,7 @@ public class ScannedResultItem : IAllocImageView<AllocImage>, IChildResultItem, 
 		var (allocOk, allocImgOk) = await sri.AllocImage.AllocAllAsync(ct);
 
 		if (allocOk) {
+			// item.ScannedItems.Add(sri);
 			return sri;
 		}
 		else if (autoDisposeOnError) {

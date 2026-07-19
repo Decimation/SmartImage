@@ -6,7 +6,7 @@ namespace SmartImage.Lib.Images.Alloc;
 public class AllocImageFile : AllocImage
 {
 
-	internal AllocImageFile(FileInfo fi) : base(fi.FullName, UniImageType.File)
+	internal AllocImageFile(FileInfo fi) : base(fi.FullName, AllocImageType.File)
 	{
 		LocalFileInfo = fi;
 		LocalFilePath = Value;
@@ -18,14 +18,14 @@ public class AllocImageFile : AllocImage
 
 	public override async Task<bool> AllocSourceAsync(CancellationToken ct = default)
 	{
-		if (HasBytes) {
+		if (HasSource) {
 			goto ret;
 		}
 
-		Bytes = await File.ReadAllBytesAsync(Value, ct);
+		Source = await File.ReadAllBytesAsync(Value, ct);
 
 	ret:
-		return HasBytes;
+		return HasSource;
 	}
 
 	public override string WriteImageToFile(string fn = null)

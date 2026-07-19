@@ -33,7 +33,6 @@ using System.ComponentModel;
 using Flurl;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib;
-using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Upload.Base;
 using SmartImage.Lib.Images.Alloc;
 using SmartImage.Lib.Utilities;

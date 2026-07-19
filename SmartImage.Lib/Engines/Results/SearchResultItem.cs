@@ -225,19 +225,28 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 	[MNNW(true, nameof(ScannedItems))]
 	public bool HasScannedItems => ScannedItems is { Count: > 0 };
 
-	public virtual async ValueTask<ScannedResultItem> ToScannedItem(CancellationToken ct = default)
+	public virtual async ValueTask<bool> ScanAsync(CancellationToken ct = default)
 	{
 		if (HasScannedItems) {
-			return ScannedItems.FirstOrDefault(s => s.Parent == this);
+			return true;
 		}
 
-		var scn = await ScannedResultItem.FromSourceAsync(Url, this, ct: ct);
+		var ch = Channel.CreateUnbounded<ScannedResultItem>(new UnboundedChannelOptions()
+		{
+			SingleWriter = true,
+		});
 
-		if (scn != null) {
-			ScannedItems.Add(scn);
+		var task =  ImageScanner.ScanAsync(this, ch.Writer, ct);
+
+		while (await ch.Reader.WaitToReadAsync(ct)) {
+			if (ch.Reader.TryRead(out var scnItem)) {
+				ScannedItems.Add(scnItem);
+			}
 		}
 
-		return scn;
+		var b = await task;
+
+		return b;
 	}
 
 #endregion

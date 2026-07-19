@@ -6,16 +6,18 @@ namespace SmartImage.Lib.Images.Alloc;
 public interface IAllocSource
 {
 
-	byte[] Bytes { get; }
+	byte[] Source { get; }
 
-	[MNNW(true, nameof(Bytes))]
-	bool HasBytes { get; }
+	[MNNW(true, nameof(Source))]
+	bool HasSource { get; }
 
-	[MNNW(true, nameof(HasBytes))]
+	string Value { get; }
+
+	[MNNW(true, nameof(HasSource))]
 	Stream GetSource();
 
 	/// <summary>
-	/// Allocates <see cref="Bytes"/> (<see cref="GetSource"/>)
+	/// Allocates <see cref="Source"/> (<see cref="GetSource"/>)
 	/// </summary>
 	Task<bool> AllocSourceAsync(CancellationToken ct = default);
 

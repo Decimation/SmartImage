@@ -35,10 +35,12 @@ public abstract class AllocImage : IAllocImage, IEquatable<AllocImage>, IAllocFr
 	/// </summary>
 	public virtual string Name { get; protected set; }
 
-	public UniImageType Type { get; }
+	public AllocImageType Type { get; }
 
 	[JI]
 	public string Value { get; }
+
+	// public AllocImageFlags Flags { get; protected set;}
 
 	[MN]
 	public string LocalFilePath { get; protected set; }
@@ -46,14 +48,15 @@ public abstract class AllocImage : IAllocImage, IEquatable<AllocImage>, IAllocFr
 	[MNNW(true, nameof(LocalFilePath))]
 	public bool HasLocalFilePath => File.Exists(LocalFilePath);
 
-	public bool IsUri => Type == UniImageType.Uri;
+	public bool IsUri => Type == AllocImageType.Uri;
 
-	public bool IsFile => Type == UniImageType.File;
+	public bool IsFile => Type == AllocImageType.File;
 
-	public bool IsUnknown => Type == UniImageType.Unknown;
+	public bool IsUnknown => Type == AllocImageType.Unknown;
 
 #region
 
+	
 	[MN]
 	[JI]
 	public ISImage Image
@@ -105,25 +108,25 @@ public abstract class AllocImage : IAllocImage, IEquatable<AllocImage>, IAllocFr
 
 #region
 
-	public byte[] Bytes
+	public byte[] Source
 	{
 		get;
 		protected set
 		{
 			if (SetField(ref field, value)) {
-				OnPropertyChanged(nameof(HasBytes));
+				OnPropertyChanged(nameof(HasSource));
 			}
 		}
 	}
 
-	[MNNW(true, nameof(Bytes), nameof(IAllocImage.Length))]
-	public bool HasBytes => Bytes != null;
+	[MNNW(true, nameof(Source), nameof(IAllocImage.Length))]
+	public bool HasSource => Source != null;
 
-	public long? Length => Bytes?.Length;
+	public long? Length => Source?.Length;
 
 #endregion
 
-	protected AllocImage(string value, UniImageType type)
+	protected AllocImage(string value, AllocImageType type)
 	{
 		Value = value;
 		Type  = type;
@@ -132,17 +135,17 @@ public abstract class AllocImage : IAllocImage, IEquatable<AllocImage>, IAllocFr
 
 #region
 
-	[MNNW(true, nameof(HasBytes))]
+	[MNNW(true, nameof(HasSource))]
 	public Stream GetSource()
 	{
-		if (!HasBytes) {
+		if (!HasSource) {
 			Debugger.Break();
 
-			// throw new InvalidOperationException($"{nameof(Bytes)} not loaded");
+			// throw new InvalidOperationException($"{nameof(Source)} not loaded");
 			return Stream.Null;
 		}
 
-		return MemMgr.GetStream(Name, Bytes);
+		return MemMgr.GetStream(Name, Source);
 	}
 
 
@@ -351,13 +354,13 @@ public abstract class AllocImage : IAllocImage, IEquatable<AllocImage>, IAllocFr
 		else if (IsUri && this is AllocImageUrl uiu) {
 			var ui = new AllocImageUrl(uiu.Url)
 			{
-				Bytes = Bytes
+				Source = Source
 			};
 			clone = ui;
 		}
 
 		if (clone is AllocImage ui2 && ui2 != this) {
-			ui2.Bytes = Bytes;
+			ui2.Source = Source;
 			ui2.LocalFilePath = LocalFilePath;
 			Similarity = Similarity;
 			Hash = Hash;
@@ -420,7 +423,7 @@ public abstract class AllocImage : IAllocImage, IEquatable<AllocImage>, IAllocFr
 /// <summary>
 /// <seealso cref="UniSourceType"/>
 /// </summary>
-public enum UniImageType
+public enum AllocImageType
 {
 
 	Unknown = 0,

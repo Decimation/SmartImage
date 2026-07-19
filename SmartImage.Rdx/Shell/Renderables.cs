@@ -209,7 +209,7 @@ internal static partial class Renderables
 		nameof(IImage.Height),
 		nameof(SearchResultItem.Metadata),
 		nameof(IChildResultItem.Parent),
-		nameof(IAllocImage.Bytes),
+		nameof(IAllocImage.Source),
 		nameof(IResultItem.Url),
 
 	];
