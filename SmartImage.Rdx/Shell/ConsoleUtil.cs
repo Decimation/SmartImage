@@ -36,7 +36,8 @@ internal static class ConsoleUtil
 		while ((bytesRead = stdin.Read(buffer, 0, buffer.Length)) > 0) {
 			if (iter == 0) {
 
-				if (buffer[0]    == s_utf8BomSig[0]
+				if (bytesRead >= 3
+				    && buffer[0] == s_utf8BomSig[0]
 				    && buffer[1] == s_utf8BomSig[1]
 				    && buffer[2] == s_utf8BomSig[2]) {
 
@@ -53,7 +54,12 @@ internal static class ConsoleUtil
 			// prog?.Report(b2pos);
 		}
 
-		if (buffer2[(b2pos - 1)] == '\n' && buffer2[(b2pos - 2)] == '\r') {
+		// Empty redirected stdin (e.g. DEVNULL) used to IndexOutOfRange on b2pos-1.
+		if (b2pos == 0) {
+			return null;
+		}
+
+		if (b2pos >= 2 && buffer2[(b2pos - 1)] == '\n' && buffer2[(b2pos - 2)] == '\r') {
 			b2pos -= 2;
 		}
 

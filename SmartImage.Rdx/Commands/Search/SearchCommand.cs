@@ -98,8 +98,12 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		if (!url) {
 			throw new SmartImageException($"Could not upload {Query}");
 		}
-		
-		m_queryCanvasImg = new CanvasImage(Query.Source.GetSource());
+
+		// CanvasImage preview is only needed for interactive UI. Building it
+		// headless has thrown on some image sources; skip when not interactive.
+		if (CommandSettings.Interactive) {
+			m_queryCanvasImg = new CanvasImage(Query.Source.GetSource());
+		}
 
 		p.Increment(Elements.COMPLETE / 2);
 
@@ -171,28 +175,25 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		while (!ct.IsCancellationRequested && await Client.ResultChannel.Reader.WaitToReadAsync(ct)) {
 			var result = await Client.ResultChannel.Reader.ReadAsync(ct);
 
+			// Always collect for WriteOutputFile (interactive and headless).
+			// Previously non-interactive mode never filled m_dialogs, so -o files
+			// were empty even when the search succeeded.
+			m_dialogs.TryAdd(result, ResultViewState.Create(result));
 
 			if (CommandSettings.Interactive) {
-
-				m_dialogs.TryAdd(result, ResultViewState.Create(result));
-
 				m_mainTable.AddRow(result.GetMainRows());
 				Elements.Prm_SearchResult.AddChoice(result);
-
 			}
 			else {
-
+				// GetMainRows returns IList<IRenderable> (a List), not IRenderable[].
+				// The old cast threw InvalidCastException after upload on Linux headless.
 				var fullRows = result.GetFullRows();
-
 				foreach (var list in fullRows) {
-					var row = (IRenderable[]) list;
-					m_mainTable.AddRow(row);
+					m_mainTable.AddRow(list.ToArray());
 				}
 			}
 
-
 			c.Refresh();
-
 		}
 
 		await searchTask;

@@ -104,7 +104,9 @@ public static class Program
 		}
 		finally {
 
-			if (x != Common.EC_OK) {
+			// Never block on a prompt when stdin is redirected / non-interactive
+			// (bots, Docker, CI). ConfirmAsync crashes with Failed to read input.
+			if (x != Common.EC_OK && !Console.IsInputRedirected) {
 				await AnsiConsole.ConfirmAsync("Press any key to continue");
 			}
 		}
@@ -186,13 +188,17 @@ public static class Program
 
 			var pipeInput = ConsoleUtil.ParseInputStream();
 
-			var newArgs = new string[args.Length + 1];
-			newArgs[0] = pipeInput;
-			args.CopyTo(newArgs, 1);
+			// Ignore empty redirects (DEVNULL / closed pipe) so headless bots
+			// can pass the query solely via argv.
+			if (!String.IsNullOrWhiteSpace(pipeInput)) {
+				var newArgs = new string[args.Length + 1];
+				newArgs[0] = pipeInput;
+				args.CopyTo(newArgs, 1);
 
-			args = newArgs;
+				args = newArgs;
 
-			AnsiConsole.WriteLine($"Received input from stdin");
+				AnsiConsole.WriteLine($"Received input from stdin");
+			}
 		}
 #endif
 
