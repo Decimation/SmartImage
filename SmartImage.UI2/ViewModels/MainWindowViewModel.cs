@@ -15,9 +15,11 @@ using SmartImage.Lib;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.UI2.Views;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Threading;
@@ -25,13 +27,14 @@ using System.Threading.Tasks;
 using AngleSharp.Dom;
 using Avalonia;
 using Avalonia.Controls.Documents;
+using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Platform;
 using Avalonia.Skia.Helpers;
 using Avalonia.Threading;
 using DynamicData.Binding;
 using ReactiveUI;
-using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Images.Alloc;
 
 namespace SmartImage.UI2.ViewModels;
 
@@ -87,7 +90,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	private readonly DispatcherTimer m_dt;
 
-#region 
+#region
 
 	public ReactiveCommand<Unit, Unit> UploadCommand { get; }
 
@@ -99,8 +102,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	public MainWindowViewModel()
 	{
-		m_dt = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Default, (DispatchCallback));
-
+		m_dt = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Default, DispatchCallback);
 
 		Config      = new SearchConfig();
 		Client      = new SearchClient(Config);
@@ -110,7 +112,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 		var canUpload = this.WhenAnyValue(x => x.Input, Selector);
 		UploadCommand = ReactiveCommand.CreateFromTask(UploadInputAsync, canUpload);
-		
+
 		var canSearch = this.WhenAnyValue(x => x.IsReady);
 		SearchCommand = ReactiveCommand.CreateFromTask(RunSearchAsync, canSearch);
 
@@ -118,13 +120,13 @@ public partial class MainWindowViewModel : ViewModelBase
 		SearchCommand = ReactiveCommand.CreateFromTask(RunSearchAsync, isUp);*/
 
 		ClearCommand = ReactiveCommand.CreateFromTask(ClearAsync);
-		
-		
+
+
 	}
 
 	private bool Selector(string x)
 	{
-		return UniImage.IsValidSourceType(x?.ToString());
+		return AllocImage.IsValidSourceType(x?.ToString());
 	}
 
 	private void OnChangedEvent(object? sender, PropertyChangedEventArgs args)
@@ -146,7 +148,7 @@ public partial class MainWindowViewModel : ViewModelBase
 	[RelayCommand]
 	public async Task LoadItemAsync()
 	{
-		if (SelectedItem is IScannableItem {} scannable) {
+		if (SelectedItem is IScannableItem { } scannable) {
 			var ok = await scannable.ScanAsync(TokenSource.Token);
 
 			if (ok) {
@@ -160,7 +162,7 @@ public partial class MainWindowViewModel : ViewModelBase
 	public async Task HashItemAsync()
 	{
 		if (SelectedItem is { HasHash: true, HasSimilarity: false }) {
-			var ok = SelectedItem.TryCalculateSimilarity(Query.Source);
+			var ok = SelectedItem.TryCalculateSimilarity(Query.AllocImage);
 			this.RaisePropertyChanged(nameof(SelectedItem.Similarity));
 		}
 	}
@@ -177,7 +179,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 			// IsReady = Query.IsUploaded;
 			Url   = Query.Upload.Url;
-			Image = new Bitmap(Query.Source.GetSource());
+			Image = new Bitmap(Query.AllocImage.GetSource());
 		}
 	}
 
@@ -229,19 +231,27 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	private async void DispatchCallback(object? sender, EventArgs args)
 	{
-		if (Application.Current == null) {
+		if (Application.Current == null || IsReady) {
 			return;
 		}
 
-		var clipboard = Application.Current.GetTopLevel()?.Clipboard;
-
+		var tl        = Application.Current.GetTopLevel();
+		var clipboard = tl?.Clipboard;
+		
 		if (clipboard == null)
 			return;
 
+		// var formats = await clipboard.GetDataFormatsAsync();
+		// var data    = await clipboard.TryGetDataAsync();
+		// foreach (var fmt in formats) { }
 
 		var clipFile = await clipboard.TryGetFileAsync();
-		
 
+		if (Path.Exists(clipFile?.Path.LocalPath)) {
+			Input = clipFile.TryGetLocalPath();
+			m_dt.Stop();
+			
+		}
 	}
 
 }

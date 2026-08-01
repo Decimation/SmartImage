@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq.Expressions;
@@ -13,36 +14,43 @@ namespace SmartImage.UI2.Converters;
 internal class SearchEngineOptionsToIconConverter : IValueConverter
 {
 
+	internal static readonly Dictionary<SearchEngineOptions, string> EngineIcons = new()
+	{
+		{ SearchEngineOptions.SauceNao, "SauceNao.ico" },
+		{ SearchEngineOptions.ImgOps, "ImgOps.ico" },
+		{ SearchEngineOptions.GoogleImages, "GoogleImages.ico" },
+		{ SearchEngineOptions.TinEye, "TinEye.ico" },
+		{ SearchEngineOptions.Iqdb, "Iqdb.ico" },
+		{ SearchEngineOptions.Iqdb3D, "Iqdb3D.ico" },
+		{ SearchEngineOptions.TraceMoe, "TraceMoe.png" },
+		{ SearchEngineOptions.Yandex, "Yandex.ico" },
+		{ SearchEngineOptions.Bing, "Bing.ico" },
+		{ SearchEngineOptions.Ascii2D, "Ascii2D.ico" },
+		{ SearchEngineOptions.EHentai, "EHentai.png" },
+		{ SearchEngineOptions.ArchiveMoe, "ArchivedMoe.ico" },
+		{ SearchEngineOptions.Fluffle, "Fluffle.ico" },
+		{ SearchEngineOptions.GoogleLens, "GoogleImages.ico" }
+
+	};
+
+	private const string URI_ASSETS = "avares://SmartImage.UI2/Assets";
+
 	public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
 		Stream? assetStream = null;
 
-		if (value is SearchEngineOptions options) {
-			// Map each SearchEngineOptions value to an icon path
-			var icoName = options switch
-			{
-				SearchEngineOptions.SauceNao     => "SauceNao.ico",
-				SearchEngineOptions.ImgOps       => "ImgOps.ico",
-				SearchEngineOptions.GoogleImages => "GoogleImages.ico",
-				SearchEngineOptions.TinEye       => "TinEye.ico",
-				SearchEngineOptions.Iqdb         => "Iqdb.ico",
-				SearchEngineOptions.Iqdb3D       => "Iqdb3D.ico",
-				SearchEngineOptions.TraceMoe     => "TraceMoe.png",
-				SearchEngineOptions.Yandex       => "Yandex.ico",
-				SearchEngineOptions.Bing         => "Bing.ico",
-				SearchEngineOptions.Ascii2D      => "Ascii2D.ico",
-				SearchEngineOptions.EHentai      => "EHentai.png",
-				SearchEngineOptions.ArchiveMoe   => "ArchivedMoe.ico",
-				SearchEngineOptions.Fluffle      => "Fluffle.ico",
-				SearchEngineOptions.GoogleLens   => "GoogleImages.ico",
+		Uri icoUri;
 
-				_ => "help.png"
-			};
-			var icoUri = new Uri($"avares://SmartImage.UI2/Assets/Engines/{icoName}");
-			assetStream = AssetLoader.Open(icoUri);
-			var img = new Bitmap(assetStream);
-			return img;
+		if (value is SearchEngineOptions seo && EngineIcons.TryGetValue(seo, out var icoName)) {
+			icoUri = new Uri(Path.Combine(URI_ASSETS, $"Engines", icoName));
 		}
+		else {
+			icoUri = new Uri(Path.Combine(URI_ASSETS, "help.png"));
+		}
+
+		assetStream = AssetLoader.Open(icoUri);
+		var img = new Bitmap(assetStream);
+		return img;
 
 		throw new InvalidOperationException();
 	}

@@ -38,7 +38,8 @@ d:DesignWidth="1000" d:DesignHeight="675"
                     <Button Command="{Binding SearchCommand}" Content="Search" Foreground="LawnGreen" />
                     <Button Command="{Binding ClearCommand}" Content="Clear" />
                     <Button Command="{Binding CancelCommand}" Content="Cancel" Foreground="Red" />
-                    <TextBox Name="Tb_Input2" MinWidth="100" MaxHeight="50" Text="{Binding Url, Mode=OneWay}" IsEnabled="False" />
+
+                    <TextBox Name="Tb_Input2" MinWidth="100" MaxHeight="50" MaxWidth="400" Text="{Binding Url, Mode=OneWay}" IsEnabled="False" />
 
                 </StackPanel>
 
@@ -48,6 +49,7 @@ d:DesignWidth="1000" d:DesignHeight="675"
                     <ProgressBar Value="{Binding Progress}" VerticalAlignment="Bottom" Foreground="LawnGreen" />
 
                 </Panel>
+
 
                 <!--<WrapPanel Grid.Row="1" Grid.Column="0">
                     <TextBox Name="Tb_Input2" MinWidth="100" MaxHeight="50"
@@ -78,15 +80,18 @@ d:DesignWidth="1000" d:DesignHeight="675"
 
                                     <StackPanel Orientation="Vertical" Spacing="2">
 
-                                        <StackPanel Orientation="Vertical">
-                                            <TextBlock Text="{Binding Url}" Foreground="#4FC3F7" FontSize="12" TextWrapping="Wrap" FontWeight="Bold" />
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Height="24" Width="24"
+                                                   Source="{Binding Root.Engine.Option, Converter={StaticResource SearchEngineOptionsToIconConverter}}"
+                                                   HorizontalAlignment="Left" VerticalAlignment="Center" />
+
+                                            <TextBlock Text="{Binding Url}" VerticalAlignment="Center" Foreground="#4FC3F7" FontSize="12" TextWrapping="Wrap" FontWeight="Bold" />
                                             <TextBlock Text="{Binding Thumbnail}" Foreground="#4FC3F7" FontSize="10" TextWrapping="Wrap" 
                                                        IsVisible="{Binding HasThumbnail}" />
+
                                         </StackPanel>
 
-                                        <!--<Image Height="24" Width="24"
-                                               Source="{Binding Root.Engine.EngineOption, Converter={StaticResource SearchEngineOptionsToIconConverter}}"
-                                               HorizontalAlignment="Right" />-->
+                                        
 
                                         <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasSimilarity}">
                                             <TextBlock Text="Similarity:" Foreground="#808080" />
@@ -115,6 +120,7 @@ d:DesignWidth="1000" d:DesignHeight="675"
                                         </StackPanel>
 
                                     </StackPanel>
+
                                 </StackPanel>
                             </Border>
                         </DataTemplate>
