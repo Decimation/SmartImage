@@ -6,7 +6,7 @@ using Microsoft.Net.Http.Headers;
 
 namespace SmartImage.Lib.Utilities;
 
-public static class SearchUtil
+public static class HttpUtil
 {
 
 	internal static bool TryParseIndex<T>(this IList<T> col, string s, out int i, out T val)

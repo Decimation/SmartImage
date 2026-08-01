@@ -45,7 +45,7 @@ public static partial class ImageScanner
 
 		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(ImageScanner), null, static builder =>
 		{
-			// builder.Settings.Redirects.ForwardAuthorizationHeader = true;
+			builder.Settings.Redirects.ForwardAuthorizationHeader = true;
 			// builder.Settings.Redirects.AllowSecureToInsecure      = true;
 
 			builder.Settings.AllowedHttpStatusRange = "*";
@@ -68,6 +68,15 @@ public static partial class ImageScanner
 			// builder.AllowAnyHttpStatus();
 
 			builder.WithAutoRedirect(true);
+
+			/*builder.OnRedirect(call =>
+			{
+				var moved = call.Response.StatusCode == 302;
+
+				if (moved) {
+					call.Redirect.Follow = true;
+				}
+			});*/
 
 			builder.OnError(static f =>
 			{
@@ -115,30 +124,32 @@ public static partial class ImageScanner
 
 	public static async Task<bool> ScanAsync(IScannableItem item, ChannelWriter<ScannedResultItem> cw, CancellationToken ct = default)
 	{
-		var sri = await ScannedResultItem.FromSourceAsync(item.Url, item, autoInit: true, autoDisposeOnError: false, ct);
+		var ai = await AllocImage.FromSourceAsync(item.Url, autoInit: true, autoDisposeOnError: false, ct);
 
 		await cw.WaitToWriteAsync(ct);
 
-		if (sri is { AllocImage.HasImage: true }) {
+		if (ai is { HasImage: true }) {
+			var sri = new ScannedResultItem(item, ai);
 			cw.TryWrite(sri);
 			goto ret;
 		}
 
-		if (sri is { AllocImage.HasSource: true }) {
-			await using var src    = sri.AllocImage.GetSource();
+		if (ai is { HasSource: true }) {
+			await using var src    = ai.GetSource();
 			using var       parser = new StreamReader(src);
 			var             doc    = await parser.ReadToEndAsync(ct);
 			var             urls   = ParseImageUrls(doc, item.Url);
 
 			await Parallel.ForEachAsync(urls, ct, async (url, token) =>
 			{
-				var urlSri = await ScannedResultItem.FromSourceAsync(url, item, ct: token);
+				var aiUrl = await AllocImage.FromSourceAsync(url, ct: token);
 
-				if (urlSri is { AllocImage: { HasImage: true } }) {
-					cw.TryWrite(urlSri);
+				if (aiUrl is { HasImage: true }) {
+					var sriAiUrl = new ScannedResultItem(item, aiUrl);
+					cw.TryWrite(sriAiUrl);
 				}
 				else {
-					urlSri?.Dispose();
+					aiUrl?.Dispose();
 				}
 			});
 		}

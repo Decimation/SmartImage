@@ -40,7 +40,7 @@ public sealed class PomfEngine : BaseUploadEngine
 		// var pr = await response.GetJsonAsync<PomfResult>();
 		var sz = await response.GetStringAsync();
 
-		var pr    = JsonSerializer.Deserialize<PomfResult>(sz, SearchUtil.DefaultSerializerOptions);
+		var pr    = JsonSerializer.Deserialize<PomfResult>(sz, HttpUtil.DefaultSerializerOptions);
 		var file0 = pr.Files.First();
 
 		return new UploadResult(file0.Url, file0.Length);

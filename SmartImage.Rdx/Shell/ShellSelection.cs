@@ -2,6 +2,7 @@
 // Date: 2026/01/10 @ 00:01:54
 
 #nullable disable
+using System.Diagnostics;
 using SmartImage;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Utilities;
@@ -16,18 +17,20 @@ internal record ShellSelection
 
 	public IResultItem Item { get; }
 
+	public ScannedResultItem ScannedItem { get; }
+
+	public bool IsScannedItem => ScannedItem != null;
+
 	public int ItemIdx { get; }
 
 	public int ScanIdx { get; }
 
-	public bool IsScannedItem { get; }
-
-	internal ShellSelection(IResultItem item, int itemIdx, int scanIdx, bool isScanned)
+	internal ShellSelection(IResultItem item, int itemIdx, int scanIdx, ScannedResultItem scannedItem)
 	{
 		Item          = item;
 		ItemIdx       = itemIdx;
 		ScanIdx       = scanIdx;
-		IsScannedItem = isScanned;
+		ScannedItem   = scannedItem;
 	}
 
 	public int Index()
@@ -50,12 +53,12 @@ internal record ShellSelection
 
 		for (int k = 0; k < root; k++) {
 
-			var kItem = Item is IChildResultItem {} subItem ? subItem.Parent : Item;
+			var kItem = Item is IChildResultItem { } subItem ? subItem.Parent : Item;
 
-			var result  = kItem.Root.Results[k] as IScannableItem;
+			var result = kItem.Root.Results[k] as IScannableItem;
 
 			var scnItm  = result.ScannedItems;
-			var scnIdx2 = scnItm.FindIndex(p=>p.Parent == kItem);
+			var scnIdx2 = scnItm.FindIndex(p => p.Parent == kItem);
 
 			if (scnIdx2 == -1) {
 				t += scnItm.Count;
@@ -83,7 +86,7 @@ internal record ShellSelection
 	public int Index3()
 	{
 		var t = 0;
-		
+
 		var itemIdx = Item.Root.Results.IndexOf(Item);
 
 		for (int i = 0; i < Item.Root.Results.Count; i++) {
@@ -91,8 +94,8 @@ internal record ShellSelection
 
 			t += i;
 
-			if (itemResult is IChildResultItem { } sub && Item is IScannableItem {} scannableItem) {
-				var subIdx = scannableItem.ScannedItems.FindIndex(p=>p.Parent==sub);
+			if (itemResult is IChildResultItem { } sub && Item is IScannableItem { } scannableItem) {
+				var subIdx = scannableItem.ScannedItems.FindIndex(p => p.Parent == sub);
 				t += subIdx;
 			}
 		}
@@ -103,20 +106,27 @@ internal record ShellSelection
 	[CBN]
 	private static ShellSelection Parse(string str, SearchResult sr)
 	{
-		var spl = str.Split('.');
+		var spl = str.Split('.').Select(Int32.Parse).ToArray();
 
-		IResultItem sri = null;
-		ScannedResultItem sri2 = null;
+		IResultItem       resultItem = null;
+		ScannedResultItem scnItem    = null;
 
 		var  resIdx    = 0;
 		var  scnIdx    = -1;
-		bool isScanned = false;
 
-		if (sr.Results.TryParseIndex(spl[0], out resIdx, out sri)) {
-			if (spl.Length == 2) {
-				if (sri is SearchResultItem { } sriOrig && sriOrig.ScannedItems.TryParseIndex(spl[1], out scnIdx, out sri2)) {
-					sri       = sri2.Parent;
-					isScanned = true;
+		if (spl.Length is >= 1) {
+			resIdx = spl[0];
+
+			if ((resIdx < sr.Results.Count)) {
+				resultItem = sr.Results[resIdx];
+			}
+
+			if (spl.Length == 2 && resultItem is IScannableItem scannableItem) {
+				scnIdx = spl[1];
+
+				if ((scnIdx < scannableItem.ScannedItems.Count)) {
+					scnItem = scannableItem.ScannedItems[scnIdx];
+					Debug.Assert(scnIdx == scnItem.SubIndex);
 				}
 			}
 		}
@@ -124,7 +134,7 @@ internal record ShellSelection
 			return null;
 		}
 
-		return new ShellSelection(sri, resIdx, scnIdx, isScanned);
+		return new ShellSelection(resultItem, resIdx, scnIdx, scnItem);
 	}
 
 	public static ShellSelection GetSelectionChoice(SearchResult res)

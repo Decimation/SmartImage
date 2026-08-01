@@ -6,7 +6,6 @@ using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using Flurl.Http;
 using Kantan.Numeric;
-using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Upload.Base;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
@@ -54,7 +53,7 @@ public class TmpFilesEngine : BaseUploadEngine
 	public override async Task<IUploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default)
 	{
 		var str    = await response.GetStringAsync();
-		var tmpRes = JsonSerializer.Deserialize<TmpFilesResponse>(str, SearchUtil.DefaultSerializerOptions);
+		var tmpRes = JsonSerializer.Deserialize<TmpFilesResponse>(str, HttpUtil.DefaultSerializerOptions);
 
 		var       page   = await tmpRes.Data.Url.GetStringAsync(cancellationToken: ct);
 		var       parser = new HtmlParser();

@@ -37,6 +37,8 @@ public abstract class AllocImage : IAllocImage, IEquatable<AllocImage>, IAllocFr
 
 	public AllocImageType Type { get; }
 
+	// public AllocImageFlags Flags { get; protected set;}
+
 	[JI]
 	public string Value { get; }
 
@@ -56,7 +58,6 @@ public abstract class AllocImage : IAllocImage, IEquatable<AllocImage>, IAllocFr
 
 #region
 
-	
 	[MN]
 	[JI]
 	public ISImage Image
@@ -179,29 +180,6 @@ public abstract class AllocImage : IAllocImage, IEquatable<AllocImage>, IAllocFr
 		return HasImage;
 	}
 
-	// TODO: Dispose failed
-
-	/// <returns><see cref="AllocSourceAsync"/>, <see cref="AllocImageAsync"/></returns>
-	public async Task<(bool AllocSourceOk, bool AllocImageOk)> AllocAllAsync(CancellationToken ct)
-	{
-
-		const TaskContinuationOptions CONT_OPTIONS = TaskContinuationOptions.OnlyOnRanToCompletion | TaskContinuationOptions.NotOnCanceled;
-
-		bool allocOk = false;
-
-		bool allocImgOk = false;
-
-		allocImgOk = await AllocSourceAsync(ct).ContinueWith((task) =>
-		{
-			allocOk = task.Result;
-
-			return allocOk ? AllocImageAsync(ct) : Task.FromResult(false);
-
-		}, cancellationToken: ct, CONT_OPTIONS, TaskScheduler.Default).Unwrap();
-
-
-		return (allocOk, allocImgOk);
-	}
 
 	/// <summary>
 	/// Attempts to create the appropriate <see cref="AllocImage" /> for <paramref name="src" />.
@@ -224,10 +202,8 @@ public abstract class AllocImage : IAllocImage, IEquatable<AllocImage>, IAllocFr
 			}
 
 			if (autoInit) {
-				bool allocOk    = false;
-				bool allocImgOk = false;
-
-				(allocOk, allocImgOk) = await ui.AllocAllAsync(ct);
+				bool allocOk    = await ui.AllocSourceAsync(ct);
+				bool allocImgOk = await ui.AllocImageAsync(ct);
 
 				s_logger.LogTrace("{Value} :: {AllocSrcOk} {AllocImgOk}", src, allocOk, allocImgOk);
 
@@ -246,33 +222,6 @@ public abstract class AllocImage : IAllocImage, IEquatable<AllocImage>, IAllocFr
 	ret:
 		return ui;
 	}
-
-	/*public static bool Union(object o, [CBN] out AllocImage img)
-	{
-		img = null;
-
-		switch (o) {
-			case string s when String.IsNullOrWhiteSpace(s) && File.Exists(s):
-				img = new AllocImageFile(new FileInfo(s));
-				break;
-
-			case string s2 when Url.IsValid(s2):
-				Url u2 = s2;
-
-				if (ImageScanner.LegalSchemeWhitelist.Contains(u2.Scheme)) {
-					img = new AllocImageUrl(u2);
-				}
-
-				break;
-
-			case Url u when ImageScanner.LegalSchemeWhitelist.Contains(u.Scheme):
-				img = new AllocImageUrl(u);
-				break;
-		}
-
-
-		return img != null;
-	}*/
 
 	public static bool IsValidSourceType(object o)
 	{

@@ -28,9 +28,5 @@ public interface IAllocImage : IImage, IDisposable, ILength, IAllocSource
 	/// </summary>
 	Task<bool> AllocImageAsync(CancellationToken ct = default);
 
-	/// <returns><see cref="IAllocSource.AllocSourceAsync"/>, <see cref="IAllocImage.AllocImageAsync"/></returns>
-	Task<(bool AllocSourceOk, bool AllocImageOk)> AllocAllAsync(CancellationToken ct);
-
 	// AllocImageFlags Flags { get; }
-
 }

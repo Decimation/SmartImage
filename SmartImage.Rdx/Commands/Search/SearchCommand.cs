@@ -254,7 +254,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				var selIdx  = sel.Index();
 				var selIdx2 = sel.Index2();
 
-				s_logger.LogDebug("Selected {Item} {Scn} | {Idx1}, {Idx2}", sel.Item, sel.IsScannedItem, selIdx, selIdx2);
+				s_logger.LogDebug("Selected {Item} {Scn} | {Idx1}, {Idx2}", sel.Item, sel.ScannedItem, selIdx, selIdx2);
 
 				if (cmd == R2.Chc_Open) {
 					SearchClient.OpenResult(item.Url);
@@ -351,9 +351,10 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 						var res = await ch.Reader.ReadAsync(ct);
 
 						if (res is not null) {
-							var scn = await ScannedResultItem.FromSourceAsync(res, item, ct: ct);
+							var resAi = await AllocImage.FromSourceAsync(res, ct: ct);
 
-							if (scn != null) {
+							if (resAi is {HasImage:true}) {
+								var scn = new ScannedResultItem(item, resAi);
 								sri.ScannedItems.Add(scn);
 								item.TryCalculateSimilarity(Query.AllocImage);
 								var i = sri.ScannedItems.IndexOf(scn);
