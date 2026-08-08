@@ -24,6 +24,7 @@ public partial class MainWindow : Window
 
 	private void Lb_Items_OnDoubleTapped(object? sender, TappedEventArgs e)
 	{
+		
 		if (sender is ListBox lb && this.DataContext is MainWindowViewModel vm) {
 			var selectedItem = lb.SelectedItem as IUrl;
 			SearchClient.OpenResult(selectedItem.Url);

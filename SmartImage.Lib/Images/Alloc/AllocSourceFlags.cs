@@ -5,7 +5,7 @@ using System.Text;
 namespace SmartImage.Lib.Images.Alloc;
 
 [Flags]
-public enum AllocImageFlags
+public enum AllocSourceFlags
 {
 
 	None = 0,
@@ -20,6 +20,5 @@ public enum AllocImageFlags
 	/// </summary>
 	HasImage = 1 << 1,
 
-	Failed   = 1 << 2
-
+	Failed = 1 << 2
 }

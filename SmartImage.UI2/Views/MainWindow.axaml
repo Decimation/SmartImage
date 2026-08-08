@@ -16,15 +16,12 @@
     x:DataType="uiVm:MainWindowViewModel"
     Title="SmartImage">
 
-    <!--
-d:DesignWidth="1000" d:DesignHeight="675"
-    Height="675" Width="1000" MinWidth="1000" MinHeight="325"
--->
-
-
     <Design.DataContext>
         <uiVm:MainWindowViewModel />
     </Design.DataContext>
+
+    <!-- ReSharper disable XamlBindingWithoutMode -->
+    <!-- ReSharper disable InconsistentNaming -->
 
 
     <TabControl Background="#0C0C0C">
@@ -50,14 +47,8 @@ d:DesignWidth="1000" d:DesignHeight="675"
 
                 </Panel>
 
-
-                <!--<WrapPanel Grid.Row="1" Grid.Column="0">
-                    <TextBox Name="Tb_Input2" MinWidth="100" MaxHeight="50"
-                             Text="{Binding Query.Upload.Url, FallbackValue=''}" IsEnabled="False" />
-                </WrapPanel>-->
-
-                <ListBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Grid.RowSpan="2" MinHeight="300" MinWidth="1000" Background="#1C1C1C"
-                         x:Name="Lb_Items" ItemsSource="{Binding Items}" SelectedItem="{Binding SelectedItem}"
+                <ListBox x:Name="Lb_Items" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Grid.RowSpan="2" MinHeight="300" MinWidth="1000"
+                         Background="#1C1C1C" ItemsSource="{Binding Items}" SelectedItem="{Binding SelectedItem}"
                          SelectionMode="Single" DoubleTapped="Lb_Items_OnDoubleTapped">
 
                     <ListBox.KeyBindings>
@@ -69,29 +60,30 @@ d:DesignWidth="1000" d:DesignHeight="675"
                         <DataTemplate DataType="{x:Type libEngineResults:SearchResultItem}">
                             <Border Margin="4" Padding="3" Background="#252525" CornerRadius="4">
 
-                                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="12">
 
                                     <!--<asyncImageLoader:AdvancedImage Width="100" Height="100" Margin="0,0,8,0"
                                                                     Source="{Binding Thumbnail, Mode=OneWay}"
                                                                     IsVisible="{Binding $parent, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />-->
 
-                                    <Image asyncImageLoader:ImageLoader.Source="{Binding Thumbnail, Mode=OneWay}" Width="100" Height="100" Margin="0,0,8,0"
-                                                                    x:Name="Img_Thumbnail" />
+                                    <Image Height="100" Width="100" Margin="0,0,8,0" IsVisible="{Binding HasThumbnail}"
+                                           x:Name="Img_Thumbnail" asyncImageLoader:ImageLoader.Source="{Binding Thumbnail, Mode=OneWay}" />
 
-                                    <StackPanel Orientation="Vertical" Spacing="2">
+                                    <StackPanel Orientation="Horizontal" Spacing="2">
 
                                         <StackPanel Orientation="Horizontal">
-                                            <Image Height="24" Width="24"
-                                                   Source="{Binding Root.Engine.Option, Converter={StaticResource SearchEngineOptionsToIconConverter}}"
-                                                   HorizontalAlignment="Left" VerticalAlignment="Center" />
 
-                                            <TextBlock Text="{Binding Url}" VerticalAlignment="Center" Foreground="#4FC3F7" FontSize="12" TextWrapping="Wrap" FontWeight="Bold" />
-                                            <TextBlock Text="{Binding Thumbnail}" Foreground="#4FC3F7" FontSize="10" TextWrapping="Wrap" 
+                                            <Image Height="24" Width="24" VerticalAlignment="Center" HorizontalAlignment="Left"
+                                                   Source="{Binding Root.Engine.Option, Converter={StaticResource SearchEngineOptionsToIconConverter}}" />
+
+                                            <TextBlock VerticalAlignment="Center" Padding="8" Foreground="#4FC3F7"
+                                                       Text="{Binding Url}" FontSize="16" TextWrapping="Wrap" FontWeight="Bold" />
+
+                                            <TextBlock Foreground="#4FC3F7" Text="{Binding Thumbnail}" FontSize="10" TextWrapping="Wrap"
                                                        IsVisible="{Binding HasThumbnail}" />
 
                                         </StackPanel>
 
-                                        
 
                                         <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasSimilarity}">
                                             <TextBlock Text="Similarity:" Foreground="#808080" />
@@ -124,8 +116,10 @@ d:DesignWidth="1000" d:DesignHeight="675"
                                 </StackPanel>
                             </Border>
                         </DataTemplate>
+
                     </ListBox.ItemTemplate>
                 </ListBox>
+
             </Grid>
         </TabItem>
 
@@ -135,5 +129,8 @@ d:DesignWidth="1000" d:DesignHeight="675"
             </StackPanel>
         </TabItem>
     </TabControl>
+
+    <!-- ReSharper restore XamlBindingWithoutMode -->
+    <!-- ReSharper restore InconsistentNaming -->
 
 </Window>

@@ -7,7 +7,8 @@ using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Images.Alloc;
 
-public class AllocImageUrl : AllocImage, IUrl
+
+public class AllocImageUrl : AllocImageStream, IUrl
 {
 
 	[MN]

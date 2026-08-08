@@ -5,7 +5,7 @@ using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Images.Alloc;
 
-public interface IAllocImage : IImage, IDisposable, ILength, IAllocSource
+public interface IAllocImage : IImage, ILength, IAllocSource, IDisposable
 {
 
 	long? ILength.Length => Source?.Length;
@@ -28,5 +28,5 @@ public interface IAllocImage : IImage, IDisposable, ILength, IAllocSource
 	/// </summary>
 	Task<bool> AllocImageAsync(CancellationToken ct = default);
 
-	// AllocImageFlags Flags { get; }
+	// AllocSourceFlags Flags { get; }
 }

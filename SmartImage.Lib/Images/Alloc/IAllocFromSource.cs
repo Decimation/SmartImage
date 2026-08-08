@@ -10,7 +10,7 @@ public interface IAllocFromSource<TItem> where TItem : IAllocImage
 
 	static abstract Task<TItem> FromSourceAsync(object src, bool autoInit = true, bool autoDisposeOnError = true, CancellationToken ct = default);
 
+
 }
 
-public interface IAllocSourceItem<TItem, in TResultItem> /*where TItem:IAllocImage*/ where TResultItem : IResultItem
-{ }
+public interface IAllocSourceItem<TItem, in TResultItem> /*where TItem:IAllocImage*/ where TResultItem : IResultItem { }

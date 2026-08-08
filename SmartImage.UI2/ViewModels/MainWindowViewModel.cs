@@ -22,6 +22,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
@@ -88,7 +89,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	public CancellationTokenSource TokenSource { get; private set; }
 
-	private readonly DispatcherTimer m_dt;
+	private readonly DispatcherTimer m_cbDispatch;
 
 #region
 
@@ -102,7 +103,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	public MainWindowViewModel()
 	{
-		m_dt = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Default, DispatchCallback);
+		m_cbDispatch = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, ClipboardTick);
 
 		Config      = new SearchConfig();
 		Client      = new SearchClient(Config);
@@ -110,7 +111,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 		Config.PropertyChanged += OnChangedEvent;
 
-		var canUpload = this.WhenAnyValue(x => x.Input, Selector);
+		var canUpload = this.WhenAnyValue(x => x.Input, InputPredicate);
 		UploadCommand = ReactiveCommand.CreateFromTask(UploadInputAsync, canUpload);
 
 		var canSearch = this.WhenAnyValue(x => x.IsReady);
@@ -120,29 +121,37 @@ public partial class MainWindowViewModel : ViewModelBase
 		SearchCommand = ReactiveCommand.CreateFromTask(RunSearchAsync, isUp);*/
 
 		ClearCommand = ReactiveCommand.CreateFromTask(ClearAsync);
-
-
+		
+		var cbChanged=Config.WhenPropertyChanged(x=>x.Clipboard, false, null);
+		cbChanged.Subscribe(value =>
+		{
+			if (value.Value) {
+				m_cbDispatch.Start();
+			}
+			else {
+				m_cbDispatch.Stop();
+			}
+		});
 	}
 
-	private bool Selector(string x)
+	private static bool InputPredicate(string x)
 	{
-		return AllocImage.IsValidSourceType(x?.ToString());
+		return AllocImageStream.IsValidSourceType(x?.ToString());
 	}
 
 	private void OnChangedEvent(object? sender, PropertyChangedEventArgs args)
 	{
-		switch (args.PropertyName) {
+		/*switch (args.PropertyName) {
 			case nameof(Config.Clipboard):
 				if (Config.Clipboard) {
-					m_dt.Start();
-
+					m_cbDispatch.Start();
 				}
 				else {
-					m_dt.Stop();
+					m_cbDispatch.Stop();
 				}
 
 				break;
-		}
+		}*/
 	}
 
 	[RelayCommand]
@@ -229,7 +238,7 @@ public partial class MainWindowViewModel : ViewModelBase
 		Query?.Dispose();
 	}
 
-	private async void DispatchCallback(object? sender, EventArgs args)
+	private async void ClipboardTick(object? sender, EventArgs args)
 	{
 		if (Application.Current == null || IsReady) {
 			return;
@@ -249,7 +258,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 		if (Path.Exists(clipFile?.Path.LocalPath)) {
 			Input = clipFile.TryGetLocalPath();
-			m_dt.Stop();
+			m_cbDispatch.Stop();
 			
 		}
 	}

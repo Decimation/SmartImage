@@ -50,7 +50,7 @@ using SmartImage.Shared;
 namespace SmartImage.Lib;
 
 // TODO: This should be a AllocImage?
-public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyPropertyChanged, IUploadable, IAllocImageView<AllocImage>
+public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyPropertyChanged, IUploadable, IAllocImageView<AllocImageStream>
 {
 
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchQuery));
@@ -70,9 +70,9 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 		}
 	}
 
-	public AllocImage AllocImage { get; }
+	public AllocImageStream AllocImage { get; }
 
-	private SearchQuery(AllocImage img, UploadResult upload)
+	private SearchQuery(AllocImageStream img, UploadResult upload)
 	{
 		AllocImage = img;
 		Upload = upload;
@@ -80,7 +80,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 		// Length = Uni == null ? default : Uni.Stream.Length;
 	}
 
-	private SearchQuery(AllocImage img) : this(img, null) { }
+	private SearchQuery(AllocImageStream img) : this(img, null) { }
 
 	static SearchQuery() { }
 
@@ -88,7 +88,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 
 	public static async Task<SearchQuery> TryCreateAsync(object o, CancellationToken t = default)
 	{
-		var ui = (AllocImage) await AllocImage.FromSourceAsync(o, ct: t);
+		var ui = (AllocImageStream) await AllocImageStream.FromSourceAsync(o, ct: t);
 
 		return ui != null ? new SearchQuery(ui) : Null;
 

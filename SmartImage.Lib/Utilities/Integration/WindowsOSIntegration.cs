@@ -179,7 +179,7 @@ public sealed class WindowsOSIntegration : BaseOSIntegration
 			data = tempFileName;
 		}
 
-		if (AllocImage.IsValidSourceType(data)) {
+		if (AllocImageStream.IsValidSourceType(data)) {
 			
 		}
 

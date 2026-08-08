@@ -124,7 +124,7 @@ public static partial class ImageScanner
 
 	public static async Task<bool> ScanAsync(IScannableItem item, ChannelWriter<ScannedResultItem> cw, CancellationToken ct = default)
 	{
-		var ai = await AllocImage.FromSourceAsync(item.Url, autoInit: true, autoDisposeOnError: false, ct);
+		var ai = await AllocImageStream.FromSourceAsync(item.Url, autoInit: true, autoDisposeOnError: false, ct);
 
 		await cw.WaitToWriteAsync(ct);
 
@@ -142,7 +142,7 @@ public static partial class ImageScanner
 
 			await Parallel.ForEachAsync(urls, ct, async (url, token) =>
 			{
-				var aiUrl = await AllocImage.FromSourceAsync(url, ct: token);
+				var aiUrl = await AllocImageStream.FromSourceAsync(url, ct: token);
 
 				if (aiUrl is { HasImage: true }) {
 					var sriAiUrl = new ScannedResultItem(item, aiUrl);

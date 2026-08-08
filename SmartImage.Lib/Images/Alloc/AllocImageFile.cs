@@ -3,7 +3,7 @@
 
 namespace SmartImage.Lib.Images.Alloc;
 
-public class AllocImageFile : AllocImage
+public class AllocImageFile : AllocImageStream
 {
 
 	internal AllocImageFile(FileInfo fi) : base(fi.FullName, AllocImageType.File)
