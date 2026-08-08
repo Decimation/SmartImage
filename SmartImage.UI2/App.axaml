@@ -10,5 +10,6 @@
     </Application.Styles>
     <Application.Resources>
         <converters:SearchEngineOptionsToIconConverter x:Key="SearchEngineOptionsToIconConverter" />
+        <converters:EnumListConverter x:Key="EnumListConverter" />
     </Application.Resources>
 </Application>

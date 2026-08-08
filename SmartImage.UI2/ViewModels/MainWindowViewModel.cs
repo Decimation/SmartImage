@@ -48,9 +48,22 @@ public partial class MainWindowViewModel : ViewModelBase
 {
 
 	public static readonly UploadEngineOption[] ValidUploadOptions = Enum.GetValues<UploadEngineOption>()
-	                                                                .Where(static e => e != UploadEngineOption.None && !e.HasFlag(UploadEngineOption.Obsolete))
-	                                                                .ToArray();
-	public UploadEngineOption[] UploadEngineOptions {get;}
+	                                                                     .Where(static e => e != UploadEngineOption.None && !e.HasFlag(UploadEngineOption.Obsolete))
+	                                                                     .ToArray();
+
+	public static readonly SearchEngineOptions[] ValidSearchOptions = Enum.GetValues<SearchEngineOptions>()
+	                                                                      .Where(static e => e is not (SearchEngineOptions.Auto or SearchEngineOptions.None) 
+	                                                                                         && !e.HasFlag(SearchEngineOptions.Obsolete))
+	                                                                      .ToArray();
+
+	public static readonly SearchEngineOptions[] ValidPriorityOptions = Enum.GetValues<SearchEngineOptions>()
+	                                                                        .Where(static e => !e.HasFlag(SearchEngineOptions.Obsolete))
+	                                                                        .ToArray();
+
+	public UploadEngineOption[] UploadEngineOptions { get; } = ValidUploadOptions;
+
+	public SearchEngineOptions[] EngineOptions { get; } = ValidSearchOptions;
+	public SearchEngineOptions[] PriorityOptions { get; } = ValidPriorityOptions;
 
 	public ObservableCollection<IResultItem> Items { get; } = [];
 
@@ -143,10 +156,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 		var ueChanged = Config.WhenValueChanged(x => x.UploadEngine, false, null);
 
-		ueChanged.Subscribe(value =>
-		{
-			
-		});
+		ueChanged.Subscribe(value => { });
 
 		var selectedItemCmd = ReactiveCommand.CreateFromTask<IResultItem>(SelectedItemAsync);
 
@@ -186,6 +196,13 @@ public partial class MainWindowViewModel : ViewModelBase
 		}
 
 		if (item is SearchResultItem { HasThumbnail: true } sri) { }
+
+	}
+
+	[RelayCommand]
+	public void EngineSelectedAsync(SearchEngineOptions opt)
+	{
+		Config.SearchEngines |= opt;
 
 	}
 

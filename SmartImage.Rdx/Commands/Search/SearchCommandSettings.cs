@@ -106,7 +106,7 @@ public sealed class SearchCommandSettings : CommonCommandSettings
 
 		}
 
-		if (!AllocImage.IsValidSourceType(Query)) {
+		if (!AllocImageStream.IsValidSourceType(Query)) {
 			return ValidationResult.Error($"Invalid query: {Query}");
 		}
 

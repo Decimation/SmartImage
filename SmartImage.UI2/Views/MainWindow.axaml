@@ -198,30 +198,60 @@
         </TabItem>
 
         <TabItem Header="Config" Foreground="White" FontSize="20">
-           <Grid Background="#202020" RowDefinitions="Auto,*,*" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="20" RowSpacing="20">
-               <GroupBox Header="Engines" Grid.Row="0" Grid.Column="0">
+           <Grid Background="#202020" ColumnDefinitions="*,*,*" Margin="10">
+               
+               <GroupBox Grid.Column="0" Margin="5" Header="Engines" Grid.Row="0">
 
-                   <WrapPanel VerticalAlignment="Top">
+
+                   <StackPanel Spacing="10">
                        <StackPanel>
-                           <Label Content="Upload Engine" Foreground="White" VerticalAlignment="Center" FontWeight="Bold" />
-                           <ComboBox ItemsSource="{Binding UploadEngineOptions}" SelectedItem="{Binding Config.UploadEngine}"></ComboBox>
+                           <Label Content="Upload Engine" Foreground="White" />
+                           <ComboBox ItemsSource="{Binding UploadEngineOptions}" SelectedItem="{Binding Config.UploadEngine}"
+                                     HorizontalAlignment="Stretch" />
                        </StackPanel>
 
                        <StackPanel>
-                           <Label Content="Search Engines" Foreground="White" VerticalAlignment="Center" FontWeight="Bold" />
-                           <ListBox ItemsSource="{Binding UploadEngineOptions}" SelectedItem="{Binding Config.SearchEngines}"></ListBox>
-
+                           <Label Content="Search Engines" Foreground="White" />
+                           <ListBox x:Name="Lb_SearchEngines" ItemsSource="{Binding EngineOptions}"
+                                    SelectionMode="Multiple" Height="300" Background="#121212"
+                                    SelectionChanged="Lb_SearchEngines_SelectionChanged" />
                        </StackPanel>
-                   </WrapPanel>
 
+                       <StackPanel>
+                           <Label Content="Priority Engines" Foreground="White" />
+                           <ListBox x:Name="Lb_PriorityEngines" ItemsSource="{Binding PriorityOptions}"
+                                    SelectionMode="Single" Height="300" Background="#121212"
+                                    SelectionChanged="Lb_PriorityEngines_SelectionChanged" />
+                       </StackPanel>
+                   </StackPanel>
                </GroupBox>
-               <GroupBox Header="" Grid.Row="0" Grid.Column="1">
-                   
-               </GroupBox>
-               <StackPanel Grid.Row="1" Grid.Column="0">
-                   <CheckBox IsChecked="{Binding Config.Clipboard}" Content="Clipboard"></CheckBox>
 
-               </StackPanel>
+               <GroupBox Header="Options" Grid.Column="1" Margin="5" Foreground="White">
+                   <StackPanel Spacing="8">
+                       <CheckBox IsChecked="{Binding Config.Clipboard}" Content="Clipboard" Foreground="White" />
+                       <CheckBox IsChecked="{Binding Config.AutoSearch}" Content="Auto-search" Foreground="White" />
+                       <CheckBox IsChecked="{Binding Config.OpenRaw}" Content="Open raw" Foreground="White" />
+                       <CheckBox IsChecked="{Binding Config.OnTop}" Content="Keep window on top" Foreground="White" />
+                       <CheckBox IsChecked="{Binding Config.ReadCookies}" Content="Read cookies" Foreground="White" />
+                   </StackPanel>
+               </GroupBox>
+
+               <GroupBox Header="Advanced" Grid.Column="2" Margin="5" Foreground="White">
+                   <StackPanel Spacing="8">
+                       <CheckBox IsChecked="{Binding Config.FlareSolverr}" Content="FlareSolverr" Foreground="White" />
+
+                       <StackPanel>
+                           <Label Content="FlareSolverr API URL" Foreground="White" />
+                           <TextBox Text="{Binding Config.FlareSolverrApiUrl}" IsEnabled="{Binding Config.FlareSolverr}" />
+                       </StackPanel>
+
+                       <StackPanel>
+                           <Label Content="SauceNAO API Key" Foreground="White" />
+                           <TextBox Text="{Binding Config.SauceNaoKey}" />
+                       </StackPanel>
+                   </StackPanel>
+               </GroupBox>
+
            </Grid>
         </TabItem>
     </TabControl>
