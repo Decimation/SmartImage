@@ -52,47 +52,53 @@
                          SelectionMode="Single" DoubleTapped="Lb_Items_OnDoubleTapped">
 
                     <ListBox.KeyBindings>
-                        <KeyBinding Command="{Binding LoadItemCommand}" Gesture="Ctrl+L"></KeyBinding>
-                        <KeyBinding Command="{Binding HashItemCommand}" Gesture="Ctrl+H"></KeyBinding>
+                        <KeyBinding Command="{Binding LoadItemCommand}" CommandParameter="{Binding SelectedItem}" Gesture="Ctrl+L"></KeyBinding>
+                        <KeyBinding Command="{Binding HashItemCommand}" CommandParameter="{Binding SelectedItem}" Gesture="Ctrl+H"></KeyBinding>
+                        <KeyBinding Command="{Binding GalleryDLItemCommand}" CommandParameter="{Binding SelectedItem}" Gesture="Ctrl+G"></KeyBinding>
                     </ListBox.KeyBindings>
 
-                    <ListBox.ItemTemplate>
+                    <ListBox.DataTemplates>
+
                         <DataTemplate DataType="{x:Type libEngineResults:SearchResultItem}">
                             <Border Margin="4" Padding="3" Background="#252525" CornerRadius="4">
 
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="12">
+                                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
 
                                     <!--<asyncImageLoader:AdvancedImage Width="100" Height="100" Margin="0,0,8,0"
                                                                     Source="{Binding Thumbnail, Mode=OneWay}"
                                                                     IsVisible="{Binding $parent, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />-->
 
-                                    <Image Height="100" Width="100" Margin="0,0,8,0" IsVisible="{Binding HasThumbnail}"
-                                           x:Name="Img_Thumbnail" asyncImageLoader:ImageLoader.Source="{Binding Thumbnail, Mode=OneWay}" />
+                                    <Image asyncImageLoader:ImageLoader.Source="{Binding Thumbnail, Mode=OneWay}"
+                                           Width="100" Height="100" Margin="0,0,8,0"
+                                           x:Name="Img_Thumbnail" />
 
-                                    <StackPanel Orientation="Horizontal" Spacing="2">
+                                    <StackPanel Orientation="Vertical" Spacing="2">
 
                                         <StackPanel Orientation="Horizontal">
+                                            <Image Height="24" Width="24"
+                                                   Source="{Binding Root.Engine.Option, Converter={StaticResource SearchEngineOptionsToIconConverter}}"
+                                                   HorizontalAlignment="Left" VerticalAlignment="Center" />
 
-                                            <Image Height="24" Width="24" VerticalAlignment="Center" HorizontalAlignment="Left"
-                                                   Source="{Binding Root.Engine.Option, Converter={StaticResource SearchEngineOptionsToIconConverter}}" />
-
-                                            <TextBlock VerticalAlignment="Center" Padding="8" Foreground="#4FC3F7"
-                                                       Text="{Binding Url}" FontSize="16" TextWrapping="Wrap" FontWeight="Bold" />
-
-                                            <TextBlock Foreground="#4FC3F7" Text="{Binding Thumbnail}" FontSize="10" TextWrapping="Wrap"
+                                            <TextBlock Text="{Binding Url}" VerticalAlignment="Center" Foreground="#4FC3F7" FontSize="12"
+                                                       TextWrapping="Wrap" FontWeight="Bold" />
+                                            <!--
+                                            <TextBlock Text="{Binding Thumbnail}" Foreground="#4FC3F7" FontSize="10" TextWrapping="Wrap"
                                                        IsVisible="{Binding HasThumbnail}" />
+                                                       -->
 
                                         </StackPanel>
 
 
-                                        <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasSimilarity}">
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                                    IsVisible="{Binding Similarity, Converter={x:Static ObjectConverters.IsNotNull}}">
                                             <TextBlock Text="Similarity:" Foreground="#808080" />
                                             <TextBlock
                                                 Text="{Binding Similarity, StringFormat={}{0}, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
                                                 Foreground="#FFD700" />
                                         </StackPanel>
 
-                                        <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasDimensions, Mode=OneWay}">
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                                    IsVisible="{Binding Width, Converter={x:Static ObjectConverters.IsNotNull}}">
                                             <TextBlock Text="Size:" Foreground="#808080" />
                                             <TextBlock Text="{Binding Width}" Foreground="#E0E0E0" />
                                             <TextBlock Text="x" Foreground="#E0E0E0" />
@@ -105,10 +111,16 @@
                                             <TextBlock Text="{Binding Artist}" Foreground="#E0E0E0" />
 
                                         </StackPanel>
+
                                         <StackPanel Orientation="Horizontal" Spacing="8"
                                                     IsVisible="{Binding Source, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                                             <TextBlock Text="Source:" Foreground="#808080" />
-                                            <TextBlock Text="{Binding Source}" Foreground="#E0E0E0" />
+                                            <TextBlock Text="{Binding Source}" Foreground="#E0E0E0" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                                    IsVisible="{Binding Title, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                            <TextBlock Text="Title:" Foreground="#808080" />
+                                            <TextBlock Text="{Binding Title}" Foreground="#E0E0E0" TextWrapping="Wrap" />
                                         </StackPanel>
 
                                     </StackPanel>
@@ -117,16 +129,100 @@
                             </Border>
                         </DataTemplate>
 
-                    </ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type libEngineResults:ScannedResultItem}">
+                            <Border Margin="24,2,4,2" Padding="3" Background="#1E2620" CornerRadius="4" BorderBrush="#3A3A3A"
+                                    BorderThickness="1,0,0,0">
+
+                                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+
+                                    <Image asyncImageLoader:ImageLoader.Source="{Binding Url, Mode=OneWay}"
+                                           Width="80" Height="80" Margin="0,0,8,0"
+                                           x:Name="Img_Scanned" />
+
+                                    <StackPanel Orientation="Vertical" Spacing="2">
+
+                                        <StackPanel Orientation="Horizontal">
+                                            <Image Height="20" Width="20"
+                                                   Source="{Binding Root.Engine.Option, Converter={StaticResource SearchEngineOptionsToIconConverter}}"
+                                                   HorizontalAlignment="Left" VerticalAlignment="Center" />
+
+                                            <TextBlock Text="{Binding Url}" VerticalAlignment="Center" Foreground="#81C784" FontSize="12"
+                                                       TextWrapping="Wrap" FontWeight="Bold" />
+
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                                    IsVisible="{Binding Similarity, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                            <TextBlock Text="Similarity:" Foreground="#808080" />
+                                            <TextBlock
+                                                Text="{Binding Similarity, StringFormat={}{0}, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
+                                                Foreground="#FFD700" />
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                                    IsVisible="{Binding Width, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                            <TextBlock Text="Size:" Foreground="#808080" />
+                                            <TextBlock Text="{Binding Width}" Foreground="#E0E0E0" />
+                                            <TextBlock Text="x" Foreground="#E0E0E0" />
+                                            <TextBlock Text="{Binding Height}" Foreground="#E0E0E0" />
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                                    IsVisible="{Binding Artist, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                            <TextBlock Text="Artist:" Foreground="#808080" />
+                                            <TextBlock Text="{Binding Artist}" Foreground="#E0E0E0" />
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                                    IsVisible="{Binding Source, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                            <TextBlock Text="Source:" Foreground="#808080" />
+                                            <TextBlock Text="{Binding Source}" Foreground="#E0E0E0" TextWrapping="Wrap"  />
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                                    IsVisible="{Binding Title, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                            <TextBlock Text="Title:" Foreground="#808080" />
+                                            <TextBlock Text="{Binding Title}" Foreground="#E0E0E0" TextWrapping="Wrap" />
+                                        </StackPanel>
+
+                                    </StackPanel>
+
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+
+                    </ListBox.DataTemplates>
                 </ListBox>
 
             </Grid>
         </TabItem>
 
         <TabItem Header="Config" Foreground="White" FontSize="20">
-            <StackPanel>
-                <CheckBox IsChecked="{Binding Config.Clipboard}" Content="Clipboard"></CheckBox>
-            </StackPanel>
+           <Grid Background="#202020" RowDefinitions="Auto,*,*" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="20" RowSpacing="20">
+               <GroupBox Header="Engines" Grid.Row="0" Grid.Column="0">
+
+                   <WrapPanel VerticalAlignment="Top">
+                       <StackPanel>
+                           <Label Content="Upload Engine" Foreground="White" VerticalAlignment="Center" FontWeight="Bold" />
+                           <ComboBox ItemsSource="{Binding UploadEngineOptions}" SelectedItem="{Binding Config.UploadEngine}"></ComboBox>
+                       </StackPanel>
+
+                       <StackPanel>
+                           <Label Content="Search Engines" Foreground="White" VerticalAlignment="Center" FontWeight="Bold" />
+                           <ListBox ItemsSource="{Binding UploadEngineOptions}" SelectedItem="{Binding Config.SearchEngines}"></ListBox>
+
+                       </StackPanel>
+                   </WrapPanel>
+
+               </GroupBox>
+               <GroupBox Header="" Grid.Row="0" Grid.Column="1">
+                   
+               </GroupBox>
+               <StackPanel Grid.Row="1" Grid.Column="0">
+                   <CheckBox IsChecked="{Binding Config.Clipboard}" Content="Clipboard"></CheckBox>
+
+               </StackPanel>
+           </Grid>
         </TabItem>
     </TabControl>
 

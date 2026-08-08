@@ -122,42 +122,6 @@ public static partial class ImageScanner
 
 	// todo: create IImageScanner type
 
-	public static async Task<bool> ScanAsync(IScannableItem item, ChannelWriter<ScannedResultItem> cw, CancellationToken ct = default)
-	{
-		var ai = await AllocImageStream.FromSourceAsync(item.Url, autoInit: true, autoDisposeOnError: false, ct);
-
-		await cw.WaitToWriteAsync(ct);
-
-		if (ai is { HasImage: true }) {
-			var sri = new ScannedResultItem(item, ai);
-			cw.TryWrite(sri);
-			goto ret;
-		}
-
-		if (ai is { HasSource: true }) {
-			await using var src    = ai.GetSource();
-			using var       parser = new StreamReader(src);
-			var             doc    = await parser.ReadToEndAsync(ct);
-			var             urls   = ParseImageUrls(doc, item.Url);
-
-			await Parallel.ForEachAsync(urls, ct, async (url, token) =>
-			{
-				var aiUrl = await AllocImageStream.FromSourceAsync(url, ct: token);
-
-				if (aiUrl is { HasImage: true }) {
-					var sriAiUrl = new ScannedResultItem(item, aiUrl);
-					cw.TryWrite(sriAiUrl);
-				}
-				else {
-					aiUrl?.Dispose();
-				}
-			});
-		}
-
-	ret:
-		return cw.TryComplete();
-	}
-
 	/// <summary>
 	/// Parses image URLs using adapted <em><c>gallery-dl</c></em> regex 
 	/// </summary>
@@ -225,6 +189,48 @@ public static partial class ImageScanner
 		var union  = links.Union(images).Distinct();
 
 		return union;
+	}
+
+	public static async Task<bool> ScanAsync(IScannableItem item, ChannelWriter<ScannedResultItem> cw, CancellationToken ct = default)
+	{
+		var ai = await AllocImageStream.FromSourceAsync(item.Url, autoInit: true, autoDisposeOnError: false, ct);
+
+		await cw.WaitToWriteAsync(ct);
+		
+		bool ok = false;
+
+		if (ai is { HasImage: true }) {
+			var sri = new ScannedResultItem(item, ai);
+			ok = cw.TryWrite(sri);
+
+			goto ret;
+		}
+
+		if (ai is { HasSource: true }) {
+			await using var src    = ai.GetSource();
+			using var       parser = new StreamReader(src);
+			var             doc    = await parser.ReadToEndAsync(ct);
+			var             urls   = ParseImageUrls(doc, item.Url).ToArray();
+
+			ok = urls?.Length > 0;
+
+			await Parallel.ForEachAsync(urls, ct, async (url, token) =>
+			{
+				var aiUrl = await AllocImageStream.FromSourceAsync(url, ct: token);
+
+				if (aiUrl is { HasImage: true }) {
+					var sriAiUrl = new ScannedResultItem(item, aiUrl);
+					ok=cw.TryWrite(sriAiUrl);
+				}
+				else {
+					aiUrl?.Dispose();
+				}
+			});
+			
+		}
+
+	ret:
+		return cw.TryComplete() && ok;
 	}
 
 	public static async ValueTask<IFlurlResponse> GetResponseAsync(Url value, CancellationToken ct)

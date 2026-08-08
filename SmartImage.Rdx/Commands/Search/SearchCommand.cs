@@ -320,7 +320,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					clrWrite = true;
 				}
 
-				if (cmd == R2.Chc_Download && item is ScannedResultItem { AllocImage.HasSource: true } sriScnDl1 && sriScnDl1.AllocImage is AllocImage sriScnDl) {
+				if (cmd == R2.Chc_Download && item is ScannedResultItem { AllocImage.HasSource: true } sriScnDl1 && sriScnDl1.AllocImage is AllocImageStream sriScnDl) {
 					if (!sriScnDl.HasLocalFilePath) {
 						HandleDownload(sriScnDl1);
 					}
@@ -351,7 +351,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 						var res = await ch.Reader.ReadAsync(ct);
 
 						if (res is not null) {
-							var resAi = await AllocImage.FromSourceAsync(res, ct: ct);
+							var resAi = await AllocImageStream.FromSourceAsync(res, ct: ct);
 
 							if (resAi is {HasImage:true}) {
 								var scn = new ScannedResultItem(item, resAi);
@@ -378,7 +378,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 	private static void HandleDownload(ScannedResultItem sri)
 	{
-		var allocImage = (AllocImage) sri.AllocImage;
+		var allocImage = (AllocImageStream) sri.AllocImage;
 		var ok         = allocImage.TryWriteOrGetFile();
 
 		if (ok) {
@@ -386,7 +386,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			{
 				var gr = new Grid();
 				gr.AddColumns(new(), new());
-				var sriAllocImage = ((AllocImage) sri.AllocImage);
+				var sriAllocImage = ((AllocImageStream) sri.AllocImage);
 				gr.AddRow(new Text("File", ElementStyles.Sty_Name), new Text(sriAllocImage.LocalFilePath));
 				AnsiConsole.Write(gr);
 

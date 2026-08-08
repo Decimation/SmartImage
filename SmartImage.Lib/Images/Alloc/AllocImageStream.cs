@@ -216,7 +216,11 @@ public class AllocImageStream : IAllocImage, IEquatable<AllocImageStream>, IAllo
 
 			if (autoInit) {
 				bool allocOk    = await ui.AllocSourceAsync(ct);
-				bool allocImgOk = await ui.AllocImageAsync(ct);
+
+				bool allocImgOk = allocOk;
+				if (allocImgOk) {
+					allocImgOk = await ui.AllocImageAsync(ct);
+				}
 
 				s_logger.LogTrace("{Value} :: {AllocSrcOk} {AllocImgOk}", src, allocOk, allocImgOk);
 

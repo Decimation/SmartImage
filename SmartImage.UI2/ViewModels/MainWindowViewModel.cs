@@ -4,7 +4,6 @@
 using AsyncImageLoader;
 using AsyncImageLoader.Loaders;
 using Avalonia.Controls;
-using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -24,23 +23,34 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
 using Avalonia;
 using Avalonia.Controls.Documents;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
+using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Skia.Helpers;
 using Avalonia.Threading;
 using DynamicData.Binding;
 using ReactiveUI;
+using SmartImage.Lib.Engines.Search.Base;
+using SmartImage.Lib.Engines.Upload.Base;
+using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Alloc;
+using IImage = Avalonia.Media.IImage;
 
 namespace SmartImage.UI2.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
+
+	public static readonly UploadEngineOption[] ValidUploadOptions = Enum.GetValues<UploadEngineOption>()
+	                                                                .Where(static e => e != UploadEngineOption.None && !e.HasFlag(UploadEngineOption.Obsolete))
+	                                                                .ToArray();
+	public UploadEngineOption[] UploadEngineOptions {get;}
 
 	public ObservableCollection<IResultItem> Items { get; } = [];
 
@@ -93,7 +103,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 #region
 
-	public ReactiveCommand<Unit, Unit> UploadCommand { get; }
+	public ReactiveCommand<Unit, bool> UploadCommand { get; }
 
 	public ReactiveCommand<Unit, Unit> SearchCommand { get; }
 
@@ -117,12 +127,10 @@ public partial class MainWindowViewModel : ViewModelBase
 		var canSearch = this.WhenAnyValue(x => x.IsReady);
 		SearchCommand = ReactiveCommand.CreateFromTask(RunSearchAsync, canSearch);
 
-		/*var canScan = this.WhenAnyValue(x => x.SelectedItem, (SearchResultItem s) => { return s.HasScannedItems; });
-		SearchCommand = ReactiveCommand.CreateFromTask(RunSearchAsync, isUp);*/
-
 		ClearCommand = ReactiveCommand.CreateFromTask(ClearAsync);
-		
-		var cbChanged=Config.WhenPropertyChanged(x=>x.Clipboard, false, null);
+
+		var cbChanged = Config.WhenPropertyChanged(x => x.Clipboard, false, null);
+
 		cbChanged.Subscribe(value =>
 		{
 			if (value.Value) {
@@ -132,6 +140,21 @@ public partial class MainWindowViewModel : ViewModelBase
 				m_cbDispatch.Stop();
 			}
 		});
+
+		var ueChanged = Config.WhenValueChanged(x => x.UploadEngine, false, null);
+
+		ueChanged.Subscribe(value =>
+		{
+			
+		});
+
+		var selectedItemCmd = ReactiveCommand.CreateFromTask<IResultItem>(SelectedItemAsync);
+
+		this.WhenAnyValue(x => x.SelectedItem)
+		    .WhereNotNull()
+		    .InvokeCommand(selectedItemCmd);
+
+
 	}
 
 	private static bool InputPredicate(string x)
@@ -155,30 +178,72 @@ public partial class MainWindowViewModel : ViewModelBase
 	}
 
 	[RelayCommand]
-	public async Task LoadItemAsync()
+	public async Task SelectedItemAsync(IResultItem item)
 	{
-		if (SelectedItem is IScannableItem { } scannable) {
+		if (item is ScannedResultItem { AllocImage: { HasImage: true } } scnItem) {
+			Image = Bitmap.DecodeToWidth(scnItem.AllocImage.GetSource(), scnItem.AllocImage.Image.Width);
+
+		}
+
+		if (item is SearchResultItem { HasThumbnail: true } sri) { }
+
+	}
+
+	[RelayCommand]
+	public async Task LoadItemAsync(IResultItem item)
+	{
+		if (item is IScannableItem { } scannable) {
 			var ok = await scannable.ScanAsync(TokenSource.Token);
 
 			if (ok) {
-				Items.AddOrInsertRange(scannable.ScannedItems, Items.IndexOf((IResultItem) scannable));
+				Items.AddOrInsertRange(scannable.ScannedItems, Items.IndexOf((IResultItem) scannable) + 1);
 			}
 
 		}
 	}
 
 	[RelayCommand]
-	public async Task HashItemAsync()
+	public async Task HashItemAsync(IResultItem item)
 	{
-		if (SelectedItem is { HasHash: true, HasSimilarity: false }) {
-			var ok = SelectedItem.TryCalculateSimilarity(Query.AllocImage);
+		if (item is { HasHash: true, HasSimilarity: false }) {
+			var ok = item.TryCalculateSimilarity(Query.AllocImage);
 			this.RaisePropertyChanged(nameof(SelectedItem.Similarity));
 		}
 	}
 
+	[RelayCommand]
+	public async Task GalleryDLItemAsync(IResultItem item)
+	{
+		if (item is IScannableItem { } sri) {
+			var ch      = Channel.CreateUnbounded<Url>();
+			var gdlTask = ImageScanner.RunGalleryDLAsync(item.Url, ch.Writer, TokenSource.Token);
 
-	// [RelayCommand]
-	public async Task UploadInputAsync()
+			while (await ch.Reader.WaitToReadAsync(TokenSource.Token)) {
+				var res = await ch.Reader.ReadAsync(TokenSource.Token);
+
+				if (res is not null) {
+					var resAi = await AllocImageStream.FromSourceAsync(res, ct: TokenSource.Token);
+
+					if (resAi is { HasImage: true }) {
+						var scn = new ScannedResultItem(item, resAi);
+						sri.ScannedItems.Add(scn);
+						sri.TryCalculateSimilarity(Query.AllocImage);
+						this.RaisePropertyChanged(nameof(SelectedItem.Similarity));
+						Items.Insert(Items.IndexOf(item) + 1, scn);
+
+
+					}
+
+				}
+			}
+
+			await gdlTask;
+
+		}
+	}
+
+	[RelayCommand]
+	public async Task<bool> UploadInputAsync()
 	{
 		Query   = await SearchQuery.TryCreateAsync(Input.Trim('\"'));
 		IsReady = await Query.TryUploadAsync();
@@ -188,8 +253,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
 			// IsReady = Query.IsUploaded;
 			Url   = Query.Upload.Url;
-			Image = new Bitmap(Query.AllocImage.GetSource());
+			Image = Bitmap.DecodeToWidth(Query.AllocImage.GetSource(), Query.AllocImage.Image.Width);
 		}
+
+		return IsReady;
 	}
 
 
@@ -246,7 +313,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 		var tl        = Application.Current.GetTopLevel();
 		var clipboard = tl?.Clipboard;
-		
+
 		if (clipboard == null)
 			return;
 
@@ -259,7 +326,7 @@ public partial class MainWindowViewModel : ViewModelBase
 		if (Path.Exists(clipFile?.Path.LocalPath)) {
 			Input = clipFile.TryGetLocalPath();
 			m_cbDispatch.Stop();
-			
+
 		}
 	}
 
