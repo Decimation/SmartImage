@@ -10,6 +10,7 @@ using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Model;
 using SmartImage.UI2.Controls;
+using SmartImage.UI2.Converters;
 using SmartImage.UI2.ViewModels;
 
 namespace SmartImage.UI2.Views;

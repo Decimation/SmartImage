@@ -27,18 +27,34 @@
     <TabControl Background="#0C0C0C">
         <TabItem Header="Search" Foreground="White" FontSize="20">
 
-            <Grid Background="#202020" RowDefinitions="Auto,*,*" ColumnDefinitions="Auto,*,Auto">
+            <Grid Background="#202020" RowDefinitions="Auto,*,*" ColumnDefinitions="Auto,*,Auto" Margin="10">
+                
+                <WrapPanel Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+                    <GroupBox Header="Search" Margin="5" Foreground="DeepSkyBlue">
 
-                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Top">
-                    <TextBox Name="Tb_Input" MinWidth="100" MaxHeight="50" Text="{Binding Input}" />
-                    <Button Command="{Binding UploadCommand}" Content="Upload" Foreground="Aqua" />
-                    <Button Command="{Binding SearchCommand}" Content="Search" Foreground="LawnGreen" />
-                    <Button Command="{Binding ClearCommand}" Content="Clear" />
-                    <Button Command="{Binding CancelCommand}" Content="Cancel" Foreground="Red" />
+                        <WrapPanel>
+                            <Label Content="Query" VerticalContentAlignment="Center" Background="#121212"></Label>
+                            <TextBox Name="Tb_Input" MinWidth="100" MaxHeight="50" Text="{Binding Input}" BorderThickness="2"/>
+                            <Button Command="{Binding UploadCommand}" Content="Upload" Foreground="Aqua" />
+                            <Button Command="{Binding SearchCommand}" Content="Search" Foreground="LawnGreen" />
+                            <Button Command="{Binding ClearCommand}" Content="Clear" />
+                            <Button Command="{Binding CancelCommand}" Content="Cancel" Foreground="Red" />
 
-                    <TextBox Name="Tb_Input2" MinWidth="100" MaxHeight="50" MaxWidth="400" Text="{Binding Url, Mode=OneWay}" IsEnabled="False" />
 
-                </StackPanel>
+                        </WrapPanel>
+                    </GroupBox>
+
+                    <GroupBox Header="Upload" Margin="5" Foreground="DeepSkyBlue">
+
+                        <WrapPanel>
+                            <Label Content="URL" VerticalContentAlignment="Center" Background="#121212"></Label>
+                        
+                            <TextBox Name="Tb_Input2" MinWidth="100" MaxHeight="50" MaxWidth="400" Text="{Binding Url, Mode=OneWay}" IsEnabled="False" />
+
+                        </WrapPanel>
+                    </GroupBox>
+
+                </WrapPanel>
 
                 <Panel Grid.Row="0" Grid.Column="2" Grid.RowSpan="1" Width="300" Height="300">
                     <Rectangle Fill="#303030" />
@@ -51,11 +67,13 @@
                          Background="#1C1C1C" ItemsSource="{Binding Items}" SelectedItem="{Binding SelectedItem}"
                          SelectionMode="Single" DoubleTapped="Lb_Items_OnDoubleTapped">
 
-                    <ListBox.KeyBindings>
-                        <KeyBinding Command="{Binding LoadItemCommand}" CommandParameter="{Binding SelectedItem}" Gesture="Ctrl+L"></KeyBinding>
-                        <KeyBinding Command="{Binding HashItemCommand}" CommandParameter="{Binding SelectedItem}" Gesture="Ctrl+H"></KeyBinding>
-                        <KeyBinding Command="{Binding GalleryDLItemCommand}" CommandParameter="{Binding SelectedItem}" Gesture="Ctrl+G"></KeyBinding>
-                    </ListBox.KeyBindings>
+                    <ListBox.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Command="{Binding GalleryDLItemCommand}" Header="gallery-dl" CommandParameter="{Binding SelectedItem }"></MenuItem>
+                            <MenuItem Command="{Binding LoadItemCommand}" Header="scan" CommandParameter="{Binding SelectedItem}"></MenuItem>
+                            <MenuItem Command="{Binding HashItemCommand}" Header="Hash" CommandParameter="{Binding SelectedItem}"></MenuItem>
+                        </ContextMenu>
+                    </ListBox.ContextMenu>
 
                     <ListBox.DataTemplates>
 
@@ -135,9 +153,8 @@
 
                                 <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
 
-                                    <Image asyncImageLoader:ImageLoader.Source="{Binding Url, Mode=OneWay}"
-                                           Width="80" Height="80" Margin="0,0,8,0"
-                                           x:Name="Img_Scanned" />
+                                    <Image Width="80" Height="80" Margin="0,0,8,0" x:Name="Img_Scanned" 
+                                           Source="{Binding AllocImage, Converter={StaticResource AllocImageConverter}}"/>
 
                                     <StackPanel Orientation="Vertical" Spacing="2">
 
@@ -200,7 +217,7 @@
         <TabItem Header="Config" Foreground="White" FontSize="20">
            <Grid Background="#202020" ColumnDefinitions="*,*,*" Margin="10">
                
-               <GroupBox Grid.Column="0" Margin="5" Header="Engines" Grid.Row="0">
+               <GroupBox Grid.Row="0" Grid.Column="0" Header="Engines" Margin="5">
 
 
                    <StackPanel Spacing="10">
@@ -214,13 +231,13 @@
                            <Label Content="Search Engines" Foreground="White" />
                            <ListBox x:Name="Lb_SearchEngines" ItemsSource="{Binding EngineOptions}"
                                     SelectionMode="Multiple" Height="300" Background="#121212"
-                                    SelectionChanged="Lb_SearchEngines_SelectionChanged" />
+                                    SelectionChanged="Lb_SearchEngines_SelectionChanged"/>
                        </StackPanel>
 
                        <StackPanel>
                            <Label Content="Priority Engines" Foreground="White" />
                            <ListBox x:Name="Lb_PriorityEngines" ItemsSource="{Binding PriorityOptions}"
-                                    SelectionMode="Single" Height="300" Background="#121212"
+                                    SelectionMode="Multiple" Height="300" Background="#121212"
                                     SelectionChanged="Lb_PriorityEngines_SelectionChanged" />
                        </StackPanel>
                    </StackPanel>

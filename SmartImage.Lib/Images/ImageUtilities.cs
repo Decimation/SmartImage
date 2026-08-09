@@ -54,6 +54,7 @@ public static class ImageUtilities
 			}));
 			return resized;
 		}
+
 	}
 
 	public static SizeIS ParseSize(string resText)

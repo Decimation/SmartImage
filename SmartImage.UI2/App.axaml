@@ -11,5 +11,6 @@
     <Application.Resources>
         <converters:SearchEngineOptionsToIconConverter x:Key="SearchEngineOptionsToIconConverter" />
         <converters:EnumListConverter x:Key="EnumListConverter" />
+        <converters:AllocImageConverter x:Key="AllocImageConverter" />
     </Application.Resources>
 </Application>

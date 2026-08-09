@@ -40,6 +40,7 @@ using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Engines.Upload.Base;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Alloc;
+using SmartImage.Lib.Model;
 using IImage = Avalonia.Media.IImage;
 
 namespace SmartImage.UI2.ViewModels;
@@ -156,7 +157,10 @@ public partial class MainWindowViewModel : ViewModelBase
 
 		var ueChanged = Config.WhenValueChanged(x => x.UploadEngine, false, null);
 
-		ueChanged.Subscribe(value => { });
+		ueChanged.Subscribe(value =>
+		{
+			
+		});
 
 		var selectedItemCmd = ReactiveCommand.CreateFromTask<IResultItem>(SelectedItemAsync);
 
@@ -229,11 +233,12 @@ public partial class MainWindowViewModel : ViewModelBase
 	}
 
 	[RelayCommand]
-	public async Task GalleryDLItemAsync(IResultItem item)
+	public async Task GalleryDLItemAsync(object item)
 	{
-		if (item is IScannableItem { } sri) {
+
+		if (item is IScannableItem { HasScannedItems: false} sri) {
 			var ch      = Channel.CreateUnbounded<Url>();
-			var gdlTask = ImageScanner.RunGalleryDLAsync(item.Url, ch.Writer, TokenSource.Token);
+			var gdlTask = ImageScanner.RunGalleryDLAsync(((IUrl) sri).Url,ch.Writer, TokenSource.Token);
 
 			while (await ch.Reader.WaitToReadAsync(TokenSource.Token)) {
 				var res = await ch.Reader.ReadAsync(TokenSource.Token);
@@ -242,7 +247,7 @@ public partial class MainWindowViewModel : ViewModelBase
 					var resAi = await AllocImageStream.FromSourceAsync(res, ct: TokenSource.Token);
 
 					if (resAi is { HasImage: true }) {
-						var scn = new ScannedResultItem(item, resAi);
+						var scn = new ScannedResultItem(sri, resAi);
 						sri.ScannedItems.Add(scn);
 						sri.TryCalculateSimilarity(Query.AllocImage);
 						this.RaisePropertyChanged(nameof(SelectedItem.Similarity));
