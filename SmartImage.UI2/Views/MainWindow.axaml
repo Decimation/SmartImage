@@ -49,7 +49,7 @@
                         <WrapPanel>
                             <Label Content="URL" VerticalContentAlignment="Center" Background="#121212"></Label>
 
-                            <TextBox Name="Tb_Input2" MinWidth="100" MaxHeight="50" MaxWidth="400" Text="{Binding Url, Mode=OneWay}"
+                            <TextBox Name="Tb_QueryUploadUrl" MinWidth="100" MaxHeight="50" MaxWidth="400" Text="{Binding Query.Upload.Url, Mode=OneWay}"
                                      IsEnabled="False" />
 
                         </WrapPanel>
@@ -71,7 +71,7 @@
                     <ListBox.ContextMenu>
                         <ContextMenu>
                             <MenuItem Command="{Binding GalleryDLItemCommand}" Header="gallery-dl" CommandParameter="{Binding SelectedItem }"></MenuItem>
-                            <MenuItem Command="{Binding LoadItemCommand}" Header="scan" CommandParameter="{Binding SelectedItem}"></MenuItem>
+                            <MenuItem Command="{Binding LoadItemCommand}" Header="Scan" CommandParameter="{Binding SelectedItem}"></MenuItem>
                             <MenuItem Command="{Binding HashItemCommand}" Header="Hash" CommandParameter="{Binding SelectedItem}"></MenuItem>
                         </ContextMenu>
                     </ListBox.ContextMenu>

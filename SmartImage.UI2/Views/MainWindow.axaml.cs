@@ -19,11 +19,10 @@ namespace SmartImage.UI2.Views;
 public partial class MainWindow : Window
 {
 
-	private bool _syncingSearchEngines;
-
 	public MainWindow()
 	{
 		InitializeComponent();
+
 		Opened += MainWindow_OnOpened;
 	}
 

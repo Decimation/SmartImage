@@ -4,6 +4,7 @@
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using ReactiveUI;
+using ReactiveUI.Avalonia;
 
 namespace SmartImage.UI2.ViewModels;
 

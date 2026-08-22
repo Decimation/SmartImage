@@ -9,7 +9,7 @@ using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DynamicData;
-using Novus.Win32;
+using ReactiveUI.Primitives;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.UI2.Views;
@@ -21,7 +21,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Channels;
@@ -37,6 +36,7 @@ using Avalonia.Skia.Helpers;
 using Avalonia.Threading;
 using DynamicData.Binding;
 using ReactiveUI;
+using ReactiveUI.Primitives;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Engines.Upload.Base;
 using SmartImage.Lib.Images;
@@ -72,11 +72,23 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	public ObservableCollection<IResultItem> Items { get; } = [];
 
-	public SearchClient Client { get; private set; }
+	public SearchClient Client
+	{
+		get;
+		private set => this.RaiseAndSetIfChanged(ref field, value);
+	}
 
-	public SearchConfig Config { get; }
+	public SearchConfig Config
+	{
+		get;
+		set => this.RaiseAndSetIfChanged(ref field, value);
+	}
 
-	public SearchQuery Query { get; set; }
+	public SearchQuery Query
+	{
+		get;
+		set => this.RaiseAndSetIfChanged(ref field, value);
+	}
 
 	public IUploadEngine UploadEngine { get; private set; }
 
@@ -123,11 +135,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
 #region
 
-	public ReactiveCommand<Unit, bool> UploadCommand { get; }
+	public ReactiveCommand<RxVoid, bool> UploadCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> SearchCommand { get; }
+	public ReactiveCommand<RxVoid, RxVoid> SearchCommand { get; }
 
-	public ReactiveCommand<Unit, Unit> ClearCommand { get; }
+	public ReactiveCommand<RxVoid, RxVoid> ClearCommand { get; }
 
 #endregion
 
@@ -140,24 +152,28 @@ public partial class MainWindowViewModel : ViewModelBase
 		TokenSource = new CancellationTokenSource();
 
 		SearchEngineItems = new ObservableCollection<EnumOptionItem<SearchEngineOptions>>(
-			ValidSearchOptions.Select(x => new EnumOptionItem<SearchEngineOptions>(Config, x, nameof(Config.SearchEngines))));
+			ValidSearchOptions.Select(seo => new EnumOptionItem<SearchEngineOptions>(Config, seo, nameof(Config.SearchEngines))));
 
 		PriorityEngineItems = new ObservableCollection<EnumOptionItem<SearchEngineOptions>>(
-			ValidPriorityOptions.Select(x => new EnumOptionItem<SearchEngineOptions>(Config, x, nameof(Config.PriorityEngines))));
+			ValidPriorityOptions.Select(seo => new EnumOptionItem<SearchEngineOptions>(Config, seo, nameof(Config.PriorityEngines))));
 
 		Config.PropertyChanged += OnChangedEvent;
 
-		var canUpload = this.WhenAnyValue(x => x.Input, InputPredicate);
+		var canUpload = this.WhenAnyValue(static mwvm => mwvm.Input, InputPredicate);
 		UploadCommand = ReactiveCommand.CreateFromTask(UploadInputAsync, canUpload);
 
-		var canSearch = this.WhenAnyValue(x => x.IsReady);
+		var isUploaded = Observable.Switch(LinqExtensions.Select(this.WhenAnyValue(static mwvm => mwvm.Query),
+		                                                         static q => q?.WhenAnyValue(static y => y.IsUploaded) ?? Observable.Return(false)));
+
+		var canSearch = Observable.CombineLatest(canUpload, isUploaded, static (input, uploaded) => input && uploaded);
+
 		SearchCommand = ReactiveCommand.CreateFromTask(RunSearchAsync, canSearch);
 
 		ClearCommand = ReactiveCommand.CreateFromTask(ClearAsync);
 
-		var cbChanged = Config.WhenPropertyChanged(x => x.Clipboard, false, null);
+		var cbChanged = Config.WhenPropertyChanged(static cfg => cfg.Clipboard, false, null);
 
-		cbChanged.Subscribe(value =>
+		ObservableExtensions.Subscribe(cbChanged, value =>
 		{
 			if (value.Value) {
 				m_cbDispatch.Start();
@@ -167,9 +183,9 @@ public partial class MainWindowViewModel : ViewModelBase
 			}
 		});
 
-		var ueChanged = Config.WhenValueChanged(x => x.UploadEngine, false, null);
+		var ueChanged = Config.WhenValueChanged(static cfg => cfg.UploadEngine, false, null);
 
-		ueChanged.Subscribe(value =>
+		ObservableExtensions.Subscribe(ueChanged, value =>
 		{
 			UploadEngine?.Dispose();
 			UploadEngine = BaseUploadEngine.GetUploadEngine(value);
@@ -177,9 +193,8 @@ public partial class MainWindowViewModel : ViewModelBase
 
 		var selectedItemCmd = ReactiveCommand.CreateFromTask<IResultItem>(SelectedItemAsync);
 
-		this.WhenAnyValue(x => x.SelectedItem)
-		    .WhereNotNull()
-		    .InvokeCommand(selectedItemCmd);
+		ObservableMixins.WhereNotNull(this.WhenAnyValue(static x => x.SelectedItem))
+		                .InvokeCommand(selectedItemCmd);
 
 
 	}
@@ -273,10 +288,10 @@ public partial class MainWindowViewModel : ViewModelBase
 	[RelayCommand]
 	public async Task<bool> UploadInputAsync()
 	{
-		Query   = await SearchQuery.TryCreateAsync(Input.Trim('\"'));
-		IsReady = await Query.TryUploadAsync(UploadEngine);
+		Query = await SearchQuery.TryCreateAsync(Input.Trim('\"'));
+		var isReady = await Query.TryUploadAsync(UploadEngine);
 
-		if (IsReady) {
+		if (isReady) {
 			Trace.Assert(Query.Upload != null);
 
 			// IsReady = Query.IsUploaded;
@@ -287,7 +302,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 		}
 
-		return IsReady;
+		return isReady;
 	}
 
 
@@ -333,8 +348,17 @@ public partial class MainWindowViewModel : ViewModelBase
 	public async Task ClearAsync()
 	{
 		Items.Clear();
+		Input = null;
+
 		Query?.Dispose();
+		Query = null;
+
 		Url = new Url();
+
+		Client.Dispose();
+		Client = new SearchClient(Config);
+
+		Image = null;
 	}
 
 	private async void ClipboardTick(object? sender, EventArgs args)
