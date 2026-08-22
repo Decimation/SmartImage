@@ -1,4 +1,5 @@
-﻿using Flurl.Http;
+﻿using System.ComponentModel;
+using Flurl.Http;
 using Microsoft.Extensions.Logging;
 using Novus;
 using Novus.OS;
@@ -7,6 +8,7 @@ using SmartImage.Lib.Utilities;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using Flurl;
+using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Engines.Upload.Base;
@@ -15,14 +17,12 @@ using SmartImage.Lib.Model;
 #pragma warning disable CS0162, CS2255
 namespace SmartImage.Lib;
 
-public sealed class SearchClient : IDisposable, ISearchConfigReceiver
+public sealed class SearchClient : IDisposable, ISearchConfigReceiver, INotifyPropertyChanged
 {
 
 	public SearchConfig Config { get; private set; }
 
 	public bool IsComplete { get; private set; }
-
-	public IUploadEngine UploadEngine { get; private set; }
 
 	public IEnumerable<BaseSearchEngine> Engines { get; private set; }
 
@@ -38,7 +38,6 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 		ConfigApplied = false;
 		IsRunning     = false;
 		Engines       = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines);
-		UploadEngine  = BaseUploadEngine.GetUploadEngine(Config.UploadEngine);
 	}
 
 	static SearchClient() { }
@@ -125,7 +124,19 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 	{
 		Config = cfg;
 		s_logger.LogTrace("Loading engines");
-		await Config.LoadEngines(Engines, ct);
+
+		foreach (BaseSearchEngine engine in Engines) {
+			if (engine is ISearchConfigReceiver rcvr) {
+				s_logger.LogTrace("Applying config to {Engine}", engine.Name);
+				await rcvr.ApplyConfigAsync(Config, ct);
+
+			}
+
+			if (engine is ICookiesReceiver ck) {
+				s_logger.LogTrace("Applying cookies to {Engine}", engine.Name);
+				ck.CookiesSource = Config.GetCookiesSource();
+			}
+		}
 
 		s_logger.LogDebug("Loaded engines");
 
@@ -221,9 +232,25 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 			engine.Dispose();
 		}
 
-		UploadEngine?.Dispose();
 		ConfigApplied = false;
 		CompleteSearchAsync();
+	}
+
+	public event PropertyChangedEventHandler PropertyChanged;
+
+	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
+
+	private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+	{
+		if (EqualityComparer<T>.Default.Equals(field, value))
+			return false;
+
+		field = value;
+		OnPropertyChanged(propertyName);
+		return true;
 	}
 
 }

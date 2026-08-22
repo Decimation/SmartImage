@@ -61,10 +61,12 @@ public abstract class BaseUploadEngine : IUploadEngine, IDisposable
 		}
 	}
 
+	public static readonly UploadEngineOption[] ObsoleteUploadEngines = [UploadEngineOption.Pomf, UploadEngineOption.ImgOps];
+
 
 	public static IUploadEngine GetUploadEngine(UploadEngineOption option)
 	{
-		if (UploadEngineOption.Obsolete.HasFlag(option)) {
+		if (ObsoleteUploadEngines.Contains(option)) {
 			// throw new ArgumentException($"Selected option {option} is obsolete", nameof(option));
 			option = SearchConfig.UE_DEFAULT;
 		}

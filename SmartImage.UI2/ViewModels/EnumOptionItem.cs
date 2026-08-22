@@ -2,6 +2,7 @@
 // Date: 2026/08/22 @ 03:08:03
 
 using System;
+using System.ComponentModel;
 using System.Reflection;
 using Kantan.Utilities;
 using ReactiveUI;
@@ -10,45 +11,45 @@ using SmartImage.Lib.Engines.Search.Base;
 
 namespace SmartImage.UI2.ViewModels;
 
-
 public class EnumOptionItem<TEnum> : ReactiveObject where TEnum : struct, Enum
 {
 
-	private readonly SearchConfig m_config;
+	private readonly INotifyPropertyChanged m_instance;
 
 	public TEnum Option { get; }
 
 	public string Name => Option.ToString();
 
-	protected PropertyInfo Prop { get; }
+	public PropertyInfo ValueProperty { get; }
 
-	public EnumOptionItem(SearchConfig config, TEnum option, PropertyInfo prop)
+	public EnumOptionItem(INotifyPropertyChanged instance, TEnum option, PropertyInfo property)
 	{
-		m_config = config;
-		Option   = option;
-		Prop     = prop;
+		m_instance    = instance;
+		Option        = option;
+		ValueProperty = property;
+		ArgumentNullException.ThrowIfNull(property);
 
-		m_config.PropertyChanged += (_, e) =>
+		m_instance.PropertyChanged += (_, e) =>
 		{
-			if (e.PropertyName == prop.Name) {
+			if (e.PropertyName == property.Name) {
 				this.RaisePropertyChanged(nameof(IsChecked));
 			}
 		};
 	}
 
-	public EnumOptionItem(SearchConfig config, TEnum option, string name) 
-		: this(config, option, config.GetType().GetProperty(name)) { }
+	public EnumOptionItem(INotifyPropertyChanged instance, TEnum option, string propertyName)
+		: this(instance, option, instance.GetType().GetProperty(propertyName)) { }
 
-	protected TEnum GetValue()
+	protected TEnum? GetValue()
 	{
-		var gm = (TEnum) Prop.GetMethod.Invoke(m_config, null);
+		var gm = (TEnum?) ValueProperty.GetMethod?.Invoke(m_instance, null);
 		return gm;
 	}
 
-	protected object SetValue(TEnum t)
+	protected object? SetValue(TEnum value)
 	{
-		var gm = Prop.SetMethod.Invoke(m_config, [t]);
-		return gm;
+		var sv = ValueProperty.SetMethod?.Invoke(m_instance, [value]);
+		return sv;
 	}
 
 	public bool IsChecked
@@ -56,7 +57,12 @@ public class EnumOptionItem<TEnum> : ReactiveObject where TEnum : struct, Enum
 		get
 		{
 			var gm = GetValue();
-			return gm.HasFlag(Option);
+
+			if (gm is { } gmv) {
+				return gmv.HasFlag(Option);
+			}
+
+			return false;
 		}
 		set
 		{
@@ -64,11 +70,15 @@ public class EnumOptionItem<TEnum> : ReactiveObject where TEnum : struct, Enum
 				return;
 			}
 
-			var val    = GetValue();
-			var newVal = value ? val.Or(Option) : val.And(Option.Not());
-			SetValue(newVal);
+			var val1 = GetValue();
 
-			this.RaisePropertyChanged();
+			if (val1 is { } val) {
+				var newVal = value ? val.Or(Option) : val.And(Option.Not());
+				SetValue(newVal);
+
+				this.RaisePropertyChanged();
+
+			}
 		}
 	}
 

@@ -7,7 +7,6 @@ using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Engines.Search.Other;
 using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Engines.Upload.Base;
-using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 using System.ComponentModel;
 using System.Configuration;
@@ -187,22 +186,6 @@ public sealed class SearchConfig : INotifyPropertyChanged
 
 #endregion
 
-
-	public async ValueTask LoadEngines(IEnumerable<BaseSearchEngine> engines2, CancellationToken ct)
-	{
-		foreach (BaseSearchEngine engine in engines2) {
-			if (engine is ISearchConfigReceiver rcvr) {
-				s_logger.LogTrace("Applying config to {Engine}", engine.Name);
-				await rcvr.ApplyConfigAsync(this, ct);
-
-			}
-
-			if (engine is ICookiesReceiver ck) {
-				s_logger.LogTrace("Applying cookies to {Engine}", engine.Name);
-				ck.CookiesSource = GetCookiesSource();
-			}
-		}
-	}
 
 #region
 

@@ -50,7 +50,8 @@ public partial class MainWindowViewModel : ViewModelBase
 {
 
 	public static readonly UploadEngineOption[] ValidUploadOptions = Enum.GetValues<UploadEngineOption>()
-	                                                                     .Where(static e => e != UploadEngineOption.None && !e.HasFlag(UploadEngineOption.Obsolete))
+	                                                                     .Where(static e => e != UploadEngineOption.None
+	                                                                                        && !BaseUploadEngine.ObsoleteUploadEngines.Contains(e))
 	                                                                     .ToArray();
 
 	public static readonly SearchEngineOptions[] ValidSearchOptions = Enum.GetValues<SearchEngineOptions>()
@@ -59,12 +60,11 @@ public partial class MainWindowViewModel : ViewModelBase
 	                                                                      .ToArray();
 
 	public static readonly SearchEngineOptions[] ValidPriorityOptions = Enum.GetValues<SearchEngineOptions>()
-	                                                                        .Where(static e => !e.HasFlag(SearchEngineOptions.Obsolete))
+	                                                                        .Where(static e => e != SearchEngineOptions.None
+	                                                                                           && !e.HasFlag(SearchEngineOptions.Obsolete))
 	                                                                        .ToArray();
 
 	public UploadEngineOption[] UploadEngineOptions { get; } = ValidUploadOptions;
-
-	// public SearchEngineOptions[] PriorityOptions { get; } = ValidPriorityOptions;
 
 	public ObservableCollection<EnumOptionItem<SearchEngineOptions>> SearchEngineItems { get; }
 
@@ -72,11 +72,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	public ObservableCollection<IResultItem> Items { get; } = [];
 
-	public SearchClient Client { get; }
+	public SearchClient Client { get; private set; }
 
 	public SearchConfig Config { get; }
 
 	public SearchQuery Query { get; set; }
+
+	public IUploadEngine UploadEngine { get; private set; }
 
 	[MNNW(true, nameof(Query.Upload.Url))]
 	public bool IsReady
@@ -167,7 +169,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
 		var ueChanged = Config.WhenValueChanged(x => x.UploadEngine, false, null);
 
-		ueChanged.Subscribe(value => { });
+		ueChanged.Subscribe(value =>
+		{
+			UploadEngine?.Dispose();
+			UploadEngine = BaseUploadEngine.GetUploadEngine(value);
+		});
 
 		var selectedItemCmd = ReactiveCommand.CreateFromTask<IResultItem>(SelectedItemAsync);
 
@@ -178,7 +184,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	}
 
-	private static bool InputPredicate(string x)
+	private static bool InputPredicate(string? x)
 	{
 		return AllocImageStream.IsValidSourceType(x?.ToString());
 	}
@@ -207,13 +213,6 @@ public partial class MainWindowViewModel : ViewModelBase
 		}
 
 		if (item is SearchResultItem { HasThumbnail: true } sri) { }
-
-	}
-
-	[RelayCommand]
-	public void EngineSelectedAsync(SearchEngineOptions opt)
-	{
-		Config.SearchEngines |= opt;
 
 	}
 
@@ -275,7 +274,7 @@ public partial class MainWindowViewModel : ViewModelBase
 	public async Task<bool> UploadInputAsync()
 	{
 		Query   = await SearchQuery.TryCreateAsync(Input.Trim('\"'));
-		IsReady = await Query.TryUploadAsync();
+		IsReady = await Query.TryUploadAsync(UploadEngine);
 
 		if (IsReady) {
 			Trace.Assert(Query.Upload != null);

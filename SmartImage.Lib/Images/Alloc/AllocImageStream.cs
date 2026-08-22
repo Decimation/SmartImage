@@ -246,8 +246,12 @@ public class AllocImageStream : IAllocImage, IEquatable<AllocImageStream>, IAllo
 		return stream is {CanRead: true};
 	}
 
-	public static bool IsValidSourceType(object o)
+	public static bool IsValidSourceType([CBN] object o)
 	{
+		if (o == null) {
+			return false;
+		}
+
 		bool isFile   = AllocImageFile.IsFileType(o, out var f);
 		bool isUri    = AllocImageUrl.IsUrlType(o, out var url);
 		bool isStream = AllocImageStream.IsStreamType(o, out Stream stream);

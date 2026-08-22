@@ -11,7 +11,6 @@ using SmartImage.Lib;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Model;
-using SmartImage.UI2.Controls;
 using SmartImage.UI2.Converters;
 using SmartImage.UI2.ViewModels;
 
@@ -31,14 +30,6 @@ public partial class MainWindow : Window
 	private void MainWindow_OnOpened(object? sender, EventArgs e)
 	{
 		
-	}
-
-	private void Lb_PriorityEngines_SelectionChanged(object? sender, SelectionChangedEventArgs e)
-	{
-		if (sender is ListBox lb && DataContext is MainWindowViewModel vm) {
-			vm.Config.PriorityEngines = lb.ApplyFlagsSelectionChanged(e, vm.Config.PriorityEngines);
-			e.Handled = true;
-		}
 	}
 
 

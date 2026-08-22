@@ -29,6 +29,7 @@ using Flurl;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Upload.Base;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Alloc;
 using SmartImage.Lib.Utilities;
@@ -62,6 +63,9 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	private readonly CancellationTokenSource m_ctsRunSearch;
 
 	// private Dictionary<SearchResult, Dictionary<IResultItem, int>>
+
+	public IUploadEngine UploadEngine { get; private set; }
+
 	public SearchClient Client { get; private set; }
 
 	public SearchQuery Query { get; private set; }
@@ -94,12 +98,12 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		p.Increment(ElementStyles.COMPLETE / 2);
 
 		p.Description = "Uploading query";
-		var url = await Query.TryUploadAsync(Client.UploadEngine);
+		var url = await Query.TryUploadAsync(UploadEngine);
 
 		if (!url) {
 			throw new SmartImageException($"Could not upload {Query}");
 		}
-		
+
 		m_queryCanvasImg = new CanvasImage(Query.AllocImage.GetSource());
 
 		p.Increment(ElementStyles.COMPLETE / 2);
@@ -112,6 +116,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		base.InitConfig(scs);
 
 		Client = new SearchClient(Config);
+		UploadEngine = BaseUploadEngine.GetUploadEngine(Config.UploadEngine);
 
 		m_mainTable        = CommandSettings.Interactive ? CreateOverviewTable() : CreateResultTable();
 		m_mainTable.Expand = true;
@@ -266,9 +271,9 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					await AnsiConsole.Live(srTable).StartAsync(async f =>
 					{
 						s_logger.LogTrace("Scanning {Item}", item);
-						bool scannedOk     = false;
-						
-						var  ch = Channel.CreateUnbounded<ScannedResultItem>();
+						bool scannedOk = false;
+
+						var ch = Channel.CreateUnbounded<ScannedResultItem>();
 						scannedOk = await ImageScanner.ScanAsync(sri, ch.Writer, ct);
 
 						if (!scannedOk) {
@@ -278,7 +283,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 						int i = 0;
 
 						while (await ch.Reader.WaitToReadAsync(ct)) {
-							var snItm= await ch.Reader.ReadAsync(ct);
+							var snItm = await ch.Reader.ReadAsync(ct);
 							sri.ScannedItems.Add(snItm);
 							i++;
 							var scnRow = snItm.Parent.GetItemRow(sel.ItemIdx, i);
@@ -320,7 +325,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					clrWrite = true;
 				}
 
-				if (cmd == R2.Chc_Download && item is ScannedResultItem { AllocImage.HasSource: true } sriScnDl1 && sriScnDl1.AllocImage is AllocImageStream sriScnDl) {
+				if (cmd == R2.Chc_Download && item is ScannedResultItem { AllocImage.HasSource: true } sriScnDl1
+				                           && sriScnDl1.AllocImage is AllocImageStream sriScnDl) {
 					if (!sriScnDl.HasLocalFilePath) {
 						HandleDownload(sriScnDl1);
 					}
@@ -353,7 +359,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 						if (res is not null) {
 							var resAi = await AllocImageStream.FromSourceAsync(res, ct: ct);
 
-							if (resAi is {HasImage:true}) {
+							if (resAi is { HasImage: true }) {
 								var scn = new ScannedResultItem(item, resAi);
 								sri.ScannedItems.Add(scn);
 								item.TryCalculateSimilarity(Query.AllocImage);

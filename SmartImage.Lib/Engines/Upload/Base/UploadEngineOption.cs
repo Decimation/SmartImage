@@ -23,21 +23,17 @@ public enum UploadEngineOption
 	/// <summary>
 	/// <see cref="PomfEngine"/>
 	/// </summary>
+	/// <remarks>Obsolete</remarks>
 	Pomf,
 
 	/// <summary>
 	/// <see cref="ImgOpsEngine"/>
 	/// </summary>
+	/// <remarks>Obsolete</remarks>
 	ImgOps,
 
 	/// <summary>
 	/// <see cref="TmpFilesEngine"/>
 	/// </summary>
 	TmpFiles,
-
-#region 
-
-	Obsolete = Pomf | ImgOps
-
-#endregion
 }

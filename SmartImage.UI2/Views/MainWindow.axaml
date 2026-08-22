@@ -224,7 +224,7 @@
                     <StackPanel Spacing="10">
                         <StackPanel>
                             <Label Content="Upload Engine" Foreground="White" />
-                            <ComboBox ItemsSource="{Binding UploadEngineOptions}" SelectedItem="{Binding Config.UploadEngine}"
+                            <ComboBox ItemsSource="{Binding UploadEngineOptions}" SelectedItem="{Binding Config.UploadEngine, Mode=TwoWay}"
                                       HorizontalAlignment="Stretch" />
                         </StackPanel>
 

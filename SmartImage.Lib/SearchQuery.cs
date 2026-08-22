@@ -96,6 +96,8 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 
 	public async ValueTask<bool> TryUploadAsync(IUploadEngine ue = null, CancellationToken ct = default)
 	{
+		// todo: make IUploadEngine accept an IUploadable and move this func there
+
 		if (IsUploaded) {
 			return true;
 		}

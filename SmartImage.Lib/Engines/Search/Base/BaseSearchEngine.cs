@@ -142,6 +142,7 @@ public abstract class BaseSearchEngine : INamedEnumOption<SearchEngineOptions>, 
 
 	public static IEnumerable<BaseSearchEngine> GetSelectedEngines(SearchEngineOptions options)
 	{
+		// todo: add SearchConfig parameter for DI
 		options &= ~SearchEngineOptions.Obsolete;
 
 		if (options.HasFlag(SearchEngineOptions.SauceNao))

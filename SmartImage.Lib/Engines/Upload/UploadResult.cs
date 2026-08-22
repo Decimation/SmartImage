@@ -12,10 +12,10 @@ public interface IUploadResult : IUrl, ILength { }
 public class UploadResult : IUploadResult
 {
 
-	public Url Url { get; set; }
+	public Url Url { get; internal set; }
 
 	[JPN("Size")]
-	public long? Length { get; set; }
+	public long? Length { get; internal set; }
 
 	public UploadResult() { }
 
