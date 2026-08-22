@@ -37,7 +37,7 @@ public static class ControlsHelper
 		orig = orig.Or(added);
 
 		var setFlags = orig.GetSetFlags();
-
+		
 		foreach (var flag in setFlags) {
 			lb.SelectedItems?.Add(flag);
 		}

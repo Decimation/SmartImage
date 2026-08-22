@@ -24,7 +24,7 @@ public interface IAllocImage : IImage, ILength, IAllocSource, IDisposable
 
 
 	/// <summary>
-	/// Allocates <see cref="IImage.Image"/> from <see cref="Bytes"/>
+	/// Allocates <see cref="IImage.Image"/> from <see cref="IAllocSource.Source"/>
 	/// </summary>
 	Task<bool> AllocImageAsync(CancellationToken ct = default);
 

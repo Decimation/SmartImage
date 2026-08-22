@@ -245,7 +245,9 @@ public sealed class SearchConfig : INotifyPropertyChanged
 
 	public override string ToString()
 	{
-		return $"{SearchEngines}\n{PriorityEngines}";
+		return $"{nameof(SearchEngines)}: {SearchEngines} | {nameof(PriorityEngines)}: {PriorityEngines} | {nameof(UploadEngine)}: {UploadEngine} | "
+		       + $"{nameof(Clipboard)}: {Clipboard} | {nameof(AutoSearch)}: {AutoSearch} | {nameof(ReadCookies)}: {ReadCookies} | "
+		       + $"{nameof(FlareSolverr)}: {FlareSolverr} | {nameof(FlareSolverrApiUrl)}: {FlareSolverrApiUrl}";
 	}
 
 }

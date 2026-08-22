@@ -95,8 +95,8 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 		// TODO *? IMPROVE
 
 		return Results.Where(static r => Url.IsValid(r.Url))
-		              .OrderByDescending(static r => r.Similarity)
-		              .ThenByDescending(static r => r is SearchResultItem sri ? sri.Score : 0)
+		              .OrderByDescending(static r => r is SearchResultItem sri ? sri.Score : 0)
+		              .ThenByDescending(static r => r.Similarity)
 		              .FirstOrDefault();
 	}
 

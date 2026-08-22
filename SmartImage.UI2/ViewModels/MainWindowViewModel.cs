@@ -20,6 +20,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
@@ -53,7 +54,7 @@ public partial class MainWindowViewModel : ViewModelBase
 	                                                                     .ToArray();
 
 	public static readonly SearchEngineOptions[] ValidSearchOptions = Enum.GetValues<SearchEngineOptions>()
-	                                                                      .Where(static e => e is not (SearchEngineOptions.Auto or SearchEngineOptions.None) 
+	                                                                      .Where(static e => e is not (SearchEngineOptions.Auto or SearchEngineOptions.None)
 	                                                                                         && !e.HasFlag(SearchEngineOptions.Obsolete))
 	                                                                      .ToArray();
 
@@ -63,8 +64,11 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	public UploadEngineOption[] UploadEngineOptions { get; } = ValidUploadOptions;
 
-	public SearchEngineOptions[] EngineOptions { get; } = ValidSearchOptions;
-	public SearchEngineOptions[] PriorityOptions { get; } = ValidPriorityOptions;
+	// public SearchEngineOptions[] PriorityOptions { get; } = ValidPriorityOptions;
+
+	public ObservableCollection<EnumOptionItem<SearchEngineOptions>> SearchEngineItems { get; }
+
+	public ObservableCollection<EnumOptionItem<SearchEngineOptions>> PriorityEngineItems { get; }
 
 	public ObservableCollection<IResultItem> Items { get; } = [];
 
@@ -133,6 +137,12 @@ public partial class MainWindowViewModel : ViewModelBase
 		Client      = new SearchClient(Config);
 		TokenSource = new CancellationTokenSource();
 
+		SearchEngineItems = new ObservableCollection<EnumOptionItem<SearchEngineOptions>>(
+			ValidSearchOptions.Select(x => new EnumOptionItem<SearchEngineOptions>(Config, x, nameof(Config.SearchEngines))));
+
+		PriorityEngineItems = new ObservableCollection<EnumOptionItem<SearchEngineOptions>>(
+			ValidPriorityOptions.Select(x => new EnumOptionItem<SearchEngineOptions>(Config, x, nameof(Config.PriorityEngines))));
+
 		Config.PropertyChanged += OnChangedEvent;
 
 		var canUpload = this.WhenAnyValue(x => x.Input, InputPredicate);
@@ -157,10 +167,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 		var ueChanged = Config.WhenValueChanged(x => x.UploadEngine, false, null);
 
-		ueChanged.Subscribe(value =>
-		{
-			
-		});
+		ueChanged.Subscribe(value => { });
 
 		var selectedItemCmd = ReactiveCommand.CreateFromTask<IResultItem>(SelectedItemAsync);
 
@@ -236,9 +243,9 @@ public partial class MainWindowViewModel : ViewModelBase
 	public async Task GalleryDLItemAsync(object item)
 	{
 
-		if (item is IScannableItem { HasScannedItems: false} sri) {
+		if (item is IScannableItem { HasScannedItems: false } sri) {
 			var ch      = Channel.CreateUnbounded<Url>();
-			var gdlTask = ImageScanner.RunGalleryDLAsync(((IUrl) sri).Url,ch.Writer, TokenSource.Token);
+			var gdlTask = ImageScanner.RunGalleryDLAsync(((IUrl) sri).Url, ch.Writer, TokenSource.Token);
 
 			while (await ch.Reader.WaitToReadAsync(TokenSource.Token)) {
 				var res = await ch.Reader.ReadAsync(TokenSource.Token);
@@ -276,6 +283,9 @@ public partial class MainWindowViewModel : ViewModelBase
 			// IsReady = Query.IsUploaded;
 			Url   = Query.Upload.Url;
 			Image = Bitmap.DecodeToWidth(Query.AllocImage.GetSource(), Query.AllocImage.Image.Width);
+
+			var ai = Query.AllocImage;
+
 		}
 
 		return IsReady;
@@ -325,6 +335,7 @@ public partial class MainWindowViewModel : ViewModelBase
 	{
 		Items.Clear();
 		Query?.Dispose();
+		Url = new Url();
 	}
 
 	private async void ClipboardTick(object? sender, EventArgs args)
@@ -347,6 +358,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
 		if (Path.Exists(clipFile?.Path.LocalPath)) {
 			Input = clipFile.TryGetLocalPath();
+			m_cbDispatch.Stop();
+
+		}
+
+		var clipText = await clipboard.TryGetTextAsync();
+
+		if (InputPredicate(clipText)) {
+			Input = clipText;
 			m_cbDispatch.Stop();
 
 		}

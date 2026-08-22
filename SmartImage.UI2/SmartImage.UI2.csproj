@@ -11,6 +11,7 @@
     <Authors>Read Stanton</Authors>
     <PackageProjectUrl>https://github.com/Decimation/SmartImage</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Decimation/SmartImage</RepositoryUrl>
+    <PackageIcon>Icon.png</PackageIcon>
     <!-- <AssemblyName>SmartImage</AssemblyName> -->
     <!--<LangVersion>preview</LangVersion>-->
   </PropertyGroup>
@@ -80,6 +81,13 @@
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
     <Folder Include="Models\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\Assets\Icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
   <Import Project="..\..\..\VSProjects\SmartImage.Shared\SmartImage.Shared.projitems" Label="Shared" />
