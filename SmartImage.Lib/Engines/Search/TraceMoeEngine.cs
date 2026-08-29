@@ -242,7 +242,7 @@ public class TraceMoeDoc
 			Source      = name,
 			Url         = AnilistUrl,
 			Description = $"Episode #{EpisodeString} @ [{TimeSpan.FromSeconds(From):g} - {TimeSpan.FromSeconds(To):g}]",
-			Metadata    = this
+			ExtraData    = this
 		};
 
 		if (result.Similarity < TraceMoeEngine.FILTER_THRESHOLD) {
@@ -251,7 +251,7 @@ public class TraceMoeDoc
 												 $"< {FILTER_THRESHOLD / 100:P})");*/
 			//todo
 
-			// result.Metadata.Warning = $"Similarity below threshold {FILTER_THRESHOLD:P}";
+			// result.ExtraData.Warning = $"Similarity below threshold {FILTER_THRESHOLD:P}";
 		}
 
 

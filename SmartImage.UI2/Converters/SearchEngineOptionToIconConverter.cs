@@ -10,8 +10,8 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Search.Base;
 
 namespace SmartImage.UI2.Converters;
-
-internal class SearchEngineOptionsToIconConverter : IValueConverter
+// todo: cache these assets instead of converting and loading at runtime
+internal class SearchEngineOptionToIconConverter : IValueConverter
 {
 
 	internal static readonly Dictionary<SearchEngineOptions, string> EngineIcons = new()

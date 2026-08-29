@@ -207,7 +207,7 @@ internal static partial class Renderables
 		nameof(IResultItem.IsRaw),
 		nameof(IImage.Width),
 		nameof(IImage.Height),
-		nameof(SearchResultItem.Metadata),
+		nameof(SearchResultItem.ExtraData),
 		nameof(IChildResultItem.Parent),
 		nameof(IAllocImage.Source),
 		nameof(IResultItem.Url),

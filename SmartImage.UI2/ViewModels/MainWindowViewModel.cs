@@ -12,7 +12,6 @@ using DynamicData;
 using ReactiveUI.Primitives;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.UI2.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -22,6 +21,9 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
+
+// using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -30,6 +32,7 @@ using Avalonia;
 using Avalonia.Controls.Documents;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
+using Avalonia.Logging;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Skia.Helpers;
@@ -43,6 +46,7 @@ using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Alloc;
 using SmartImage.Lib.Model;
 using IImage = Avalonia.Media.IImage;
+using SmartImage.UI2.Controls;
 
 namespace SmartImage.UI2.ViewModels;
 
@@ -66,11 +70,18 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	public UploadEngineOption[] UploadEngineOptions { get; } = ValidUploadOptions;
 
-	public ObservableCollection<EnumOptionItem<SearchEngineOptions>> SearchEngineItems { get; }
+	public ObservableCollection<ReactiveEnumOption<SearchEngineOptions>> SearchEngineItems { get; }
 
-	public ObservableCollection<EnumOptionItem<SearchEngineOptions>> PriorityEngineItems { get; }
+	public ObservableCollection<ReactiveEnumOption<SearchEngineOptions>> PriorityEngineItems { get; }
+
+	// Keyed by instance identity so entries are collected alongside their AllocImageStream
+	// rather than needing an explicit cache-invalidation/eviction policy.
 
 	public ObservableCollection<IResultItem> Items { get; } = [];
+
+	private static readonly ConditionalWeakTable<IAllocImage, IImage> s_cache = new();
+
+	private readonly DispatcherTimer m_cbDispatch;
 
 	public SearchClient Client
 	{
@@ -99,7 +110,7 @@ public partial class MainWindowViewModel : ViewModelBase
 		set => this.RaiseAndSetIfChanged(ref field, value);
 	}
 
-	public string Input
+	public string? Input
 	{
 		get;
 		set => this.RaiseAndSetIfChanged(ref field, value);
@@ -131,8 +142,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	public CancellationTokenSource TokenSource { get; private set; }
 
-	private readonly DispatcherTimer m_cbDispatch;
-
 #region
 
 	public ReactiveCommand<RxVoid, bool> UploadCommand { get; }
@@ -146,24 +155,26 @@ public partial class MainWindowViewModel : ViewModelBase
 	public MainWindowViewModel()
 	{
 		m_cbDispatch = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, ClipboardTick);
-
+		
 		Config      = new SearchConfig();
 		Client      = new SearchClient(Config);
 		TokenSource = new CancellationTokenSource();
 
-		SearchEngineItems = new ObservableCollection<EnumOptionItem<SearchEngineOptions>>(
-			ValidSearchOptions.Select(seo => new EnumOptionItem<SearchEngineOptions>(Config, seo, nameof(Config.SearchEngines))));
+		SearchEngineItems = new ObservableCollection<ReactiveEnumOption<SearchEngineOptions>>(
+			ValidSearchOptions.Select(seo => new ReactiveEnumOption<SearchEngineOptions>(Config, seo, nameof(Config.SearchEngines))));
 
-		PriorityEngineItems = new ObservableCollection<EnumOptionItem<SearchEngineOptions>>(
-			ValidPriorityOptions.Select(seo => new EnumOptionItem<SearchEngineOptions>(Config, seo, nameof(Config.PriorityEngines))));
+		PriorityEngineItems = new ObservableCollection<ReactiveEnumOption<SearchEngineOptions>>(
+			ValidPriorityOptions.Select(seo => new ReactiveEnumOption<SearchEngineOptions>(Config, seo, nameof(Config.PriorityEngines))));
 
 		Config.PropertyChanged += OnChangedEvent;
 
 		var canUpload = this.WhenAnyValue(static mwvm => mwvm.Input, InputPredicate);
+
 		UploadCommand = ReactiveCommand.CreateFromTask(UploadInputAsync, canUpload);
 
 		var isUploaded = Observable.Switch(LinqExtensions.Select(this.WhenAnyValue(static mwvm => mwvm.Query),
-		                                                         static q => q?.WhenAnyValue(static y => y.IsUploaded) ?? Observable.Return(false)));
+		                                                         static q => q?.WhenAnyValue(static y => y.IsUploaded)
+		                                                                     ?? Observable.Return(false)));
 
 		var canSearch = Observable.CombineLatest(canUpload, isUploaded, static (input, uploaded) => input && uploaded);
 
@@ -223,12 +234,34 @@ public partial class MainWindowViewModel : ViewModelBase
 	public async Task SelectedItemAsync(IResultItem item)
 	{
 		if (item is ScannedResultItem { AllocImage: { HasImage: true } } scnItem) {
-			Image = Bitmap.DecodeToWidth(scnItem.AllocImage.GetSource(), scnItem.AllocImage.Image.Width);
-
+			// Image = Bitmap.DecodeToWidth(scnItem.AllocImage.GetSource(), scnItem.AllocImage.Image.Width);
 		}
+
 
 		if (item is SearchResultItem { HasThumbnail: true } sri) { }
 
+		Image = GetFromCache(item);
+	}
+
+	private IImage GetFromCache(IResultItem item)
+	{
+
+		if (item is not IAllocImageView<IAllocImage> {AllocImage: {HasImage: true} allocImg} allocImgView) {
+			var hasQueryImg= s_cache.TryGetValue(Query.AllocImage, out var queryImg);
+			return queryImg;
+		}
+		
+
+		if (s_cache.TryGetValue(allocImg, out var cached)) {
+			return cached;
+		}
+
+		using var stream = allocImg.GetSource();
+		var       bitmap = new Bitmap(stream);
+
+		s_cache.AddOrUpdate(allocImg, bitmap);
+
+		return bitmap;
 	}
 
 	[RelayCommand]
@@ -297,8 +330,8 @@ public partial class MainWindowViewModel : ViewModelBase
 			// IsReady = Query.IsUploaded;
 			Url   = Query.Upload.Url;
 			Image = Bitmap.DecodeToWidth(Query.AllocImage.GetSource(), Query.AllocImage.Image.Width);
-
 			var ai = Query.AllocImage;
+			s_cache.AddOrUpdate(Query.AllocImage, Image);
 
 		}
 
@@ -359,38 +392,45 @@ public partial class MainWindowViewModel : ViewModelBase
 		Client = new SearchClient(Config);
 
 		Image = null;
+
+		if (Config.Clipboard) {
+			m_cbDispatch.Start();
+		}
 	}
 
 	private async void ClipboardTick(object? sender, EventArgs args)
 	{
-		if (Application.Current == null || IsReady) {
-			return;
+		try {
+			if (Application.Current == null || IsReady) {
+				return;
+			}
+
+			var tl        = Application.Current.GetTopLevel();
+			var clipboard = tl?.Clipboard;
+
+			if (clipboard == null)
+				return;
+
+			var clipFile = await clipboard.TryGetFileAsync();
+
+
+			if (clipFile?.TryGetLocalPath() is { } lp && InputPredicate(lp)) {
+				Input = lp;
+				m_cbDispatch.Stop();
+
+			}
+
+			var clipText = await clipboard.TryGetTextAsync();
+
+			if (InputPredicate(clipText)) {
+				Input = clipText;
+				m_cbDispatch.Stop();
+
+			}
 		}
-
-		var tl        = Application.Current.GetTopLevel();
-		var clipboard = tl?.Clipboard;
-
-		if (clipboard == null)
-			return;
-
-		// var formats = await clipboard.GetDataFormatsAsync();
-		// var data    = await clipboard.TryGetDataAsync();
-		// foreach (var fmt in formats) { }
-
-		var clipFile = await clipboard.TryGetFileAsync();
-
-		if (Path.Exists(clipFile?.Path.LocalPath)) {
-			Input = clipFile.TryGetLocalPath();
-			m_cbDispatch.Stop();
-
-		}
-
-		var clipText = await clipboard.TryGetTextAsync();
-
-		if (InputPredicate(clipText)) {
-			Input = clipText;
-			m_cbDispatch.Stop();
-
+		catch (Exception e) {
+			Logger.Sink?.Log(LogEventLevel.Error, nameof(ClipboardTick), this, "");
+			throw; // TODO handle exception
 		}
 	}
 

@@ -13,18 +13,23 @@ using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
 using SmartImage.Lib.Engines.Results;
 
-namespace SmartImage.UI2.Views;
+namespace SmartImage.UI2.Controls;
 
 public static class AppExtensions
 {
 
-	public static TopLevel? GetTopLevel(this Application app)
+	extension(Application app)
 	{
-		if (app.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+
+		public TopLevel? GetTopLevel()
 		{
-			return TopLevel.GetTopLevel(desktop.MainWindow);
+			if (app.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) {
+				return TopLevel.GetTopLevel(desktop.MainWindow);
+			}
+
+			return null;
 		}
-		return null;
-	}   
+
+	}
 
 }

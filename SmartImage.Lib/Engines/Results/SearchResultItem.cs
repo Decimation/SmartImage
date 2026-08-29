@@ -26,7 +26,7 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 	internal SearchResultItem(SearchResult r, bool isRaw = false)
 	{
 		Root         = r;
-		Metadata     = null;
+		ExtraData     = null;
 		IsRaw        = isRaw;
 		ScannedItems = [];
 	}
@@ -95,12 +95,6 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 	public DateTime? Time { get; internal set; }
 
 
-	/// <summary>
-	///     Additional metadata.
-	/// </summary>
-	[JI]
-	public object Metadata { get; internal set; }
-
 	public double? Similarity { get; set; }
 
 	[MNNW(true, nameof(Similarity))]
@@ -156,7 +150,7 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 			if (Time is not null)
 				s++;
 
-			if (Metadata is not null)
+			if (ExtraData is not null)
 				s++;
 
 			s += ScannedItems.Count;
@@ -164,6 +158,12 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 			return s;
 		}
 	}
+
+	/// <summary>
+	///     Additional metadata.
+	/// </summary>
+	[JI]
+	public object ExtraData { get; internal set; }
 
 #region
 
@@ -277,8 +277,8 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 		s_logger.LogDebug("Disposing {Item} of {Name}", Url, Root.Engine.Name);
 		ThumbnailImage?.Dispose();
 
-		foreach (var item in ScannedItems) {
-			item.Dispose();
+		foreach (var scnItem in ScannedItems) {
+			scnItem.Dispose();
 		}
 
 	}

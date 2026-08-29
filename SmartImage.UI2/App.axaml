@@ -3,14 +3,14 @@
              xmlns:converters="clr-namespace:SmartImage.UI2.Converters"
              x:Class="SmartImage.UI2.App"
              RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+    <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
     <Application.Styles>
+        <StyleInclude Source="avares://AsyncImageLoader.Avalonia/AdvancedImage.axaml" />
         <FluentTheme />
     </Application.Styles>
     <Application.Resources>
-        <converters:SearchEngineOptionsToIconConverter x:Key="SearchEngineOptionsToIconConverter" />
-        <converters:EnumListConverter x:Key="EnumListConverter" />
-        <converters:AllocImageConverter x:Key="AllocImageConverter" />
+        <converters:SearchEngineOptionToIconConverter x:Key="SearchEngineOptionsToIconConverter" />
+        <converters:AllocImageValueConverter x:Key="AllocImageConverter" />
     </Application.Resources>
 </Application>

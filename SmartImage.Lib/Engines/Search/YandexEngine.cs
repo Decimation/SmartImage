@@ -218,7 +218,7 @@ public record YandexSite
 			Site        = Domain,
 			Source      = Url,
 			Thumbnail   = Thumb.Url.StartsWith("//") ? "https:" + Thumb.Url : Thumb.Url,
-			Metadata    = this
+			ExtraData    = this
 		};
 	}
 

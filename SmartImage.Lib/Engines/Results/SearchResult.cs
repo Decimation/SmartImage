@@ -95,8 +95,8 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 		// TODO *? IMPROVE
 
 		return Results.Where(static r => Url.IsValid(r.Url))
-		              .OrderByDescending(static r => r is SearchResultItem sri ? sri.Score : 0)
-		              .ThenByDescending(static r => r.Similarity)
+		              .OrderByDescending(static r => r.Similarity)
+		              .ThenByDescending(static r => r is SearchResultItem sri ? sri.Score : 0)
 		              .FirstOrDefault();
 	}
 
@@ -111,14 +111,9 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 		Debug.WriteLine($"Disposing {Engine.Name} with {Results.Count}", LogCategories.C_VERBOSE);
 
 		foreach (var item in Results) {
-			/*if (ScannedResults.TryGetValue(item, out var scanned)) {
-				foreach (var sci in scanned) {
-					sci.Dispose();
-				}
-			}*/
-
 			item.Dispose();
 		}
+
 	}
 
 }

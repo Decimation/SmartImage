@@ -131,7 +131,7 @@ public partial class SearchCommand
 		var infoGrid = new Grid { Expand = false, };
 		infoGrid.AddColumns(2);
 		infoGrid.AddRow("Keys", s_previewDescription);
-		infoGrid.AddRow("Metadata", sri.ToString());
+		infoGrid.AddRow("ExtraData", sri.ToString());
 
 		sriLayout["Image"].Update(pnl);
 		sriLayout["Details"].Update(infoGrid);

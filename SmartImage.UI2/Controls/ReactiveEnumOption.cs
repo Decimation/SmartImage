@@ -1,4 +1,4 @@
-﻿// Author: Deci | Project: SmartImage.UI2 | Name: EnumOptionItem.cs
+﻿// Author: Deci | Project: SmartImage.UI2 | Name: ReactiveEnumOption.cs
 // Date: 2026/08/22 @ 03:08:03
 
 using System;
@@ -11,7 +11,7 @@ using SmartImage.Lib.Engines.Search.Base;
 
 namespace SmartImage.UI2.ViewModels;
 
-public class EnumOptionItem<TEnum> : ReactiveObject where TEnum : struct, Enum
+public class ReactiveEnumOption<TEnum> : ReactiveObject where TEnum : struct, Enum
 {
 
 	private readonly INotifyPropertyChanged m_instance;
@@ -22,7 +22,7 @@ public class EnumOptionItem<TEnum> : ReactiveObject where TEnum : struct, Enum
 
 	public PropertyInfo ValueProperty { get; }
 
-	public EnumOptionItem(INotifyPropertyChanged instance, TEnum option, PropertyInfo property)
+	public ReactiveEnumOption(INotifyPropertyChanged instance, TEnum option, PropertyInfo property)
 	{
 		m_instance    = instance;
 		Option        = option;
@@ -37,13 +37,13 @@ public class EnumOptionItem<TEnum> : ReactiveObject where TEnum : struct, Enum
 		};
 	}
 
-	public EnumOptionItem(INotifyPropertyChanged instance, TEnum option, string propertyName)
+	public ReactiveEnumOption(INotifyPropertyChanged instance, TEnum option, string propertyName)
 		: this(instance, option, instance.GetType().GetProperty(propertyName)) { }
 
 	protected TEnum? GetValue()
 	{
-		var gm = (TEnum?) ValueProperty.GetMethod?.Invoke(m_instance, null);
-		return gm;
+		var gv = (TEnum?) ValueProperty.GetMethod?.Invoke(m_instance, null);
+		return gv;
 	}
 
 	protected object? SetValue(TEnum value)
@@ -70,9 +70,9 @@ public class EnumOptionItem<TEnum> : ReactiveObject where TEnum : struct, Enum
 				return;
 			}
 
-			var val1 = GetValue();
+			var currentVal = GetValue();
 
-			if (val1 is { } val) {
+			if (currentVal is { } val) {
 				var newVal = value ? val.Or(Option) : val.And(Option.Not());
 				SetValue(newVal);
 

@@ -1,6 +1,6 @@
 using System;
 using System.ComponentModel;
-using AsyncImageLoader;
+
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
@@ -24,6 +24,7 @@ public partial class MainWindow : Window
 		InitializeComponent();
 
 		Opened += MainWindow_OnOpened;
+		
 	}
 
 	private void MainWindow_OnOpened(object? sender, EventArgs e)

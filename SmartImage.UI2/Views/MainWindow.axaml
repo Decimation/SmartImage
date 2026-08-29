@@ -87,7 +87,7 @@
                                                                     Source="{Binding Thumbnail, Mode=OneWay}"
                                                                     IsVisible="{Binding $parent, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />-->
 
-                                    <Image asyncImageLoader:ImageLoader.Source="{Binding Thumbnail, Mode=OneWay}"
+                                    <asyncImageLoader:AdvancedImage Source="{Binding Thumbnail, Mode=OneWay}"
                                            Width="100" Height="100" Margin="0,0,8,0"
                                            x:Name="Img_Thumbnail" />
 

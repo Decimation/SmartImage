@@ -161,7 +161,7 @@ public class FluffleResult
 			Artist     = Credits.FirstOrDefault()?.Name,
 			Url        = Location,
 			Similarity = Math.Round(Score * 100.0d, 2),
-			Metadata   = this,
+			ExtraData   = this,
 			Thumbnail  = Thumbnail?.Location,
 			Site       = Platform
 		};

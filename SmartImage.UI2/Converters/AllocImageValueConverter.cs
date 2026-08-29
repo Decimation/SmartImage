@@ -7,7 +7,7 @@ using SmartImage.Lib.Images.Alloc;
 
 namespace SmartImage.UI2.Converters;
 
-public class AllocImageConverter : IValueConverter
+public class AllocImageValueConverter : IValueConverter
 {
 
 	// Keyed by instance identity so entries are collected alongside their AllocImageStream

@@ -84,12 +84,5 @@
     <Folder Include="Models\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="..\Assets\Icon.png">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
-
   <Import Project="..\..\..\VSProjects\SmartImage.Shared\SmartImage.Shared.projitems" Label="Shared" />
 </Project>

@@ -84,7 +84,7 @@ public sealed class TinEyeEngine : BaseSearchEngine
 
 			var resultItem = new SearchResultItem(sr)
 			{
-				Metadata = match,
+				ExtraData = match,
 				Site     = match.Domain,
 
 				// Thumbnail   = match.Backlinks[0].Url,

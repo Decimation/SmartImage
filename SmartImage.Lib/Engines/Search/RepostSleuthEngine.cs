@@ -193,7 +193,7 @@ public class RepostSleuthMatch
 			Url        = post.url,
 			Title      = post.title,
 			Time       = DateTimeOffset.FromUnixTimeSeconds((long) post.created_at).LocalDateTime,
-			Metadata   = this
+			ExtraData   = this
 		});
 	}
 

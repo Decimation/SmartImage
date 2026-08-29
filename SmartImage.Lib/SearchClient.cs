@@ -156,7 +156,7 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver, INotifyPr
 
 	private void CompleteSearchAsync()
 	{
-		ResultChannel?.Writer.Complete();
+		ResultChannel?.Writer.TryComplete();
 		IsRunning  = false;
 		IsComplete = true;
 	}
@@ -224,18 +224,6 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver, INotifyPr
 		});
 	}
 
-	public void Dispose()
-	{
-		s_logger.LogDebug("Disposing {Cfg}", Config);
-
-		foreach (BaseSearchEngine engine in Engines) {
-			engine.Dispose();
-		}
-
-		ConfigApplied = false;
-		CompleteSearchAsync();
-	}
-
 	public event PropertyChangedEventHandler PropertyChanged;
 
 	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -251,6 +239,21 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver, INotifyPr
 		field = value;
 		OnPropertyChanged(propertyName);
 		return true;
+	}
+
+	public void Dispose()
+	{
+		s_logger.LogDebug("Disposing {Cfg}", Config);
+
+		foreach (BaseSearchEngine engine in Engines) {
+			engine.Dispose();
+		}
+
+		Engines = [];
+
+
+		ConfigApplied = false;
+		CompleteSearchAsync();
 	}
 
 }
