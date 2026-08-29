@@ -9,7 +9,7 @@ using ReactiveUI;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Search.Base;
 
-namespace SmartImage.UI2.ViewModels;
+namespace SmartImage.UI2.Controls;
 
 public class ReactiveEnumOption<TEnum> : ReactiveObject where TEnum : struct, Enum
 {

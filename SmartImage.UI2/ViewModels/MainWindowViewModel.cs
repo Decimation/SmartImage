@@ -22,8 +22,6 @@ using System.Linq;
 using System.Numerics;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
-
-// using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -40,13 +38,14 @@ using Avalonia.Threading;
 using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Primitives;
+using ReactiveUI.SourceGenerators;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Engines.Upload.Base;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Alloc;
 using SmartImage.Lib.Model;
-using IImage = Avalonia.Media.IImage;
 using SmartImage.UI2.Controls;
+using AvIImage = Avalonia.Media.IImage;
 
 namespace SmartImage.UI2.ViewModels;
 
@@ -74,12 +73,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	public ObservableCollection<ReactiveEnumOption<SearchEngineOptions>> PriorityEngineItems { get; }
 
-	// Keyed by instance identity so entries are collected alongside their AllocImageStream
-	// rather than needing an explicit cache-invalidation/eviction policy.
-
 	public ObservableCollection<IResultItem> Items { get; } = [];
 
-	private static readonly ConditionalWeakTable<IAllocImage, IImage> s_cache = new();
+	private static readonly ConditionalWeakTable<IAllocImage, AvIImage> s_cache = new();
 
 	private readonly DispatcherTimer m_cbDispatch;
 
@@ -116,7 +112,7 @@ public partial class MainWindowViewModel : ViewModelBase
 		set => this.RaiseAndSetIfChanged(ref field, value);
 	}
 
-	public IImage Image
+	public AvIImage Image
 	{
 		get;
 		set => this.RaiseAndSetIfChanged(ref field, value);
@@ -140,6 +136,9 @@ public partial class MainWindowViewModel : ViewModelBase
 		set => this.RaiseAndSetIfChanged(ref field, value);
 	}
 
+	[ObservableAsProperty]
+	private bool _isBusy;
+
 	public CancellationTokenSource TokenSource { get; private set; }
 
 #region
@@ -155,7 +154,7 @@ public partial class MainWindowViewModel : ViewModelBase
 	public MainWindowViewModel()
 	{
 		m_cbDispatch = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, ClipboardTick);
-		
+
 		Config      = new SearchConfig();
 		Client      = new SearchClient(Config);
 		TokenSource = new CancellationTokenSource();
@@ -166,11 +165,10 @@ public partial class MainWindowViewModel : ViewModelBase
 		PriorityEngineItems = new ObservableCollection<ReactiveEnumOption<SearchEngineOptions>>(
 			ValidPriorityOptions.Select(seo => new ReactiveEnumOption<SearchEngineOptions>(Config, seo, nameof(Config.PriorityEngines))));
 
-		Config.PropertyChanged += OnChangedEvent;
-
 		var canUpload = this.WhenAnyValue(static mwvm => mwvm.Input, InputPredicate);
 
 		UploadCommand = ReactiveCommand.CreateFromTask(UploadInputAsync, canUpload);
+		UploadCommand.IsExecuting.ToProperty(this, mwvm => mwvm.IsBusy);
 
 		var isUploaded = Observable.Switch(LinqExtensions.Select(this.WhenAnyValue(static mwvm => mwvm.Query),
 		                                                         static q => q?.WhenAnyValue(static y => y.IsUploaded)
@@ -243,14 +241,14 @@ public partial class MainWindowViewModel : ViewModelBase
 		Image = GetFromCache(item);
 	}
 
-	private IImage GetFromCache(IResultItem item)
+	private AvIImage GetFromCache(IResultItem item)
 	{
 
-		if (item is not IAllocImageView<IAllocImage> {AllocImage: {HasImage: true} allocImg} allocImgView) {
-			var hasQueryImg= s_cache.TryGetValue(Query.AllocImage, out var queryImg);
+		if (item is not IAllocImageView<IAllocImage> { AllocImage: { HasImage: true } allocImg } allocImgView) {
+			var hasQueryImg = s_cache.TryGetValue(Query.AllocImage, out var queryImg);
 			return queryImg;
 		}
-		
+
 
 		if (s_cache.TryGetValue(allocImg, out var cached)) {
 			return cached;
@@ -344,10 +342,10 @@ public partial class MainWindowViewModel : ViewModelBase
 	{
 		try {
 
-			var r = Client.RunSearchAsync(Query, TokenSource.Token);
+			var searchTask = Client.RunSearchAsync(Query, TokenSource.Token);
 
-			var max = Client.Engines.Count();
-			int c   = 0;
+			var count = Client.Engines.Count();
+			int c     = 0;
 
 			while (await Client.ResultChannel.Reader.WaitToReadAsync(TokenSource.Token)) {
 				var res = await Client.ResultChannel.Reader.ReadAsync(TokenSource.Token);
@@ -356,10 +354,10 @@ public partial class MainWindowViewModel : ViewModelBase
 					Items.Add((item));
 				}
 
-				Progress = (++c / (double) max) * 100d;
+				Progress = (++c / (double) count) * 100d;
 			}
 
-			await r;
+			await searchTask;
 		}
 		catch (OperationCanceledException e) {
 			// ...

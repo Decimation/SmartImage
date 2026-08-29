@@ -1,4 +1,5 @@
 ﻿// ReSharper disable RedundantUsingDirective.Global
+
 #region Global usings
 
 global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
@@ -25,11 +26,13 @@ global using CA = JetBrains.Annotations.ContractAnnotationAttribute;
 
 using Avalonia;
 using System;
+using System.Reflection;
 using ReactiveUI.Avalonia;
+using SmartImage.UI2.ViewModels;
 
 namespace SmartImage.UI2;
 
-internal class Program
+public class Program
 {
 
 	// Initialization code. Don't use any Avalonia, third-party APIs or any
@@ -42,12 +45,20 @@ internal class Program
 	// Avalonia configuration, don't remove; also used by visual designer.
 	public static AppBuilder BuildAvaloniaApp()
 		=> AppBuilder.Configure<App>()
-			.UsePlatformDetect()
-			.WithInterFont()
-			.UseReactiveUI(builder =>
-			{
-				builder.BuildApp();
-			})
-			.LogToTrace();
+		             .UsePlatformDetect()
+		             .WithInterFont()
+		             .LogToTrace()
+		             .UseReactiveUI(builder =>
+		             {
+			             //
+			             builder.WithViewsFromAssembly(Assembly.GetExecutingAssembly())
+			                    .WithRegistration(locator =>
+			                    {
+				                    //
+				                    // locator.RegisterLazySingleton(() => new MainWindowViewModel());
+			                    })
+			                    .BuildApp();
+		             })
+		             .RegisterReactiveUIViewsFromEntryAssembly();
 
 }
