@@ -38,6 +38,7 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Skia.Helpers;
 using Avalonia.Threading;
+using CoenM.ImageHash;
 using DynamicData.Binding;
 using ReactiveUI;
 using ReactiveUI.Primitives;
@@ -282,6 +283,7 @@ public partial class MainWindowViewModel : ViewModelBase
 			var ok = await scannable.ScanAsync(TokenSource.Token);
 
 			if (ok) {
+				scannable.TryCalculateSimilarity(Query.AllocImage);
 				Items.AddOrInsertRange(scannable.ScannedItems, Items.IndexOf((IResultItem) scannable) + 1);
 			}
 
@@ -291,6 +293,9 @@ public partial class MainWindowViewModel : ViewModelBase
 	[RelayCommand]
 	public async Task HashItemAsync(IResultItem item)
 	{
+		if (item is ScannedResultItem { HasHash: false } scnItem ) {
+			scnItem.CalculateHash();
+		}
 		if (item is { HasHash: true, HasSimilarity: false }) {
 			var ok = item.TryCalculateSimilarity(Query.AllocImage);
 			this.RaisePropertyChanged(nameof(SelectedItem.Similarity));

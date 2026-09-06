@@ -170,8 +170,7 @@ public class AllocImageStream : IAllocImage, IEquatable<AllocImageStream>, IAllo
 				
 				Image = await ImImage.LoadAsync(stream, ct);
 				
-				await using var hashStream = GetSource();
-				Hash = ImageUtilities.Hasher.Hash(hashStream);
+				CalculateHash();
 			}
 			catch (Exception exception) {
 				s_logger.LogError(exception, "{Value} failed to allocate image", Value);
@@ -181,6 +180,16 @@ public class AllocImageStream : IAllocImage, IEquatable<AllocImageStream>, IAllo
 		}
 
 		return HasImage;
+	}
+
+	public virtual bool CalculateHash()
+	{
+		if (!Hash.HasValue) {
+			using var hashStream = GetSource();
+			Hash = ImageUtilities.Hasher.Hash(hashStream);
+		}
+
+		return Hash.HasValue;
 	}
 
 	/// <summary>

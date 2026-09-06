@@ -9,5 +9,4 @@ public interface IHashable
 
 	[MNNW(true, nameof(Hash), nameof(Hash.Value))]
 	public bool HasHash => Hash.HasValue;
-
 }

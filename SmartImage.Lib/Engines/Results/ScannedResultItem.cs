@@ -4,8 +4,10 @@
 using System.ComponentModel;
 using Microsoft.Extensions.Logging;
 using System.Threading.Channels;
+using CoenM.ImageHash;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Alloc;
+using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 
 // ReSharper disable UnusedVariable
@@ -14,7 +16,7 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Results;
 
-public class ScannedResultItem : IChildResultItem, IAllocImageView<IAllocImage>, IAllocSourceItem<ScannedResultItem, IResultItem>, IDisposable, IResultItem
+public class ScannedResultItem : IChildResultItem, IAllocImageView<IAllocImage>, IAllocSourceItem<ScannedResultItem, IResultItem>, IDisposable, IResultItem, INotifyPropertyChanged
 {
 
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(ScannedResultItem));
@@ -97,19 +99,61 @@ public class ScannedResultItem : IChildResultItem, IAllocImageView<IAllocImage>,
 	public double? Similarity
 	{
 		get => field ?? Parent.Similarity;
-		set;
+		set => SetField(ref field, value);
 	}
 
 	public ulong? Hash
 	{
 		get => field ?? Parent.Hash;
-		set;
+		set => SetField(ref field, value);
 	}
+
+	[MNNW(true, nameof(Width), nameof(Height))]
+	public bool HasDimensions => Width is not null && Height is not null;
+
+	[MNNW(true, nameof(Similarity))]
+	public bool HasSimilarity => Similarity is not null;
+
+	[MNNW(true, nameof(Hash))]
+	public bool HasHash => Hash is not null;
 
 	public Url Url => ((AllocImageUrl) AllocImage).Url;
 
 	public event PropertyChangedEventHandler PropertyChanged;
 
+	public bool CalculateHash()
+	{
+		if (!HasHash && AllocImage is {HasSource: true}) {
+			using var hashStream = AllocImage.GetSource();
+			Hash = ImageUtilities.Hasher.Hash(hashStream);
+		}
+
+		return HasHash;
+	}
+
+	public bool TryCalculateSimilarity(IHashable hashable)
+	{
+		if (this is IHashable h) {
+			Similarity = CompareHash.Calculate(h, hashable);
+		}
+
+		return HasSimilarity;
+	}
+
+	private void OnPropertyChanged([CMN] string propertyName = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
+
+	private bool SetField<T>(ref T field, T value, [CMN] string propertyName = null)
+	{
+		if (EqualityComparer<T>.Default.Equals(field, value))
+			return false;
+
+		field = value;
+		OnPropertyChanged(propertyName);
+		return true;
+	}
 	public void Dispose()
 	{
 		AllocImage?.Dispose();
