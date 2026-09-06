@@ -12,6 +12,7 @@
     <PackageProjectUrl>https://github.com/Decimation/SmartImage</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Decimation/SmartImage</RepositoryUrl>
     <PackageIcon>Icon.png</PackageIcon>
+    <Title>SmartImage</Title>
     <!-- <AssemblyName>SmartImage</AssemblyName> -->
     <!--<LangVersion>preview</LangVersion>-->
   </PropertyGroup>
