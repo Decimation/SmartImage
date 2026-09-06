@@ -182,7 +182,7 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 
 	[CBN]
 	[field: CBN]
-	public ISImage ThumbnailImage
+	public ImImage ThumbnailImage
 	{
 		get;
 		internal set
@@ -206,7 +206,7 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 			try {
 				using var response    = await ImageScanner.GetResponseAsync(Thumbnail, ct);
 				var       responseStr = await response.GetStreamAsync();
-				ThumbnailImage = await ISImage.LoadAsync(responseStr, ct);
+				ThumbnailImage = await ImImage.LoadAsync(responseStr, ct);
 			}
 			catch (Exception e) {
 				s_logger.LogError(e, "Could not load {Thumb}", Thumbnail);

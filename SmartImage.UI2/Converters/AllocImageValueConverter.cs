@@ -26,7 +26,7 @@ public class AllocImageValueConverter : IValueConverter
 
 		using var stream = allocImg.GetSource();
 		var bitmap = new Bitmap(stream);
-
+		
 		s_cache.AddOrUpdate(allocImg, bitmap);
 		return bitmap;
 	}

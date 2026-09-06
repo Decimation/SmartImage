@@ -40,10 +40,10 @@ public static class ImageUtilities
 		return new SizeIS(newWidth, newHeight);
 	}
 
-	extension(ISImage image)
+	extension(ImImage image)
 	{
 
-		public ISImage ResizeByFactor(SizeIS newSize)
+		public ImImage ResizeByFactor(SizeIS newSize)
 		{
 			var cs = image.Size.ResizeByFactor(newSize);
 

@@ -15,7 +15,6 @@ using SmartImage.Lib.Engines.Results;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -26,6 +25,10 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
+using AsyncImageLoader.Core.Caching;
+using AsyncImageLoader.Core.Decoding;
+using AsyncImageLoader.Core.Pipeline;
+using AsyncImageLoader.Core.Transport;
 using Avalonia;
 using Avalonia.Controls.Documents;
 using Avalonia.Input;
@@ -52,20 +55,23 @@ namespace SmartImage.UI2.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase
 {
 
-	public static readonly UploadEngineOption[] ValidUploadOptions = Enum.GetValues<UploadEngineOption>()
-	                                                                     .Where(static e => e != UploadEngineOption.None
-	                                                                                        && !BaseUploadEngine.ObsoleteUploadEngines.Contains(e))
-	                                                                     .ToArray();
+	public static readonly UploadEngineOption[] ValidUploadOptions =
+	[
+		.. Enum.GetValues<UploadEngineOption>()
+		       .Where(static e => e != UploadEngineOption.None && !BaseUploadEngine.ObsoleteUploadEngines.Contains(e))
+	];
 
-	public static readonly SearchEngineOptions[] ValidSearchOptions = Enum.GetValues<SearchEngineOptions>()
-	                                                                      .Where(static e => e is not (SearchEngineOptions.Auto or SearchEngineOptions.None)
-	                                                                                         && !e.HasFlag(SearchEngineOptions.Obsolete))
-	                                                                      .ToArray();
+	public static readonly SearchEngineOptions[] ValidSearchOptions =
+	[
+		.. Enum.GetValues<SearchEngineOptions>()
+		       .Where(static e => e is not (SearchEngineOptions.Auto or SearchEngineOptions.None) && !e.HasFlag(SearchEngineOptions.Obsolete))
+	];
 
-	public static readonly SearchEngineOptions[] ValidPriorityOptions = Enum.GetValues<SearchEngineOptions>()
-	                                                                        .Where(static e => e != SearchEngineOptions.None
-	                                                                                           && !e.HasFlag(SearchEngineOptions.Obsolete))
-	                                                                        .ToArray();
+	public static readonly SearchEngineOptions[] ValidPriorityOptions =
+	[
+		.. Enum.GetValues<SearchEngineOptions>()
+		       .Where(static e => e != SearchEngineOptions.None && !e.HasFlag(SearchEngineOptions.Obsolete))
+	];
 
 	public UploadEngineOption[] UploadEngineOptions { get; } = ValidUploadOptions;
 
@@ -137,7 +143,9 @@ public partial class MainWindowViewModel : ViewModelBase
 	}
 
 	[ObservableAsProperty]
-	private bool _isBusy;
+	private bool m_isBusy;
+
+	private readonly MemoryImageCache m_memoryImageCache;
 
 	public CancellationTokenSource TokenSource { get; private set; }
 
@@ -151,8 +159,27 @@ public partial class MainWindowViewModel : ViewModelBase
 
 #endregion
 
+	/*public class D:IImageTransport
+	{
+
+		public async Task<Stream?> GetAsync(ImageLoadRequest request, CancellationToken cancellationToken = new CancellationToken())
+		{
+
+		}
+
+	}*/
+
 	public MainWindowViewModel()
 	{
+		// m_memoryImageCache = new MemoryImageCache() { };
+
+		/*var loader = ImageLoaderPipelineBuilder.RamCached(new MemoryImageCacheOptions(){})
+		                                       .UseDecoder(new BitmapDecoder(){})
+		                                       .UseTransport(new D())
+		                                       .UseMemoryCache(m_memoryImageCache)
+		                                       .Build();
+		ImageLoader.AsyncImageLoader = loader;*/
+
 		m_cbDispatch = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, ClipboardTick);
 
 		Config      = new SearchConfig();
@@ -213,21 +240,6 @@ public partial class MainWindowViewModel : ViewModelBase
 		return AllocImageStream.IsValidSourceType(x?.ToString());
 	}
 
-	private void OnChangedEvent(object? sender, PropertyChangedEventArgs args)
-	{
-		/*switch (args.PropertyName) {
-			case nameof(Config.Clipboard):
-				if (Config.Clipboard) {
-					m_cbDispatch.Start();
-				}
-				else {
-					m_cbDispatch.Stop();
-				}
-
-				break;
-		}*/
-	}
-
 	[RelayCommand]
 	public async Task SelectedItemAsync(IResultItem item)
 	{
@@ -253,6 +265,7 @@ public partial class MainWindowViewModel : ViewModelBase
 		if (s_cache.TryGetValue(allocImg, out var cached)) {
 			return cached;
 		}
+
 
 		using var stream = allocImg.GetSource();
 		var       bitmap = new Bitmap(stream);

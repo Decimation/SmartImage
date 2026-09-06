@@ -88,8 +88,7 @@
                                                                     IsVisible="{Binding $parent, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />-->
 
                                     <asyncImageLoader:AdvancedImage Source="{Binding Thumbnail, Mode=OneWay}"
-                                           Width="100" Height="100" Margin="0,0,8,0"
-                                           x:Name="Img_Thumbnail" />
+                                           Width="100" Height="100" Margin="0,0,8,0" x:Name="Img_Thumbnail" />
 
                                     <StackPanel Orientation="Vertical" Spacing="2">
 
@@ -156,6 +155,9 @@
 
                                     <Image Width="80" Height="80" Margin="0,0,8,0" x:Name="Img_Scanned"
                                            Source="{Binding AllocImage, Converter={StaticResource AllocImageConverter}}" />
+                                    <!--
+                                    <asyncImageLoader:AdvancedImage Width="80" Height="80" Margin="0,0,8,0" x:Name="Img_Scanned"
+                                                                               Source="{Binding Url}" />-->
 
                                     <StackPanel Orientation="Vertical" Spacing="2">
 

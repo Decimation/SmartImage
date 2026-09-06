@@ -60,7 +60,7 @@ public class AllocImageStream : IAllocImage, IEquatable<AllocImageStream>, IAllo
 
 	[MN]
 	[JI]
-	public ISImage Image
+	public ImImage Image
 	{
 		get;
 		protected set
@@ -127,7 +127,7 @@ public class AllocImageStream : IAllocImage, IEquatable<AllocImageStream>, IAllo
 
 #endregion
 
-	protected AllocImageStream(string value, AllocImageType type)
+	protected internal AllocImageStream(string value, AllocImageType type)
 	{
 		Value = value;
 		Type  = type;
@@ -145,7 +145,8 @@ public class AllocImageStream : IAllocImage, IEquatable<AllocImageStream>, IAllo
 			return Stream.Null;
 		}
 
-		return MemMgr.GetStream(Name, Source);
+		return new MemoryStream(Source, 0, Source.Length, writable: false, publiclyVisible: true);	
+		// return MemMgr.GetStream(Name, Source);
 	}
 
 
@@ -166,9 +167,9 @@ public class AllocImageStream : IAllocImage, IEquatable<AllocImageStream>, IAllo
 				}
 
 				await using var stream = GetSource();
-
-				Image = await ISImage.LoadAsync(stream, ct);
-
+				
+				Image = await ImImage.LoadAsync(stream, ct);
+				
 				await using var hashStream = GetSource();
 				Hash = ImageUtilities.Hasher.Hash(hashStream);
 			}

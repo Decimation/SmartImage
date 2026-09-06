@@ -27,7 +27,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AsyncImageLoader.Avalonia" Version="3.8.0" />
+    <PackageReference Include="AsyncImageLoader.Avalonia" Version="4.0.0-preview1.2" />
 
     <PackageReference Include="Avalonia" Version="12.1.1" />
     <PackageReference Include="Avalonia.Desktop" Version="12.1.1" />
@@ -36,7 +36,9 @@
     <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.1" />
     
     <PackageReference Include="DynamicData" Version="9.4.33" />
-    <PackageReference Include="ReactiveUI" Version="24.1.0" />
+    
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.11" />
+    <PackageReference Include="ReactiveUI" Version="24.2.0" />
     <PackageReference Include="ReactiveUI.Avalonia" Version="12.1.1" />
     <PackageReference Include="ReactiveUI.SourceGenerators" Version="*" PrivateAssets="all" />
     <PackageReference Include="ReactiveMarbles.ObservableEvents.SourceGenerator" Version="*" PrivateAssets="all" />

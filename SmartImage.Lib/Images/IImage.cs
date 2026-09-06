@@ -18,7 +18,7 @@ public interface IImage : IDimensions, ISimilarity, IHashable
 	bool HasImageFormat => ImageFormat != null;
 
 	[MN]
-	ISImage Image { get; }
+	ImImage Image { get; }
 
 	[MNNW(true, nameof(Image), nameof(ImageFormat))]
 	bool HasImage => Image != null;
