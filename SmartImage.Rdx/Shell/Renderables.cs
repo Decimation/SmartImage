@@ -141,7 +141,7 @@ internal static partial class Renderables
 			grid.AddColumns(2);
 
 			var properties = sri.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
-			                    .Where(static p => !p.IsCalculated())
+			                    .Where(static p => !p.IsCalculated)
 			                    .Where(static x => Array.IndexOf(s_extGridNameBlacklist, x.Name) == -1);
 
 			foreach (var property in properties) {

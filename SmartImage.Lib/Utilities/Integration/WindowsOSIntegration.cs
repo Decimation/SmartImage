@@ -16,7 +16,7 @@ using SmartImage.Shared;
 
 namespace SmartImage.Lib.Utilities.Integration;
 
-[SupportedOSPlatform(Common.OS_WIN)]
+[SupportedOSPlatform(ProjectConstants.OS_WIN)]
 public sealed class WindowsOSIntegration : BaseOSIntegration
 {
 

@@ -83,7 +83,7 @@ public static class Program
 				.WithDescription("Configure system integration such as context menu");
 		});
 
-		int x = Common.EC_OK;
+		int x = ProjectConstants.EC_OK;
 
 		try {
 			x = await app.RunAsync(args, Cts.Token);
@@ -92,11 +92,11 @@ public static class Program
 		catch (Exception e) {
 			AnsiConsole.Write($"Unhandled exception: {e.Message}");
 			AnsiConsole.WriteException(e);
-			x = Common.EC_ERROR;
+			x = ProjectConstants.EC_ERROR;
 		}
 		finally {
 
-			if (x != Common.EC_OK) {
+			if (x != ProjectConstants.EC_OK) {
 				await AnsiConsole.ConfirmAsync("Press any key to continue");
 			}
 		}

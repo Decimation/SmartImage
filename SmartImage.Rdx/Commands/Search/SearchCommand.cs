@@ -47,7 +47,7 @@ using Spectre.Console.Rendering;
 // TODO: Create derived SearchCommand components for interactive/non-interactive; types representing shell UI state
 // todo: use DI
 
-[assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_LIB_UNITTEST)]
+[assembly: InternalsVisibleTo(ProjectConstants.PROJ_SMARTIMAGE_LIB_UNITTEST)]
 
 namespace SmartImage.Rdx.Commands.Search;
 
@@ -127,7 +127,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		}
 	}
 
-	protected override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings, CancellationToken cancellationToken)
+	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings, CancellationToken cancellationToken)
 	{
 		var envGrid = CreateEnvironmentGrid();
 		AnsiConsole.Write(envGrid);
@@ -170,7 +170,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			await AnsiConsole.ConfirmAsync("Exit", cancellationToken: m_cts.Token);
 		}
 
-		return Shared.Common.EC_OK;
+		return Shared.ProjectConstants.EC_OK;
 	}
 
 	private async Task RunSearchLiveAsync(LiveDisplayContext c, CancellationToken ct = default)
@@ -428,7 +428,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		args.Cancel = true;
 	}
 
-	protected override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
+	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
 	{
 		var r = base.Validate(context, settings);
 		return r;

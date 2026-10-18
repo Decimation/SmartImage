@@ -16,9 +16,10 @@ using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 using SmartImage.Shared;
 using SmartImage.Lib.Engines.Results.Enums;
+#pragma warning disable CS0612 // Type or member is obsolete
 
-[assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_TEST)]
-[assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_UI2)]
+[assembly: InternalsVisibleTo(ProjectConstants.PROJ_SMARTIMAGE_TEST)]
+[assembly: InternalsVisibleTo(ProjectConstants.PROJ_SMARTIMAGE_UI2)]
 
 namespace SmartImage.Lib.Engines.Search.Base;
 

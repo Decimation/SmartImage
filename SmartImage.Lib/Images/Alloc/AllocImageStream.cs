@@ -200,6 +200,10 @@ public class AllocImageStream : IAllocImage, IEquatable<AllocImageStream>, IAllo
 	{
 		AllocImageStream ui = null;
 
+		if (src == null || (src is string { } sz && String.IsNullOrWhiteSpace(sz))) {
+			goto ret;
+		}
+
 		try {
 
 			if (AllocImageFile.IsFileType(src, out var fi)) {
@@ -210,9 +214,7 @@ public class AllocImageStream : IAllocImage, IEquatable<AllocImageStream>, IAllo
 			}
 			else if (IsStreamType(src, out Stream stream)) {
 
-				using var ms = new MemoryStream();
-				await stream.CopyToAsync(ms, ct);
-				byte[] data = ms.ToArray();
+				byte[] data = await ImageUtilities.CopyToArrayAsync(stream, ct);
 
 				ui = new AllocImageStream($"<stream> {data.Length}", AllocImageType.Stream)
 				{

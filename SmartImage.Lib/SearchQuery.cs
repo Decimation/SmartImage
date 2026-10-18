@@ -40,10 +40,10 @@ using SmartImage.Shared;
 
 #region
 
-[assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE)]
-[assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_UI)]
-[assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_RDX)]
-[assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_LIB_UNITTEST)]
+[assembly: InternalsVisibleTo(ProjectConstants.PROJ_SMARTIMAGE)]
+[assembly: InternalsVisibleTo(ProjectConstants.PROJ_SMARTIMAGE_UI)]
+[assembly: InternalsVisibleTo(ProjectConstants.PROJ_SMARTIMAGE_RDX)]
+[assembly: InternalsVisibleTo(ProjectConstants.PROJ_SMARTIMAGE_LIB_UNITTEST)]
 
 #endregion
 

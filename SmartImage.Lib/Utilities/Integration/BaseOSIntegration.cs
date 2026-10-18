@@ -70,7 +70,7 @@ public abstract class BaseOSIntegration
 
 	public virtual string ExecutableDirectory => Path.GetDirectoryName((string) Environment.ProcessPath);
 
-	public virtual bool IsExecutableInPath => FileSystem.IsFolderInPath(ExecutableDirectory);
+	public virtual bool IsExecutableInPath => FileSystem.IsFolderInEnvironmentPath(ExecutableDirectory);
 
 #endregion
 
@@ -91,10 +91,10 @@ public abstract class BaseOSIntegration
 
 #region
 
-	[SupportedOSPlatformGuard(Common.OS_LINUX)]
+	[SupportedOSPlatformGuard(ProjectConstants.OS_LINUX)]
 	public static readonly bool IsLinux = OperatingSystem.IsLinux();
 
-	[SupportedOSPlatformGuard(Common.OS_WIN)]
+	[SupportedOSPlatformGuard(ProjectConstants.OS_WIN)]
 	public static readonly bool IsWindows = OperatingSystem.IsWindows();
 
 	public static BaseOSIntegration Integration { get; }

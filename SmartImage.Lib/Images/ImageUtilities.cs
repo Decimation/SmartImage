@@ -79,4 +79,18 @@ public static class ImageUtilities
 		return new(w, h);
 	}
 
+	extension(Stream stream)
+	{
+
+		public async ValueTask<byte[]> CopyToArrayAsync(CancellationToken ct)
+		{
+			using var ms = new MemoryStream();
+			await stream.CopyToAsync(ms, ct);
+			byte[] data = ms.ToArray();
+			
+			return data;
+		}
+		
+	}
+
 }

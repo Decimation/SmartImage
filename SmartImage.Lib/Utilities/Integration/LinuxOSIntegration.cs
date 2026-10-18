@@ -12,7 +12,7 @@ using SmartImage.Shared;
 
 namespace SmartImage.Lib.Utilities.Integration;
 
-[SupportedOSPlatform(Common.OS_LINUX)]
+[SupportedOSPlatform(ProjectConstants.OS_LINUX)]
 public sealed class LinuxOSIntegration : BaseOSIntegration
 {
 

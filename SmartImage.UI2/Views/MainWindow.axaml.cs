@@ -28,12 +28,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 	{
 		InitializeComponent();
 		ViewModel = new MainWindowViewModel();
-		
-		this.WhenActivated((MultipleDisposable dpReg) =>
-		{
-			//
-			this.OneWayBind(ViewModel, vm => vm.IsBusy, v => v.Pb_Busy.IsVisible);
-		});
+
+
 		Opened += MainWindow_OnOpened;
 
 	}

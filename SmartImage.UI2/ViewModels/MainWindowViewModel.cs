@@ -1,47 +1,35 @@
 ﻿// Author: Deci | Project: SmartImage.UI2 | Name: MainWindowViewModel.cs
 // Date: 2025/08/06 @ 11:08:36
 
-using AsyncImageLoader;
-using AsyncImageLoader.Loaders;
-using Avalonia.Controls;
+#region Global usings
+
+global using IAvImage = Avalonia.Media.IImage;
+
+#endregion
+
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
-using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DynamicData;
 using ReactiveUI.Primitives;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Results;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Numerics;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using AngleSharp.Dom;
-using AsyncImageLoader.Core.Caching;
-using AsyncImageLoader.Core.Decoding;
-using AsyncImageLoader.Core.Pipeline;
-using AsyncImageLoader.Core.Transport;
 using Avalonia;
-using Avalonia.Controls.Documents;
-using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Logging;
-using Avalonia.Media;
-using Avalonia.Platform;
-using Avalonia.Skia.Helpers;
 using Avalonia.Threading;
-using CoenM.ImageHash;
+using CommunityToolkit.Mvvm.ComponentModel;
 using DynamicData.Binding;
 using ReactiveUI;
-using ReactiveUI.Primitives;
 using ReactiveUI.SourceGenerators;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Engines.Upload.Base;
@@ -49,32 +37,19 @@ using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Alloc;
 using SmartImage.Lib.Model;
 using SmartImage.UI2.Controls;
-using AvIImage = Avalonia.Media.IImage;
 
 namespace SmartImage.UI2.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
 
-	public static readonly UploadEngineOption[] ValidUploadOptions =
-	[
-		.. Enum.GetValues<UploadEngineOption>()
-		       .Where(static e => e != UploadEngineOption.None && !BaseUploadEngine.ObsoleteUploadEngines.Contains(e))
-	];
+	private static readonly ConditionalWeakTable<IAllocImage, IAvImage> s_imageCache = new();
 
-	public static readonly SearchEngineOptions[] ValidSearchOptions =
-	[
-		.. Enum.GetValues<SearchEngineOptions>()
-		       .Where(static e => e is not (SearchEngineOptions.Auto or SearchEngineOptions.None) && !e.HasFlag(SearchEngineOptions.Obsolete))
-	];
+	private readonly DispatcherTimer m_cbDispatch;
 
-	public static readonly SearchEngineOptions[] ValidPriorityOptions =
-	[
-		.. Enum.GetValues<SearchEngineOptions>()
-		       .Where(static e => e != SearchEngineOptions.None && !e.HasFlag(SearchEngineOptions.Obsolete))
-	];
+	private CancellationTokenSource m_cts;
 
-	public UploadEngineOption[] UploadEngineOptions { get; } = ValidUploadOptions;
+	public UploadEngineOption[] UploadEngineOptions => ValidUploadOptions;
 
 	public ObservableCollection<ReactiveEnumOption<SearchEngineOptions>> SearchEngineItems { get; }
 
@@ -82,9 +57,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	public ObservableCollection<IResultItem> Items { get; } = [];
 
-	private static readonly ConditionalWeakTable<IAllocImage, AvIImage> s_cache = new();
+	public IUploadEngine UploadEngine { get; private set; }
 
-	private readonly DispatcherTimer m_cbDispatch;
+#region Rx Properties
 
 	public SearchClient Client
 	{
@@ -98,13 +73,12 @@ public partial class MainWindowViewModel : ViewModelBase
 		set => this.RaiseAndSetIfChanged(ref field, value);
 	}
 
+	[Reactive]
 	public SearchQuery Query
 	{
 		get;
 		set => this.RaiseAndSetIfChanged(ref field, value);
 	}
-
-	public IUploadEngine UploadEngine { get; private set; }
 
 	[MNNW(true, nameof(Query.Upload.Url))]
 	public bool IsReady
@@ -113,13 +87,14 @@ public partial class MainWindowViewModel : ViewModelBase
 		set => this.RaiseAndSetIfChanged(ref field, value);
 	}
 
+	[Reactive]
 	public string? Input
 	{
 		get;
 		set => this.RaiseAndSetIfChanged(ref field, value);
 	}
 
-	public AvIImage Image
+	public IAvImage Image
 	{
 		get;
 		set => this.RaiseAndSetIfChanged(ref field, value);
@@ -143,14 +118,10 @@ public partial class MainWindowViewModel : ViewModelBase
 		set => this.RaiseAndSetIfChanged(ref field, value);
 	}
 
-	[ObservableAsProperty]
-	private bool m_isBusy;
+#endregion
 
-	private readonly MemoryImageCache m_memoryImageCache;
 
-	public CancellationTokenSource TokenSource { get; private set; }
-
-#region
+#region Rx Commands
 
 	public ReactiveCommand<RxVoid, bool> UploadCommand { get; }
 
@@ -160,20 +131,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
 #endregion
 
-	/*public class D:IImageTransport
-	{
-
-		public async Task<Stream?> GetAsync(ImageLoadRequest request, CancellationToken cancellationToken = new CancellationToken())
-		{
-
-		}
-
-	}*/
-
 	public MainWindowViewModel()
 	{
-		// m_memoryImageCache = new MemoryImageCache() { };
-
+		// todo
 		/*var loader = ImageLoaderPipelineBuilder.RamCached(new MemoryImageCacheOptions(){})
 		                                       .UseDecoder(new BitmapDecoder(){})
 		                                       .UseTransport(new D())
@@ -181,32 +141,26 @@ public partial class MainWindowViewModel : ViewModelBase
 		                                       .Build();
 		ImageLoader.AsyncImageLoader = loader;*/
 
+		/* Fields */
+
+		Config = new SearchConfig();
+		Client = new SearchClient(Config);
+		m_cts  = new CancellationTokenSource();
+
+		SearchEngineItems =
+		[
+			.. ValidSearchOptions.Select(seo => new ReactiveEnumOption<SearchEngineOptions>(Config, seo, nameof(Config.SearchEngines)))
+		];
+
+		PriorityEngineItems =
+		[
+			.. ValidPriorityOptions.Select(seo => new ReactiveEnumOption<SearchEngineOptions>(Config, seo, nameof(Config.PriorityEngines)))
+		];
+
+
+		/* Clipboard */
+
 		m_cbDispatch = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, ClipboardTick);
-
-		Config      = new SearchConfig();
-		Client      = new SearchClient(Config);
-		TokenSource = new CancellationTokenSource();
-
-		SearchEngineItems = new ObservableCollection<ReactiveEnumOption<SearchEngineOptions>>(
-			ValidSearchOptions.Select(seo => new ReactiveEnumOption<SearchEngineOptions>(Config, seo, nameof(Config.SearchEngines))));
-
-		PriorityEngineItems = new ObservableCollection<ReactiveEnumOption<SearchEngineOptions>>(
-			ValidPriorityOptions.Select(seo => new ReactiveEnumOption<SearchEngineOptions>(Config, seo, nameof(Config.PriorityEngines))));
-
-		var canUpload = this.WhenAnyValue(static mwvm => mwvm.Input, InputPredicate);
-
-		UploadCommand = ReactiveCommand.CreateFromTask(UploadInputAsync, canUpload);
-		UploadCommand.IsExecuting.ToProperty(this, mwvm => mwvm.IsBusy);
-
-		var isUploaded = Observable.Switch(LinqExtensions.Select(this.WhenAnyValue(static mwvm => mwvm.Query),
-		                                                         static q => q?.WhenAnyValue(static y => y.IsUploaded)
-		                                                                     ?? Observable.Return(false)));
-
-		var canSearch = Observable.CombineLatest(canUpload, isUploaded, static (input, uploaded) => input && uploaded);
-
-		SearchCommand = ReactiveCommand.CreateFromTask(RunSearchAsync, canSearch);
-
-		ClearCommand = ReactiveCommand.CreateFromTask(ClearAsync);
 
 		var cbChanged = Config.WhenPropertyChanged(static cfg => cfg.Clipboard, false, null);
 
@@ -220,6 +174,26 @@ public partial class MainWindowViewModel : ViewModelBase
 			}
 		});
 
+		/* Upload */
+
+		var canUpload = this.WhenAnyValue(static mwvm => mwvm.Input, InputPredicate);
+
+		UploadCommand = ReactiveCommand.CreateFromTask(UploadInputAsync, canUpload);
+
+		var isUploaded = Observable.Switch(LinqExtensions.Select(this.WhenAnyValue(static mwvm => mwvm.Query),
+		                                                         static q => q?.WhenAnyValueUnsafe(static y => y.IsUploaded)
+		                                                                     ?? Observable.Return(false)));
+
+		/* Search */
+
+		var canSearch = Observable.CombineLatest(canUpload, isUploaded, static (input, uploaded) => input && uploaded);
+
+		SearchCommand = ReactiveCommand.CreateFromTask(RunSearchAsync, canSearch);
+
+		ClearCommand = ReactiveCommand.CreateFromTask(ClearAsync);
+
+		/* UE */
+
 		var ueChanged = Config.WhenValueChanged(static cfg => cfg.UploadEngine, false, null);
 
 		ObservableExtensions.Subscribe(ueChanged, value =>
@@ -227,6 +201,8 @@ public partial class MainWindowViewModel : ViewModelBase
 			UploadEngine?.Dispose();
 			UploadEngine = BaseUploadEngine.GetUploadEngine(value);
 		});
+
+		/* Selected item */
 
 		var selectedItemCmd = ReactiveCommand.CreateFromTask<IResultItem>(SelectedItemAsync);
 
@@ -238,7 +214,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	private static bool InputPredicate(string? x)
 	{
-		return AllocImageStream.IsValidSourceType(x?.ToString());
+		return AllocImageStream.IsValidSourceType(x);
 	}
 
 	[RelayCommand]
@@ -254,16 +230,16 @@ public partial class MainWindowViewModel : ViewModelBase
 		Image = GetFromCache(item);
 	}
 
-	private AvIImage GetFromCache(IResultItem item)
+	private IAvImage GetFromCache(IResultItem item)
 	{
-
+		// todo
 		if (item is not IAllocImageView<IAllocImage> { AllocImage: { HasImage: true } allocImg } allocImgView) {
-			var hasQueryImg = s_cache.TryGetValue(Query.AllocImage, out var queryImg);
+			var hasQueryImg = s_imageCache.TryGetValue(Query.AllocImage, out var queryImg);
 			return queryImg;
 		}
 
 
-		if (s_cache.TryGetValue(allocImg, out var cached)) {
+		if (s_imageCache.TryGetValue(allocImg, out var cached)) {
 			return cached;
 		}
 
@@ -271,7 +247,7 @@ public partial class MainWindowViewModel : ViewModelBase
 		using var stream = allocImg.GetSource();
 		var       bitmap = new Bitmap(stream);
 
-		s_cache.AddOrUpdate(allocImg, bitmap);
+		s_imageCache.AddOrUpdate(allocImg, bitmap);
 
 		return bitmap;
 	}
@@ -280,7 +256,7 @@ public partial class MainWindowViewModel : ViewModelBase
 	public async Task LoadItemAsync(IResultItem item)
 	{
 		if (item is IScannableItem { } scannable) {
-			var ok = await scannable.ScanAsync(TokenSource.Token);
+			var ok = await scannable.ScanAsync(m_cts.Token);
 
 			if (ok) {
 				scannable.TryCalculateSimilarity(Query.AllocImage);
@@ -293,9 +269,10 @@ public partial class MainWindowViewModel : ViewModelBase
 	[RelayCommand]
 	public async Task HashItemAsync(IResultItem item)
 	{
-		if (item is ScannedResultItem { HasHash: false } scnItem ) {
+		if (item is ScannedResultItem { HasHash: false } scnItem) {
 			scnItem.CalculateHash();
 		}
+
 		if (item is { HasHash: true, HasSimilarity: false }) {
 			var ok = item.TryCalculateSimilarity(Query.AllocImage);
 			this.RaisePropertyChanged(nameof(SelectedItem.Similarity));
@@ -308,13 +285,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
 		if (item is IScannableItem { HasScannedItems: false } sri) {
 			var ch      = Channel.CreateUnbounded<Url>();
-			var gdlTask = ImageScanner.RunGalleryDLAsync(((IUrl) sri).Url, ch.Writer, TokenSource.Token);
+			var gdlTask = ImageScanner.RunGalleryDLAsync(((IUrl) sri).Url, ch.Writer, m_cts.Token);
 
-			while (await ch.Reader.WaitToReadAsync(TokenSource.Token)) {
-				var res = await ch.Reader.ReadAsync(TokenSource.Token);
+			while (await ch.Reader.WaitToReadAsync(m_cts.Token)) {
+				var res = await ch.Reader.ReadAsync(m_cts.Token);
 
 				if (res is not null) {
-					var resAi = await AllocImageStream.FromSourceAsync(res, ct: TokenSource.Token);
+					var resAi = await AllocImageStream.FromSourceAsync(res, ct: m_cts.Token);
 
 					if (resAi is { HasImage: true }) {
 						var scn = new ScannedResultItem(sri, resAi);
@@ -322,7 +299,6 @@ public partial class MainWindowViewModel : ViewModelBase
 						sri.TryCalculateSimilarity(Query.AllocImage);
 						this.RaisePropertyChanged(nameof(SelectedItem.Similarity));
 						Items.Insert(Items.IndexOf(item) + 1, scn);
-
 
 					}
 
@@ -337,7 +313,7 @@ public partial class MainWindowViewModel : ViewModelBase
 	[RelayCommand]
 	public async Task<bool> UploadInputAsync()
 	{
-		Query = await SearchQuery.TryCreateAsync(Input.Trim('\"'));
+		Query = await SearchQuery.TryCreateAsync(Input?.Trim('\"'));
 		var isReady = await Query.TryUploadAsync(UploadEngine);
 
 		if (isReady) {
@@ -347,7 +323,7 @@ public partial class MainWindowViewModel : ViewModelBase
 			Url   = Query.Upload.Url;
 			Image = Bitmap.DecodeToWidth(Query.AllocImage.GetSource(), Query.AllocImage.Image.Width);
 			var ai = Query.AllocImage;
-			s_cache.AddOrUpdate(Query.AllocImage, Image);
+			s_imageCache.AddOrUpdate(Query.AllocImage, Image);
 
 		}
 
@@ -360,13 +336,13 @@ public partial class MainWindowViewModel : ViewModelBase
 	{
 		try {
 
-			var searchTask = Client.RunSearchAsync(Query, TokenSource.Token);
+			var searchTask = Client.RunSearchAsync(Query, m_cts.Token);
 
 			var count = Client.Engines.Count();
 			int c     = 0;
 
-			while (await Client.ResultChannel.Reader.WaitToReadAsync(TokenSource.Token)) {
-				var res = await Client.ResultChannel.Reader.ReadAsync(TokenSource.Token);
+			while (await Client.ResultChannel.Reader.WaitToReadAsync(m_cts.Token)) {
+				var res = await Client.ResultChannel.Reader.ReadAsync(m_cts.Token);
 
 				foreach (var item in res.Results) {
 					Items.Add((item));
@@ -389,9 +365,9 @@ public partial class MainWindowViewModel : ViewModelBase
 	[RelayCommand]
 	public async Task CancelAsync()
 	{
-		await TokenSource.CancelAsync();
-		TokenSource.Dispose();
-		TokenSource = new CancellationTokenSource();
+		await m_cts.CancelAsync();
+		m_cts.Dispose();
+		m_cts = new CancellationTokenSource();
 	}
 
 	public async Task ClearAsync()
