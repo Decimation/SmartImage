@@ -255,7 +255,7 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 		});
 
 		var task =  ImageScanner.ScanAsync(this, ch.Writer, ct);
-
+		 
 		while (await ch.Reader.WaitToReadAsync(ct)) {
 			if (ch.Reader.TryRead(out var scnItem)) {
 				ScannedItems.Add(scnItem);

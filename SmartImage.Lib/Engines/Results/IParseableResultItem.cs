@@ -5,4 +5,5 @@ using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Results;
 
-public interface IParseableResultItem<in TSource, out TItem> : IParseableSource<TSource, SearchResult, TItem> where TItem : IResultItem { }
+public interface IParseableResultItem<in TSource, out TItem> : IParseableSource<TSource, SearchResult, TItem> 
+	where TItem : IResultItem { }

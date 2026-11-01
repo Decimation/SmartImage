@@ -49,7 +49,7 @@
                         <WrapPanel>
                             <Label Content="URL" VerticalContentAlignment="Center" Background="#121212"></Label>
 
-                            <TextBox Name="Tb_QueryUploadUrl" MinWidth="100" MaxHeight="50" MaxWidth="400" 
+                            <TextBox Name="Tb_QueryUploadUrl" MinWidth="100" MaxHeight="50" MaxWidth="400"
                                      Text="{Binding Query?.Upload?.Url, Mode=OneWay, TargetNullValue='', FallbackValue=''}"
                                      IsEnabled="False" />
 
@@ -93,7 +93,7 @@
                                                                     IsVisible="{Binding $parent, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />-->
 
                                     <asyncImageLoader:AdvancedImage Source="{Binding Thumbnail, Mode=OneWay}"
-                                           Width="100" Height="100" Margin="0,0,8,0" x:Name="Img_Thumbnail" />
+                                                                    Width="100" Height="100" Margin="0,0,8,0" x:Name="Img_Thumbnail" />
 
                                     <StackPanel Orientation="Vertical" Spacing="2">
 

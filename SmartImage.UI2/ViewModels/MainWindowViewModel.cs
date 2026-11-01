@@ -37,6 +37,7 @@ using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Alloc;
 using SmartImage.Lib.Model;
 using SmartImage.UI2.Controls;
+
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage.UI2.ViewModels;
@@ -51,6 +52,7 @@ public partial class MainWindowViewModel : ViewModelBase
 	// todo: use different CTS for different operations
 
 	private CancellationTokenSource m_cts;
+
 
 	public UploadEngineOption[] UploadEngineOptions => ValidUploadOptions;
 
@@ -83,13 +85,6 @@ public partial class MainWindowViewModel : ViewModelBase
 		set => this.RaiseAndSetIfChanged(ref field, value);
 	}
 
-	[MNNW(true, nameof(Query.Upload.Url))]
-	public bool IsReady
-	{
-		get;
-		set => this.RaiseAndSetIfChanged(ref field, value);
-	}
-
 	[Reactive]
 	public string? Input
 	{
@@ -101,12 +96,6 @@ public partial class MainWindowViewModel : ViewModelBase
 	{
 		get;
 		set => this.RaiseAndSetIfChanged(ref field, value);
-	}
-
-	public Url Url
-	{
-		get;
-		private set => this.RaiseAndSetIfChanged(ref field, value);
 	}
 
 	public double Progress
@@ -140,6 +129,10 @@ public partial class MainWindowViewModel : ViewModelBase
 	public ReactiveCommand<RxVoid, RxVoid> SearchCommand { get; }
 
 	public ReactiveCommand<RxVoid, RxVoid> ClearCommand { get; }
+
+	public ReactiveCommand<RxVoid, RxVoid> CancelCommand { get; }
+
+	public ReactiveCommand<IResultItem, RxVoid> SelectedItemCommand { get; }
 
 #endregion
 
@@ -204,7 +197,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 		ClearCommand = ReactiveCommand.CreateFromTask(ClearAsync);
 
-		/* UE */
+		/* Upload engine */
 
 		var ueChanged = Config.WhenValueChanged(static cfg => cfg.UploadEngine, false, null);
 
@@ -216,10 +209,14 @@ public partial class MainWindowViewModel : ViewModelBase
 
 		/* Selected item */
 
-		var selectedItemCmd = ReactiveCommand.CreateFromTask<IResultItem>(SelectedItemAsync);
+		SelectedItemCommand = ReactiveCommand.CreateFromTask<IResultItem>(SelectedItemAsync);
 
 		ObservableMixins.WhereNotNull(this.WhenAnyValue(static x => x.SelectedItem))
-		                .InvokeCommand(selectedItemCmd);
+		                .InvokeCommand(SelectedItemCommand);
+
+		/* Cancel */
+
+		CancelCommand = ReactiveCommand.CreateFromTask(CancelAsync);
 	}
 
 	private static bool InputPredicate(string? x)
@@ -227,7 +224,6 @@ public partial class MainWindowViewModel : ViewModelBase
 		return AllocImageStream.IsValidSourceType(x);
 	}
 
-	[RelayCommand]
 	public async Task SelectedItemAsync(IResultItem item)
 	{
 		if (item is ScannedResultItem { AllocImage: { HasImage: true } } scnItem) {
@@ -247,6 +243,7 @@ public partial class MainWindowViewModel : ViewModelBase
 		// Use query image if item does not have an image
 		if (item is not IAllocImageView<IAllocImage> { AllocImage: { HasImage: true } allocImg } allocImgView) {
 			var hasQueryImg = s_imageCache.TryGetValue(Query.AllocImage, out var queryImg);
+
 			// Must have query image here
 			return queryImg;
 		}
@@ -289,7 +286,7 @@ public partial class MainWindowViewModel : ViewModelBase
 		}
 	}
 
-	[RelayCommand]
+	[ReactiveCommand]
 	public async Task HashItemAsync(IResultItem item)
 	{
 		if (item is ScannedResultItem { HasHash: false } scnItem) {
@@ -306,7 +303,6 @@ public partial class MainWindowViewModel : ViewModelBase
 	[RelayCommand]
 	public async Task GalleryDLItemAsync(object item)
 	{
-
 		if (item is not IScannableItem { HasScannedItems: false } sri) {
 			return;
 		}
@@ -316,7 +312,7 @@ public partial class MainWindowViewModel : ViewModelBase
 		var gdlTask = ImageScanner.RunGalleryDLAsync(((IUrl) sri).Url, ch.Writer, token);
 
 		// Release the reader if gallery-dl fails or is cancelled without completing the writer
-		_ = gdlTask.ContinueWith(static (_, state) => ((ChannelWriter<Url>) state!).TryComplete(),
+		_ = gdlTask.ContinueWith(static (_, state) => (((ChannelWriter<Url>) state)).TryComplete(),
 		                         ch.Writer, TaskScheduler.Default);
 
 		try {
@@ -342,7 +338,6 @@ public partial class MainWindowViewModel : ViewModelBase
 		}
 	}
 
-	[RelayCommand]
 	public async Task<bool> UploadInputAsync()
 	{
 		Query = await SearchQuery.TryCreateAsync(Input?.Trim('\"'));
@@ -352,7 +347,6 @@ public partial class MainWindowViewModel : ViewModelBase
 			Trace.Assert(Query.Upload != null);
 
 			// IsReady = Query.IsUploaded;
-			Url   = Query.Upload.Url;
 			Image = Bitmap.DecodeToWidth(Query.AllocImage.GetSource(), Query.AllocImage.Image.Width);
 			var ai = Query.AllocImage;
 			s_imageCache.AddOrUpdate(Query.AllocImage, Image);
@@ -363,7 +357,6 @@ public partial class MainWindowViewModel : ViewModelBase
 	}
 
 
-	// [RelayCommand]
 	public async Task RunSearchAsync()
 	{
 		// Capture once: m_cts is replaced by CancelAsync/ClearAsync
@@ -414,7 +407,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	}
 
-	[RelayCommand]
 	public async Task CancelAsync()
 	{
 		await m_cts.CancelAsync();
@@ -424,7 +416,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	public async Task ClearAsync()
 	{
-		// Stop any in-flight search/scan before tearing down the objects they use
 		await CancelAsync();
 
 		Items.Clear();
@@ -434,8 +425,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
 		Query?.Dispose();
 		Query = null;
-
-		Url = new Url();
 
 		Client.Dispose();
 		Client = new SearchClient(Config);
@@ -450,11 +439,8 @@ public partial class MainWindowViewModel : ViewModelBase
 	private async void ClipboardTick(object? sender, EventArgs args)
 	{
 		try {
-			if (Application.Current == null || IsReady) {
-				return;
-			}
 
-			var tl        = Application.Current.GetTopLevel();
+			var tl        = Application.Current?.GetTopLevel();
 			var clipboard = tl?.Clipboard;
 
 			if (clipboard == null)
@@ -462,11 +448,9 @@ public partial class MainWindowViewModel : ViewModelBase
 
 			var clipFile = await clipboard.TryGetFileAsync();
 
-
 			if (clipFile?.TryGetLocalPath() is { } lp && InputPredicate(lp)) {
 				Input = lp;
 				m_cbDispatch.Stop();
-
 			}
 
 			var clipText = await clipboard.TryGetTextAsync();
@@ -474,7 +458,6 @@ public partial class MainWindowViewModel : ViewModelBase
 			if (InputPredicate(clipText)) {
 				Input = clipText;
 				m_cbDispatch.Stop();
-
 			}
 		}
 		catch (Exception e) {

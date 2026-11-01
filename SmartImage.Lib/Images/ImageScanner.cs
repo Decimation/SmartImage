@@ -212,7 +212,7 @@ public static partial class ImageScanner
 			var             doc    = await parser.ReadToEndAsync(ct);
 			var             urls   = ParseImageUrls(doc, item.Url).ToArray();
 
-			ok = urls?.Length > 0;
+			ok = urls.Length > 0;
 
 			await Parallel.ForEachAsync(urls, ct, async (url, token) =>
 			{
