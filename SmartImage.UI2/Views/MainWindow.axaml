@@ -49,11 +49,16 @@
                         <WrapPanel>
                             <Label Content="URL" VerticalContentAlignment="Center" Background="#121212"></Label>
 
-                            <TextBox Name="Tb_QueryUploadUrl" MinWidth="100" MaxHeight="50" MaxWidth="400" Text="{Binding Query.Upload.Url, Mode=OneWay}"
+                            <TextBox Name="Tb_QueryUploadUrl" MinWidth="100" MaxHeight="50" MaxWidth="400" 
+                                     Text="{Binding Query?.Upload?.Url, Mode=OneWay, TargetNullValue='', FallbackValue=''}"
                                      IsEnabled="False" />
 
                         </WrapPanel>
                     </GroupBox>
+
+                    <TextBlock Text="{Binding ErrorMessage}" Foreground="OrangeRed" FontSize="14" Margin="5" MaxWidth="600"
+                               TextWrapping="Wrap" VerticalAlignment="Center"
+                               IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
                 </WrapPanel>
 

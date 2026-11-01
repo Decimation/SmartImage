@@ -82,30 +82,36 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver, INotifyPr
 	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
 	public async Task<bool> RunSearchAsync(SearchQuery query, CancellationToken token = default)
 	{
+		if (!query.IsUploaded) {
+			throw new ArgumentException($"Query was not uploaded", nameof(query));
+		}
+
 		if (ResultChannel == null || (IsComplete && !IsRunning)) {
 			// todo: throw?
 			OpenChannel();
 		}
 
-		if (!query.IsUploaded) {
-			throw new ArgumentException($"Query was not uploaded", nameof(query));
-		}
-
 		IsRunning = true;
 
-		if (!ConfigApplied) {
-			await ApplyConfigAsync(Config, token);
-			ConfigApplied = true;
+		SearchResult[] results;
 
+		try {
+			if (!ConfigApplied) {
+				await ApplyConfigAsync(Config, token);
+				ConfigApplied = true;
+
+			}
+
+			var tasks = GetSearchTasks(query, token);
+			results = await Task.WhenAll(tasks);
+		}
+		finally {
+			// Always complete the channel, even on cancellation/failure, so that
+			// readers are released and the next search opens a fresh channel
+			CompleteSearchAsync();
 		}
 
-		var tasks   = GetSearchTasks(query, token);
-		var results = await Task.WhenAll(tasks);
-
-
 		s_logger.LogTrace("Results: {Res}", results.Length);
-
-		CompleteSearchAsync();
 
 		if (Config.PriorityEngines == SearchEngineOptions.Auto) {
 			var best = GetBest(results);

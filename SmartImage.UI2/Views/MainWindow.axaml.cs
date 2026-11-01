@@ -27,7 +27,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 	public MainWindow()
 	{
 		InitializeComponent();
-		ViewModel = new MainWindowViewModel();
+		
 
 
 		Opened += MainWindow_OnOpened;
@@ -41,17 +41,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 	{
 
 		if (sender is ListBox lb && this.DataContext is MainWindowViewModel vm) {
-			var selectedItem = lb.SelectedItem as IUrl;
+			var selectedItem = vm.SelectedItem;
 			SearchClient.OpenResult(selectedItem.Url);
 		}
-	}
-
-	private void Tb_Input_OnTextChanging(object? sender, TextChangingEventArgs e)
-	{
-		if (sender is TextBox lb && this.DataContext is MainWindowViewModel vm) {
-			var selectedItem = lb.Text;
-		}
-
 	}
 
 }

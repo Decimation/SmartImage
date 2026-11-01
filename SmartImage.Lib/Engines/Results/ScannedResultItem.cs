@@ -99,13 +99,23 @@ public class ScannedResultItem : IChildResultItem, IAllocImageView<IAllocImage>,
 	public double? Similarity
 	{
 		get => field ?? Parent.Similarity;
-		set => SetField(ref field, value);
+		set
+		{
+			if (SetField(ref field, value)) {
+				OnPropertyChanged(nameof(HasSimilarity));
+			}
+		}
 	}
 
 	public ulong? Hash
 	{
 		get => field ?? Parent.Hash;
-		set => SetField(ref field, value);
+		set
+		{
+			if (SetField(ref field, value)) {
+				OnPropertyChanged(nameof(HasHash));
+			}
+		}
 	}
 
 	[MNNW(true, nameof(Width), nameof(Height))]

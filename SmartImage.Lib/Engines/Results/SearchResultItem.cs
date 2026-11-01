@@ -95,12 +95,30 @@ public record SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICo
 	public DateTime? Time { get; internal set; }
 
 
-	public double? Similarity { get; set; }
+	public double? Similarity
+	{
+		get;
+		set
+		{
+			if (SetField(ref field, value)) {
+				OnPropertyChanged(nameof(HasSimilarity));
+			}
+		}
+	}
 
 	[MNNW(true, nameof(Similarity))]
 	public bool HasSimilarity => Similarity is not null;
 
-	public ulong? Hash { get; internal set; }
+	public ulong? Hash
+	{
+		get;
+		internal set
+		{
+			if (SetField(ref field, value)) {
+				OnPropertyChanged(nameof(HasHash));
+			}
+		}
+	}
 
 	[MNNW(true, nameof(Hash))]
 	public bool HasHash => Hash is not null;

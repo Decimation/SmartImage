@@ -37,6 +37,7 @@ using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Alloc;
 using SmartImage.Lib.Model;
 using SmartImage.UI2.Controls;
+// ReSharper disable InconsistentNaming
 
 namespace SmartImage.UI2.ViewModels;
 
@@ -46,6 +47,8 @@ public partial class MainWindowViewModel : ViewModelBase
 	private static readonly ConditionalWeakTable<IAllocImage, IAvImage> s_imageCache = new();
 
 	private readonly DispatcherTimer m_cbDispatch;
+
+	// todo: use different CTS for different operations
 
 	private CancellationTokenSource m_cts;
 
@@ -116,6 +119,15 @@ public partial class MainWindowViewModel : ViewModelBase
 	{
 		get;
 		set => this.RaiseAndSetIfChanged(ref field, value);
+	}
+
+	/// <summary>
+	/// Last error message, or <c>null</c> if there is none.
+	/// </summary>
+	public string? ErrorMessage
+	{
+		get;
+		private set => this.RaiseAndSetIfChanged(ref field, value);
 	}
 
 #endregion
@@ -208,8 +220,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
 		ObservableMixins.WhereNotNull(this.WhenAnyValue(static x => x.SelectedItem))
 		                .InvokeCommand(selectedItemCmd);
-
-
 	}
 
 	private static bool InputPredicate(string? x)
@@ -233,17 +243,20 @@ public partial class MainWindowViewModel : ViewModelBase
 	private IAvImage GetFromCache(IResultItem item)
 	{
 		// todo
+
+		// Use query image if item does not have an image
 		if (item is not IAllocImageView<IAllocImage> { AllocImage: { HasImage: true } allocImg } allocImgView) {
 			var hasQueryImg = s_imageCache.TryGetValue(Query.AllocImage, out var queryImg);
+			// Must have query image here
 			return queryImg;
 		}
 
-
+		// Use cached image
 		if (s_imageCache.TryGetValue(allocImg, out var cached)) {
 			return cached;
 		}
 
-
+		// Add/update cached image
 		using var stream = allocImg.GetSource();
 		var       bitmap = new Bitmap(stream);
 
@@ -255,14 +268,24 @@ public partial class MainWindowViewModel : ViewModelBase
 	[RelayCommand]
 	public async Task LoadItemAsync(IResultItem item)
 	{
-		if (item is IScannableItem { } scannable) {
-			var ok = await scannable.ScanAsync(m_cts.Token);
+		if (item is not IScannableItem { } scannable) {
+			return;
+		}
 
-			if (ok) {
-				scannable.TryCalculateSimilarity(Query.AllocImage);
-				Items.AddOrInsertRange(scannable.ScannedItems, Items.IndexOf((IResultItem) scannable) + 1);
-			}
+		var ok = await scannable.ScanAsync(m_cts.Token);
 
+		if (!ok) {
+			return;
+		}
+
+		scannable.TryCalculateSimilarity(Query.AllocImage);
+
+		// ScanAsync returns early (true) if the item was already scanned,
+		// so only insert children that are not already displayed
+		var toAdd = scannable.ScannedItems.Where(x => !Items.Contains(x)).ToList();
+
+		if (toAdd.Count > 0) {
+			Items.AddOrInsertRange(toAdd, Items.IndexOf(scannable) + 1);
 		}
 	}
 
@@ -270,12 +293,13 @@ public partial class MainWindowViewModel : ViewModelBase
 	public async Task HashItemAsync(IResultItem item)
 	{
 		if (item is ScannedResultItem { HasHash: false } scnItem) {
-			scnItem.CalculateHash();
+			// Hashing reads and decodes the image, so keep it off the UI thread
+			await Task.Run(scnItem.CalculateHash);
 		}
 
+		// SearchResultItem/ScannedResultItem raise PropertyChanged for Similarity/Hash themselves
 		if (item is { HasHash: true, HasSimilarity: false }) {
-			var ok = item.TryCalculateSimilarity(Query.AllocImage);
-			this.RaisePropertyChanged(nameof(SelectedItem.Similarity));
+			item.TryCalculateSimilarity(Query.AllocImage);
 		}
 	}
 
@@ -283,30 +307,38 @@ public partial class MainWindowViewModel : ViewModelBase
 	public async Task GalleryDLItemAsync(object item)
 	{
 
-		if (item is IScannableItem { HasScannedItems: false } sri) {
-			var ch      = Channel.CreateUnbounded<Url>();
-			var gdlTask = ImageScanner.RunGalleryDLAsync(((IUrl) sri).Url, ch.Writer, m_cts.Token);
+		if (item is not IScannableItem { HasScannedItems: false } sri) {
+			return;
+		}
 
-			while (await ch.Reader.WaitToReadAsync(m_cts.Token)) {
-				var res = await ch.Reader.ReadAsync(m_cts.Token);
+		var token   = m_cts.Token;
+		var ch      = Channel.CreateUnbounded<Url>();
+		var gdlTask = ImageScanner.RunGalleryDLAsync(((IUrl) sri).Url, ch.Writer, token);
+
+		// Release the reader if gallery-dl fails or is cancelled without completing the writer
+		_ = gdlTask.ContinueWith(static (_, state) => ((ChannelWriter<Url>) state!).TryComplete(),
+		                         ch.Writer, TaskScheduler.Default);
+
+		try {
+			while (await ch.Reader.WaitToReadAsync(token)) {
+				var res = await ch.Reader.ReadAsync(token);
 
 				if (res is not null) {
-					var resAi = await AllocImageStream.FromSourceAsync(res, ct: m_cts.Token);
+					var resAi = await AllocImageStream.FromSourceAsync(res, ct: token);
 
 					if (resAi is { HasImage: true }) {
 						var scn = new ScannedResultItem(sri, resAi);
 						sri.ScannedItems.Add(scn);
 						sri.TryCalculateSimilarity(Query.AllocImage);
-						this.RaisePropertyChanged(nameof(SelectedItem.Similarity));
-						Items.Insert(Items.IndexOf(item) + 1, scn);
 
+						// Insert after the parent and any previously inserted children, preserving order
+						Items.Insert(Items.IndexOf(sri) + sri.ScannedItems.Count, scn);
 					}
-
 				}
 			}
-
+		}
+		finally {
 			await gdlTask;
-
 		}
 	}
 
@@ -334,18 +366,37 @@ public partial class MainWindowViewModel : ViewModelBase
 	// [RelayCommand]
 	public async Task RunSearchAsync()
 	{
-		try {
+		// Capture once: m_cts is replaced by CancelAsync/ClearAsync
+		var token = m_cts.Token;
 
-			var searchTask = Client.RunSearchAsync(Query, m_cts.Token);
+		try {
+			ErrorMessage = null;
+			Progress     = 0;
+
+			// New search replaces any previous results
+			Items.Clear();
+
+			var searchTask = Client.RunSearchAsync(Query, token);
+
+			// RunSearchAsync opens the channel synchronously, before its first await
+			var reader = Client.ResultChannel.Reader;
+			var writer = Client.ResultChannel.Writer;
+
+			// Release the reader if the search fails before completing the channel
+			_ = searchTask.ContinueWith(static (_, state) => ((ChannelWriter<SearchResult>) state!).TryComplete(),
+			                            writer, TaskScheduler.Default);
 
 			var count = Client.Engines.Count();
 			int c     = 0;
 
-			while (await Client.ResultChannel.Reader.WaitToReadAsync(m_cts.Token)) {
-				var res = await Client.ResultChannel.Reader.ReadAsync(m_cts.Token);
+			while (await reader.WaitToReadAsync(token)) {
+				var res = await reader.ReadAsync(token);
+
+				// Don't add results from a search that was cancelled/cleared in the meantime
+				token.ThrowIfCancellationRequested();
 
 				foreach (var item in res.Results) {
-					Items.Add((item));
+					Items.Add(item);
 				}
 
 				Progress = (++c / (double) count) * 100d;
@@ -353,11 +404,12 @@ public partial class MainWindowViewModel : ViewModelBase
 
 			await searchTask;
 		}
-		catch (OperationCanceledException e) {
-			// ...
+		catch (OperationCanceledException) {
+			// Cancelled by the user
 		}
 		catch (Exception e) {
-			// ...
+			Logger.Sink?.Log(LogEventLevel.Error, nameof(RunSearchAsync), this, $"{e}");
+			ErrorMessage = $"Search failed: {e.Message}";
 		}
 
 	}
@@ -372,8 +424,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	public async Task ClearAsync()
 	{
+		// Stop any in-flight search/scan before tearing down the objects they use
+		await CancelAsync();
+
 		Items.Clear();
-		Input = null;
+		Input        = null;
+		Progress     = 0;
+		ErrorMessage = null;
 
 		Query?.Dispose();
 		Query = null;
@@ -421,8 +478,7 @@ public partial class MainWindowViewModel : ViewModelBase
 			}
 		}
 		catch (Exception e) {
-			Logger.Sink?.Log(LogEventLevel.Error, nameof(ClipboardTick), this, "");
-			throw; // TODO handle exception
+			Logger.Sink?.Log(LogEventLevel.Error, nameof(ClipboardTick), this, $"{e}");
 		}
 	}
 
